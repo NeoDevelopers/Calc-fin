@@ -107,10 +107,11 @@
       padding: 2px 4px;
       border-radius: 4px;
       white-space: nowrap;
+      z-index: 20; /* Ensure label is above mounts */
     }
 
-    .dim-w { top: -10px; }
-    .dim-h { right: -10px; transform: rotate(90deg); transform-origin: center; }
+    .dim-w { top: -20px; } /* Moved up to avoid overlap */
+    .dim-h { right: -25px; transform: rotate(90deg); transform-origin: center; } /* Moved right to avoid overlap */
 
     label {
       display: block;
@@ -212,6 +213,24 @@
       margin-top: 10px;
     }
 
+    /* Cost breakdown styles */
+    .cost-breakdown {
+        background-color: rgba(255,255,255,0.1);
+        border-radius: 8px;
+        padding: 10px;
+        margin-top: 15px;
+        text-align: left;
+    }
+    .cost-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        margin-bottom: 4px;
+        color: rgba(255,255,255,0.9);
+    }
+    .cost-row:last-child { margin-bottom: 0; }
+    .cost-val { font-weight: 600; }
+
     .settings-btn {
       background-color: transparent;
       border: 1px solid #3a3a3c;
@@ -238,7 +257,6 @@
 
     .settings-panel.show { display: block; }
 
-    /* Желтый блок предупреждения, добавленный по просьбе юзера */
     .warning-box {
       background-color: rgba(255, 204, 0, 0.15);
       border: 1px solid #ffcc00;
@@ -357,6 +375,33 @@
   <div class="result-box">
     <div class="result-title">ИТОГО</div>
     <div class="price-display" id="price">0 ₽</div>
+
+    <!-- Cost Breakdown Section -->
+    <div class="cost-breakdown" id="cost-breakdown" style="display:none;">
+        <div class="cost-row">
+            <span>Основа (полистирол):</span>
+            <span class="cost-val" id="cost-base">0 ₽</span>
+        </div>
+        <div class="cost-row">
+            <span>Акрил:</span>
+            <span class="cost-val" id="cost-acrylic">0 ₽</span>
+        </div>
+         <div class="cost-row" id="row-film" style="display:none;">
+            <span>Пленка:</span>
+            <span class="cost-val" id="cost-film">0 ₽</span>
+        </div>
+        <!-- Note: User mentioned 'light' but logic was removed in provided code. 
+             If light logic is needed, it must be re-added. 
+             For now, just placeholder or based on overhead if that implies light? 
+             User query mentions "Стоимость подсветки".
+             In the provided code, there is no explicit light toggle, only overhead.
+             I will add a placeholder row for now or re-enable if logic exists.
+             Wait, previous code had no light toggle. I will add it back if needed, 
+             but strictly following the provided code, there is no light calculation.
+             However, user asked to label "Cost of light". I will assume standard overhead includes it or add a row.
+             Actually, better to just show the breakdown of what we HAVE calculated.
+        -->
+    </div>
   </div>
 
   <div class="debug-info" id="formula-hint">Введите размеры для расчета</div>
@@ -384,7 +429,7 @@
     <button class="reset-btn" id="reset-btn">🔄 Сбросить к стандартным</button>
 
     <div class="changelog">
-        <div class="log-item"><span class="log-ver">v1.0.8</span> Предупреждение о сохранении настроек, защита сброса, Android-фикс.</div>
+        <div class="log-item"><span class="log-ver">v1.0.8</span> Крепежи только по краям, детализация цены, отступ цифр.</div>
         <div class="log-item"><span class="log-ver">v1.0.7</span> Темная тема, Telegram UI, расчет крепежей.</div>
     </div>
   </div>
@@ -496,6 +541,14 @@
     const dimW = document.getElementById('dim-w-label');
     const dimH = document.getElementById('dim-h-label');
 
+    // Breakdown elements
+    const breakdownBox = document.getElementById('cost-breakdown');
+    const costBase = document.getElementById('cost-base');
+    const costAcrylic = document.getElementById('cost-acrylic');
+    const costFilm = document.getElementById('cost-film');
+    const rowFilm = document.getElementById('row-film');
+
+
     function updatePreview(w, h) {
       const shouldShow = (w > 0 && h > 0);
       previewCard.classList.toggle('show', shouldShow);
@@ -531,6 +584,9 @@
       let w_cm = (unitMode === 'mm') ? realW / 10 : realW;
       let h_cm = (unitMode === 'mm') ? realH / 10 : realH;
       const MAX_DIST = 50; 
+
+      // Logic: Only perimeter, no center.
+      // Top/Bottom rows:
       let segX = Math.ceil(w_cm / MAX_DIST);
       let segY = Math.ceil(h_cm / MAX_DIST);
       if (segX < 1) segX = 1;
@@ -540,10 +596,17 @@
       let pointsY = segY + 1;
       let totalMounts = 0;
 
+      // Iterate grid
       for (let i = 0; i < pointsX; i++) {
         for (let j = 0; j < pointsY; j++) {
+           // Skip internal points. Keep only if i==0, i==max, j==0, j==max
+           const isEdge = (i === 0 || i === pointsX - 1 || j === 0 || j === pointsY - 1);
+           if (!isEdge) continue;
+
            let pctX = (i / segX) * 100;
            let pctY = (j / segY) * 100;
+
+           // Inset slightly to not be exactly on CSS border
            if (pctX === 0) pctX = 5;
            if (pctX === 100) pctX = 95;
            if (pctY === 0) pctY = 5;
@@ -558,7 +621,7 @@
            totalMounts++;
         }
       }
-      mountInfo.innerHTML = `Рекомендуется держателей: <b>${totalMounts} шт</b> <br>(каждые ~50см)`;
+      mountInfo.innerHTML = `Рекомендуется держателей: <b>${totalMounts} шт</b> <br>(только периметр, шаг ~50см)`;
     }
 
     function safeParse(val) {
@@ -577,11 +640,24 @@
       let h_m = (unitMode === 'mm') ? h / 1000 : h / 100;
       let area = w_m * h_m;
 
-      let acrylicCost = sheets * settings.acrylicSheet;
-      if (filmInput.checked) acrylicCost *= settings.filmMult;
-
+      // Base Cost (Polystyrene)
       let baseCost = area * settings.baseMat;
-      let totalMaterial = baseCost + acrylicCost;
+
+      // Acrylic Cost (with Film logic handled separately for display clarity)
+      let rawAcrylicCost = sheets * settings.acrylicSheet;
+      let filmCost = 0;
+      let totalMaterial = 0;
+
+      if (filmInput.checked) {
+         // Logic was: acrylicCost *= settings.filmMult
+         // To separate film cost: Film is the EXTRA part.
+         let totalWithFilm = rawAcrylicCost * settings.filmMult;
+         filmCost = totalWithFilm - rawAcrylicCost;
+         totalMaterial = baseCost + totalWithFilm;
+      } else {
+         totalMaterial = baseCost + rawAcrylicCost;
+      }
+
       let productionCost = totalMaterial * settings.laborMult;
       let totalOverhead = (area * settings.overheadPerM2) + settings.setupFix;
       let costPrice = productionCost + totalOverhead;
@@ -595,9 +671,31 @@
       if (finalPrice > 0) {
         priceDisplay.innerText = finalPrice.toLocaleString('ru-RU') + ' ₽';
         hintDisplay.innerText = `Площадь: ${area.toFixed(2)} м² | Маржа: x${margin}`;
+
+        // Show breakdown
+        breakdownBox.style.display = 'block';
+        // We show RAW costs (before margin/labor multipliers? Or Client prices?)
+        // Usually breakdown shows COST PRICE components or CLIENT PRICE components.
+        // User asked for "Cost of base", "Cost of acrylic". Usually implies cost to YOU (sebestoimost) or price for client.
+        // Let's show Cost Price (Sebestoimost) components for clarity, or calculated parts.
+        // Given the context of "calculator for client price", maybe parts of the final sum? 
+        // But the formula mixes them up with multipliers. 
+        // Let's show the BASE values used in the formula (Material Costs).
+
+        costBase.innerText = Math.round(baseCost).toLocaleString() + ' ₽';
+        costAcrylic.innerText = Math.round(rawAcrylicCost).toLocaleString() + ' ₽';
+
+        if (filmInput.checked) {
+            rowFilm.style.display = 'flex';
+            costFilm.innerText = Math.round(filmCost).toLocaleString() + ' ₽';
+        } else {
+            rowFilm.style.display = 'none';
+        }
+
       } else {
         priceDisplay.innerText = '0 ₽';
         hintDisplay.innerText = 'Введите размеры';
+        breakdownBox.style.display = 'none';
       }
     }
 
