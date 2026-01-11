@@ -63,9 +63,9 @@
       height: 150px;
       background-color: rgba(0,0,0,0.2);
       border-radius: 8px;
-      margin-top: 10px;
+      margin-top: 25px; /* Added margin top to accommodate top label */
       position: relative;
-      overflow: hidden;
+      overflow: visible; /* Changed to visible to allow labels outside */
       border: 1px dashed #3a3a3c;
     }
 
@@ -107,11 +107,12 @@
       padding: 2px 4px;
       border-radius: 4px;
       white-space: nowrap;
-      z-index: 20; /* Ensure label is above mounts */
+      z-index: 20; 
     }
 
-    .dim-w { top: -20px; } /* Moved up to avoid overlap */
-    .dim-h { right: -25px; transform: rotate(90deg); transform-origin: center; } /* Moved right to avoid overlap */
+    /* Modified positioning to be safer */
+    .dim-w { top: -22px; left: 50%; transform: translateX(-50%); } 
+    .dim-h { right: -30px; top: 50%; transform: translateY(-50%) rotate(90deg); } 
 
     label {
       display: block;
@@ -356,9 +357,17 @@
 
   <div class="card">
     <div class="toggle-container">
-      <span class="toggle-label">🌈 Пленка (+40% к акрилу)</span>
+      <span class="toggle-label">🌈 Пленка (+30% к акрилу)</span>
       <label class="switch">
         <input type="checkbox" id="film">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-container">
+      <span class="toggle-label">💡 Подсветка (блок + лента)</span>
+      <label class="switch">
+        <input type="checkbox" id="light">
         <span class="slider"></span>
       </label>
     </div>
@@ -376,31 +385,24 @@
     <div class="result-title">ИТОГО</div>
     <div class="price-display" id="price">0 ₽</div>
 
-    <!-- Cost Breakdown Section -->
+    <!-- Cost Breakdown Section (Client Prices) -->
     <div class="cost-breakdown" id="cost-breakdown" style="display:none;">
         <div class="cost-row">
             <span>Основа (полистирол):</span>
-            <span class="cost-val" id="cost-base">0 ₽</span>
+            <span class="cost-val" id="price-base">0 ₽</span>
         </div>
         <div class="cost-row">
             <span>Акрил:</span>
-            <span class="cost-val" id="cost-acrylic">0 ₽</span>
+            <span class="cost-val" id="price-acrylic">0 ₽</span>
         </div>
-         <div class="cost-row" id="row-film" style="display:none;">
+        <div class="cost-row" id="row-film" style="display:none;">
             <span>Пленка:</span>
-            <span class="cost-val" id="cost-film">0 ₽</span>
+            <span class="cost-val" id="price-film">0 ₽</span>
         </div>
-        <!-- Note: User mentioned 'light' but logic was removed in provided code. 
-             If light logic is needed, it must be re-added. 
-             For now, just placeholder or based on overhead if that implies light? 
-             User query mentions "Стоимость подсветки".
-             In the provided code, there is no explicit light toggle, only overhead.
-             I will add a placeholder row for now or re-enable if logic exists.
-             Wait, previous code had no light toggle. I will add it back if needed, 
-             but strictly following the provided code, there is no light calculation.
-             However, user asked to label "Cost of light". I will assume standard overhead includes it or add a row.
-             Actually, better to just show the breakdown of what we HAVE calculated.
-        -->
+        <div class="cost-row" id="row-light" style="display:none;">
+            <span>Подсветка:</span>
+            <span class="cost-val" id="price-light">0 ₽</span>
+        </div>
     </div>
   </div>
 
@@ -423,18 +425,21 @@
     <div class="settings-row"><label>Фикс расход (₽)</label><input type="number" id="set-setup" value="100"></div>
     <div class="settings-row"><label>Маржа (малые, до 2м²)</label><input type="number" id="set-margin-small" value="5.3" step="0.1"></div>
     <div class="settings-row"><label>Маржа (опт, >2м²)</label><input type="number" id="set-margin-large" value="4.2" step="0.1"></div>
-    <div class="settings-row"><label>Пленка (множитель)</label><input type="number" id="set-film" value="1.4" step="0.1"></div>
+    <div class="settings-row"><label>Пленка (множитель)</label><input type="number" id="set-film" value="1.3" step="0.1"></div>
     <div class="settings-row"><label>Сложность (множитель)</label><input type="number" id="set-complex" value="1.4" step="0.1"></div>
+    <div class="settings-row"><label>Подсветка (фикс, ₽)</label><input type="number" id="set-light-fix" value="700"></div>
+    <div class="settings-row"><label>Подсветка (₽/м²)</label><input type="number" id="set-light-m2" value="2000"></div>
 
     <button class="reset-btn" id="reset-btn">🔄 Сбросить к стандартным</button>
 
     <div class="changelog">
-        <div class="log-item"><span class="log-ver">v1.0.8</span> Крепежи только по краям, детализация цены, отступ цифр.</div>
-        <div class="log-item"><span class="log-ver">v1.0.7</span> Темная тема, Telegram UI, расчет крепежей.</div>
+        <div class="log-item"><span class="log-ver">v1.0.10</span> Детализация цены для КЛИЕНТА, пленка +30%, кнопка и расчет подсветки.</div>
+        <div class="log-item"><span class="log-ver">v1.0.9</span> Крепежи только по периметру, отступы цифр.</div>
+        <div class="log-item"><span class="log-ver">v1.0.8</span> Предупреждение о сохранении настроек, защита сброса, Android-фикс.</div>
     </div>
   </div>
 
-  <div class="version-badge">v1.0.8</div>
+  <div class="version-badge">v1.0.10</div>
 
   <script>
     let tg = window.Telegram.WebApp;
@@ -448,8 +453,10 @@
       setupFix: 100,
       marginSmall: 5.3,
       marginLarge: 4.2,
-      filmMult: 1.4,
-      complexMult: 1.4
+      filmMult: 1.3,
+      complexMult: 1.4,
+      lightFix: 700,
+      lightM2: 2000
     };
 
     function loadSettings() {
@@ -463,6 +470,8 @@
         marginLarge: parseFloat(localStorage.getItem('marginLarge')) || DEFAULTS.marginLarge,
         filmMult: parseFloat(localStorage.getItem('filmMult')) || DEFAULTS.filmMult,
         complexMult: parseFloat(localStorage.getItem('complexMult')) || DEFAULTS.complexMult,
+        lightFix: parseFloat(localStorage.getItem('lightFix')) || DEFAULTS.lightFix,
+        lightM2: parseFloat(localStorage.getItem('lightM2')) || DEFAULTS.lightM2,
       };
     }
 
@@ -473,8 +482,8 @@
     let settings = loadSettings();
 
     // Заполнение полей
-    const inputs = ['set-base','set-acrylic','set-labor','set-overhead','set-setup','set-margin-small','set-margin-large','set-film','set-complex'];
-    const keys = ['baseMat','acrylicSheet','laborMult','overheadPerM2','setupFix','marginSmall','marginLarge','filmMult','complexMult'];
+    const inputs = ['set-base','set-acrylic','set-labor','set-overhead','set-setup','set-margin-small','set-margin-large','set-film','set-complex','set-light-fix','set-light-m2'];
+    const keys = ['baseMat','acrylicSheet','laborMult','overheadPerM2','setupFix','marginSmall','marginLarge','filmMult','complexMult','lightFix','lightM2'];
 
     inputs.forEach((id, index) => {
         document.getElementById(id).value = settings[keys[index]];
@@ -488,7 +497,6 @@
         });
     });
 
-    // СБРОС НАСТРОЕК С ПОДТВЕРЖДЕНИЕМ
     document.getElementById('reset-btn').addEventListener('click', () => {
       if (confirm("⚠️ Вы точно хотите сбросить настройки к заводским значениям?")) {
           settings = { ...DEFAULTS };
@@ -531,6 +539,7 @@
     const heightInput = document.getElementById('height');
     const sheetsInput = document.getElementById('sheets');
     const filmInput = document.getElementById('film');
+    const lightInput = document.getElementById('light');
     const complexInput = document.getElementById('complex');
     const priceDisplay = document.getElementById('price');
     const hintDisplay = document.getElementById('formula-hint');
@@ -543,11 +552,12 @@
 
     // Breakdown elements
     const breakdownBox = document.getElementById('cost-breakdown');
-    const costBase = document.getElementById('cost-base');
-    const costAcrylic = document.getElementById('cost-acrylic');
-    const costFilm = document.getElementById('cost-film');
+    const priceBase = document.getElementById('price-base');
+    const priceAcrylic = document.getElementById('price-acrylic');
+    const priceFilm = document.getElementById('price-film');
     const rowFilm = document.getElementById('row-film');
-
+    const rowLight = document.getElementById('row-light');
+    const priceLight = document.getElementById('price-light');
 
     function updatePreview(w, h) {
       const shouldShow = (w > 0 && h > 0);
@@ -557,8 +567,8 @@
       const MAX_W = 280;
       const MAX_H = 130;
       const ratio = w / h;
-
       let newW, newH;
+
       if (ratio > 1) {
         newW = Math.min(MAX_W, MAX_H * ratio);
         newH = newW / ratio;
@@ -585,8 +595,6 @@
       let h_cm = (unitMode === 'mm') ? realH / 10 : realH;
       const MAX_DIST = 50; 
 
-      // Logic: Only perimeter, no center.
-      // Top/Bottom rows:
       let segX = Math.ceil(w_cm / MAX_DIST);
       let segY = Math.ceil(h_cm / MAX_DIST);
       if (segX < 1) segX = 1;
@@ -596,17 +604,14 @@
       let pointsY = segY + 1;
       let totalMounts = 0;
 
-      // Iterate grid
       for (let i = 0; i < pointsX; i++) {
         for (let j = 0; j < pointsY; j++) {
-           // Skip internal points. Keep only if i==0, i==max, j==0, j==max
            const isEdge = (i === 0 || i === pointsX - 1 || j === 0 || j === pointsY - 1);
            if (!isEdge) continue;
 
            let pctX = (i / segX) * 100;
            let pctY = (j / segY) * 100;
 
-           // Inset slightly to not be exactly on CSS border
            if (pctX === 0) pctX = 5;
            if (pctX === 100) pctX = 95;
            if (pctY === 0) pctY = 5;
@@ -621,7 +626,7 @@
            totalMounts++;
         }
       }
-      mountInfo.innerHTML = `Рекомендуется держателей: <b>${totalMounts} шт</b> <br>(только периметр, шаг ~50см)`;
+      mountInfo.innerHTML = `Рекомендуется держателей: <b>${totalMounts} шт</b> <br>(только периметр)`;
     }
 
     function safeParse(val) {
@@ -640,30 +645,50 @@
       let h_m = (unitMode === 'mm') ? h / 1000 : h / 100;
       let area = w_m * h_m;
 
-      // Base Cost (Polystyrene)
+      // Base Materials Cost
       let baseCost = area * settings.baseMat;
-
-      // Acrylic Cost (with Film logic handled separately for display clarity)
-      let rawAcrylicCost = sheets * settings.acrylicSheet;
+      let acrylicCost = sheets * settings.acrylicSheet; 
       let filmCost = 0;
-      let totalMaterial = 0;
 
+      // If film selected: increase acrylic cost basis for calculation or just add extra?
+      // Logic: film is extra cost.
+      // Settings: FilmMult (1.3). 
+      // User says: "+30% к акрилу".
+      // So Cost with Film = AcrylicCost * 1.3
+      // Film Part = AcrylicCost * 0.3
       if (filmInput.checked) {
-         // Logic was: acrylicCost *= settings.filmMult
-         // To separate film cost: Film is the EXTRA part.
-         let totalWithFilm = rawAcrylicCost * settings.filmMult;
-         filmCost = totalWithFilm - rawAcrylicCost;
-         totalMaterial = baseCost + totalWithFilm;
-      } else {
-         totalMaterial = baseCost + rawAcrylicCost;
+          filmCost = acrylicCost * (settings.filmMult - 1);
       }
 
+      let totalMaterial = baseCost + acrylicCost + filmCost;
       let productionCost = totalMaterial * settings.laborMult;
       let totalOverhead = (area * settings.overheadPerM2) + settings.setupFix;
+
+      // Cost Price
       let costPrice = productionCost + totalOverhead;
 
+      // Margin
       let margin = (area > 2.0) ? settings.marginLarge : settings.marginSmall;
-      let finalPrice = costPrice * margin;
+      let priceWithMargin = costPrice * margin;
+
+      // Light Logic (Added on top or part of base?)
+      // Usually Light is calculated separately and added.
+      // Let's assume Light = (Fix + Area*Price) and it has NO margin (or has?).
+      // In v1.0.8 chat history, light was added separate.
+      // Let's add it at the end to be safe, or include in margin base.
+      // User requested "Подсветка" button and "Стоимость подсветки" in breakdown.
+      let lightCostClient = 0;
+      if (lightInput.checked) {
+          // Logic from history: Fix + (Area * 2000). Usually this is cost price? 
+          // If we want Client Price, we usually multiply. 
+          // BUT, let's treat the settings (700 fix, 2000 per m2) as FINAL client add-ons or cost to be multiplied?
+          // Let's assume these are DIRECT additions to final price for now (as per "don't multiply block by 5.3" in old chat).
+          lightCostClient = settings.lightFix + (area * settings.lightM2);
+      }
+
+      let finalPrice = priceWithMargin + lightCostClient;
+
+      // Complexity
       if (complexInput.checked) finalPrice *= settings.complexMult;
 
       finalPrice = Math.round(finalPrice / 100) * 100;
@@ -672,24 +697,40 @@
         priceDisplay.innerText = finalPrice.toLocaleString('ru-RU') + ' ₽';
         hintDisplay.innerText = `Площадь: ${area.toFixed(2)} м² | Маржа: x${margin}`;
 
-        // Show breakdown
-        breakdownBox.style.display = 'block';
-        // We show RAW costs (before margin/labor multipliers? Or Client prices?)
-        // Usually breakdown shows COST PRICE components or CLIENT PRICE components.
-        // User asked for "Cost of base", "Cost of acrylic". Usually implies cost to YOU (sebestoimost) or price for client.
-        // Let's show Cost Price (Sebestoimost) components for clarity, or calculated parts.
-        // Given the context of "calculator for client price", maybe parts of the final sum? 
-        // But the formula mixes them up with multipliers. 
-        // Let's show the BASE values used in the formula (Material Costs).
+        // BREAKDOWN: Client Prices (approximate share of total)
+        // We need to show how much of the Final Price is Acrylic, Base, etc.
+        // This is tricky because of margin multipliers.
+        // Let's distribute the 'Margin Part' proportionally to material costs.
+        // Or simpler: Show (Cost Component * Labor * Margin).
 
-        costBase.innerText = Math.round(baseCost).toLocaleString() + ' ₽';
-        costAcrylic.innerText = Math.round(rawAcrylicCost).toLocaleString() + ' ₽';
+        // Factor to multiply raw costs by to get Client Price Component (excluding light/complex)
+        let multiplier = settings.laborMult * margin; 
+        if (complexInput.checked) multiplier *= settings.complexMult;
+
+        let clientBase = baseCost * multiplier;
+        let clientAcrylic = acrylicCost * multiplier;
+        let clientFilm = filmCost * multiplier;
+
+        // Light is not multiplied by margin in our logic above, so we just take it as is.
+        // If complex applies to light too:
+        if (complexInput.checked) lightCostClient *= settings.complexMult;
+
+        breakdownBox.style.display = 'block';
+        priceBase.innerText = Math.round(clientBase).toLocaleString() + ' ₽';
+        priceAcrylic.innerText = Math.round(clientAcrylic).toLocaleString() + ' ₽';
 
         if (filmInput.checked) {
             rowFilm.style.display = 'flex';
-            costFilm.innerText = Math.round(filmCost).toLocaleString() + ' ₽';
+            priceFilm.innerText = Math.round(clientFilm).toLocaleString() + ' ₽';
         } else {
             rowFilm.style.display = 'none';
+        }
+
+        if (lightInput.checked) {
+            rowLight.style.display = 'flex';
+            priceLight.innerText = Math.round(lightCostClient).toLocaleString() + ' ₽';
+        } else {
+            rowLight.style.display = 'none';
         }
 
       } else {
@@ -703,6 +744,7 @@
     heightInput.addEventListener('input', calculate);
     sheetsInput.addEventListener('input', calculate);
     filmInput.addEventListener('change', calculate);
+    lightInput.addEventListener('change', calculate);
     complexInput.addEventListener('change', calculate);
 
     updatePreview(0,0);
