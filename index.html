@@ -80,7 +80,7 @@
       align-items: center;
     }
 
-    /* Mount holes styling - Updated Design */
+    /* Mount holes styling */
     .mount-hole {
       position: absolute;
       width: 8px;
@@ -161,16 +161,16 @@
       box-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
 
-    /* Updated Toggle Container for uniform spacing */
+    /* Updated Toggle Container */
     .toggle-container {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 0; /* Uniform padding */
+      padding: 12px 0; 
       border-bottom: 1px solid rgba(128,128,128, 0.2);
     }
-    .toggle-container:first-child { padding-top: 0; } /* Remove top padding for first item */
-    .toggle-container:last-child { border-bottom: none; padding-bottom: 0; } /* Remove bottom padding for last item */
+    .toggle-container:first-child { padding-top: 0; } 
+    .toggle-container:last-child { border-bottom: none; padding-bottom: 0; } 
 
     .toggle-label { font-size: 16px; }
 
@@ -228,6 +228,13 @@
         font-size: 12px;
         margin-bottom: 4px;
         color: rgba(255,255,255,0.9);
+    }
+    .cost-row.main {
+        border-top: 1px solid rgba(255,255,255,0.2);
+        margin-top: 6px;
+        padding-top: 6px;
+        font-weight: bold;
+        color: white;
     }
     .cost-row:last-child { margin-bottom: 0; }
     .cost-val { font-weight: 600; }
@@ -299,7 +306,6 @@
     }
     .changelog h4 { margin: 0 0 10px 0; font-size: 14px; color: #8e8e93; }
 
-    /* Collapsible Logic */
     .log-item { font-size: 11px; color: #8e8e93; margin-bottom: 6px; }
     .log-ver { color: #0a84ff; font-weight: bold; margin-right: 5px; }
 
@@ -397,20 +403,24 @@
 
     <div class="cost-breakdown" id="cost-breakdown" style="display:none;">
         <div class="cost-row">
-            <span>Основа (полистирол):</span>
+            <span>Основа + Работа:</span>
             <span class="cost-val" id="price-base">0 ₽</span>
         </div>
         <div class="cost-row">
-            <span>Акрил:</span>
+            <span>Акрил (материал):</span>
             <span class="cost-val" id="price-acrylic">0 ₽</span>
         </div>
         <div class="cost-row" id="row-film" style="display:none;">
-            <span>Пленка:</span>
+            <span>Пленка (опция):</span>
             <span class="cost-val" id="price-film">0 ₽</span>
         </div>
         <div class="cost-row" id="row-light" style="display:none;">
-            <span>Подсветка:</span>
+            <span>Подсветка (комплект):</span>
             <span class="cost-val" id="price-light">0 ₽</span>
+        </div>
+         <div class="cost-row main" id="row-complex" style="display:none;">
+            <span>+ Сложность (х1.4):</span>
+            <span class="cost-val" id="price-complex">0 ₽</span>
         </div>
     </div>
   </div>
@@ -443,20 +453,20 @@
 
     <div class="changelog">
         <h4>История обновлений</h4>
+        <div class="log-item"><span class="log-ver">v1.0.13</span> Полная детализация цены (из чего состоит сумма).</div>
         <div class="log-item"><span class="log-ver">v1.0.12</span> Шаг крепежей 70-80 см.</div>
-        <div class="log-item"><span class="log-ver">v1.0.11</span> Отступы карточек, дизайн держателей, скрытие старых логов.</div>
-        <div class="log-item"><span class="log-ver">v1.0.10</span> Детализация цены (клиент), пленка 30%, подсветка.</div>
+        <div class="log-item"><span class="log-ver">v1.0.11</span> Отступы карточек, дизайн держателей.</div>
 
         <div id="hidden-logs" class="hidden-logs">
+            <div class="log-item"><span class="log-ver">v1.0.10</span> Детализация цены, пленка 30%, подсветка.</div>
             <div class="log-item"><span class="log-ver">v1.0.9</span> Крепежи только по периметру, отступы цифр.</div>
             <div class="log-item"><span class="log-ver">v1.0.8</span> Предупреждение о сохранении настроек, Android-фикс.</div>
-            <div class="log-item"><span class="log-ver">v1.0.7</span> Темная тема, Telegram UI.</div>
         </div>
         <button class="show-more-btn" onclick="toggleLogs()" id="log-toggle-btn">Показать старые версии...</button>
     </div>
   </div>
 
-  <div class="version-badge">v1.0.12</div>
+  <div class="version-badge">v1.0.13</div>
 
   <script>
     let tg = window.Telegram.WebApp;
@@ -587,6 +597,8 @@
     const rowFilm = document.getElementById('row-film');
     const rowLight = document.getElementById('row-light');
     const priceLight = document.getElementById('price-light');
+    const rowComplex = document.getElementById('row-complex');
+    const priceComplex = document.getElementById('price-complex');
 
     function updatePreview(w, h) {
       const shouldShow = (w > 0 && h > 0);
@@ -701,7 +713,13 @@
 
       let finalPrice = priceWithMargin + lightCostClient;
 
-      if (complexInput.checked) finalPrice *= settings.complexMult;
+      // Calculate complex extra cost
+      let complexExtra = 0;
+      if (complexInput.checked) {
+          let priceBeforeComplex = finalPrice;
+          finalPrice *= settings.complexMult;
+          complexExtra = finalPrice - priceBeforeComplex;
+      }
 
       finalPrice = Math.round(finalPrice / 100) * 100;
 
@@ -710,21 +728,39 @@
         hintDisplay.innerText = `Площадь: ${area.toFixed(2)} м² | Маржа: x${margin}`;
 
         let multiplier = settings.laborMult * margin; 
-        if (complexInput.checked) multiplier *= settings.complexMult;
+        // Note: we display base components BEFORE complexity multiplier is applied in breakdown,
+        // and show complexity as a separate line item at the end.
 
         let clientBase = baseCost * multiplier;
-        let clientAcrylic = acrylicCost * multiplier;
-        let clientFilm = filmCost * multiplier;
+        // Add overhead to base for simpler display? 
+        // Breakdown usually implies "Material A + Material B".
+        // Let's keep it simple: Base Material Part * Multiplier. 
+        // Overhead is invisible "infrastructure" cost, maybe lump it into Base?
+        // Let's lump overhead + base material into "Основа + Работа".
+        // Actually, logic: (Mat * Labor + Overhead) * Margin.
+        // So Client Price for Base = ((BaseMat * Labor + Overhead) * Margin).
 
-        if (complexInput.checked) lightCostClient *= settings.complexMult;
+        // Let's distribute Overhead proportionally or just add to Base.
+        let basePartCost = (baseCost * settings.laborMult) + totalOverhead;
+        let acrylicPartCost = (acrylicCost * settings.laborMult);
+        let filmPartCost = (filmCost * settings.laborMult);
+
+        // Normalize to ensure sum matches PriceWithMargin
+        let totalCostParts = basePartCost + acrylicPartCost + filmPartCost;
+        if (totalCostParts === 0) totalCostParts = 1; // avoid zero div
+
+        // Distribute the priceWithMargin proportionally
+        let clientBaseFinal = (basePartCost / totalCostParts) * priceWithMargin;
+        let clientAcrylicFinal = (acrylicPartCost / totalCostParts) * priceWithMargin;
+        let clientFilmFinal = (filmPartCost / totalCostParts) * priceWithMargin;
 
         breakdownBox.style.display = 'block';
-        priceBase.innerText = Math.round(clientBase).toLocaleString() + ' ₽';
-        priceAcrylic.innerText = Math.round(clientAcrylic).toLocaleString() + ' ₽';
+        priceBase.innerText = Math.round(clientBaseFinal).toLocaleString() + ' ₽';
+        priceAcrylic.innerText = Math.round(clientAcrylicFinal).toLocaleString() + ' ₽';
 
         if (filmInput.checked) {
             rowFilm.style.display = 'flex';
-            priceFilm.innerText = Math.round(clientFilm).toLocaleString() + ' ₽';
+            priceFilm.innerText = Math.round(clientFilmFinal).toLocaleString() + ' ₽';
         } else {
             rowFilm.style.display = 'none';
         }
@@ -734,6 +770,13 @@
             priceLight.innerText = Math.round(lightCostClient).toLocaleString() + ' ₽';
         } else {
             rowLight.style.display = 'none';
+        }
+
+        if (complexInput.checked) {
+            rowComplex.style.display = 'flex';
+            priceComplex.innerText = '+' + Math.round(complexExtra).toLocaleString() + ' ₽';
+        } else {
+            rowComplex.style.display = 'none';
         }
 
       } else {
