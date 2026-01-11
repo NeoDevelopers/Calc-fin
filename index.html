@@ -631,8 +631,13 @@
     <div class="settings-row"><label>Работа (множитель)</label><input type="number" id="set-labor" value="1.5" step="0.1"></div>
     <div class="settings-row"><label>Расходы (₽/м²)</label><input type="number" id="set-overhead" value="1500"></div>
     <div class="settings-row"><label>Фикс расход (₽)</label><input type="number" id="set-setup" value="100"></div>
-    <div class="settings-row"><label>Маржа (малые, до 2м²)</label><input type="number" id="set-margin-small" value="5.3" step="0.1"></div>
-    <div class="settings-row"><label>Маржа (опт, >2м²)</label><input type="number" id="set-margin-large" value="4.2" step="0.1"></div>
+
+    <div class="settings-row"><label>Маржа макс (≈1 м²)</label><input type="number" id="set-margin-small" value="5.3" step="0.1"></div>
+    <div class="settings-row"><label>Маржа мин (≥3 м²)</label><input type="number" id="set-margin-large" value="3.8" step="0.1"></div>
+
+    <div class="settings-row"><label>Скидка акрил max (%) (2→5 листов)</label><input type="number" id="set-acrylic-disc" value="20" step="1"></div>
+    <div class="settings-row"><label>Скидка основа max (%) (1→3 м²)</label><input type="number" id="set-base-disc" value="12" step="1"></div>
+
     <div class="settings-row"><label>Пленка (множитель)</label><input type="number" id="set-film" value="1.3" step="0.1"></div>
     <div class="settings-row"><label>Сложность (множитель)</label><input type="number" id="set-complex" value="1.4" step="0.1"></div>
     <div class="settings-row"><label>Подсветка (фикс, ₽)</label><input type="number" id="set-light-fix" value="700"></div>
@@ -642,20 +647,20 @@
 
     <div class="changelog">
       <h4>История обновлений</h4>
+      <div class="log-item"><span class="log-ver">v1.1.2</span> Плавная маржа + плавные скидки: акрил (2→5 листов) и основа (1→3 м²). Мин. маржа 3.8.</div>
       <div class="log-item"><span class="log-ver">v1.1.0</span> Переключатель темы + стиль iOS 26 (glass).</div>
       <div class="log-item"><span class="log-ver">v1.0.13</span> Полная детализация цены (из чего состоит сумма).</div>
-      <div class="log-item"><span class="log-ver">v1.0.12</span> Шаг крепежей 70-80 см.</div>
 
       <div id="hidden-logs" class="hidden-logs">
+        <div class="log-item"><span class="log-ver">v1.0.12</span> Шаг крепежей 70-80 см.</div>
         <div class="log-item"><span class="log-ver">v1.0.11</span> Отступы карточек, дизайн держателей.</div>
         <div class="log-item"><span class="log-ver">v1.0.10</span> Детализация цены, пленка 30%, подсветка.</div>
-        <div class="log-item"><span class="log-ver">v1.0.9</span> Крепежи только по периметру, отступы цифр.</div>
       </div>
       <button class="show-more-btn" onclick="toggleLogs()" id="log-toggle-btn">Показать старые версии...</button>
     </div>
   </div>
 
-  <div class="version-badge">v1.1.0</div>
+  <div class="version-badge">v1.1.2</div>
 
   <script>
     let tg = window.Telegram.WebApp;
@@ -668,7 +673,9 @@
       overheadPerM2: 1500,
       setupFix: 100,
       marginSmall: 5.3,
-      marginLarge: 4.2,
+      marginLarge: 3.8,
+      acrylicDiscMaxPct: 20,
+      baseDiscMaxPct: 12,
       filmMult: 1.3,
       complexMult: 1.4,
       lightFix: 700,
@@ -684,6 +691,8 @@
         setupFix: parseFloat(localStorage.getItem('setupFix')) || DEFAULTS.setupFix,
         marginSmall: parseFloat(localStorage.getItem('marginSmall')) || DEFAULTS.marginSmall,
         marginLarge: parseFloat(localStorage.getItem('marginLarge')) || DEFAULTS.marginLarge,
+        acrylicDiscMaxPct: parseFloat(localStorage.getItem('acrylicDiscMaxPct')) || DEFAULTS.acrylicDiscMaxPct,
+        baseDiscMaxPct: parseFloat(localStorage.getItem('baseDiscMaxPct')) || DEFAULTS.baseDiscMaxPct,
         filmMult: parseFloat(localStorage.getItem('filmMult')) || DEFAULTS.filmMult,
         complexMult: parseFloat(localStorage.getItem('complexMult')) || DEFAULTS.complexMult,
         lightFix: parseFloat(localStorage.getItem('lightFix')) || DEFAULTS.lightFix,
@@ -726,8 +735,17 @@
     });
 
     // Заполнение полей
-    const inputs = ['set-base','set-acrylic','set-labor','set-overhead','set-setup','set-margin-small','set-margin-large','set-film','set-complex','set-light-fix','set-light-m2'];
-    const keys = ['baseMat','acrylicSheet','laborMult','overheadPerM2','setupFix','marginSmall','marginLarge','filmMult','complexMult','lightFix','lightM2'];
+    const inputs = [
+      'set-base','set-acrylic','set-labor','set-overhead','set-setup',
+      'set-margin-small','set-margin-large','set-acrylic-disc','set-base-disc',
+      'set-film','set-complex','set-light-fix','set-light-m2'
+    ];
+
+    const keys = [
+      'baseMat','acrylicSheet','laborMult','overheadPerM2','setupFix',
+      'marginSmall','marginLarge','acrylicDiscMaxPct','baseDiscMaxPct',
+      'filmMult','complexMult','lightFix','lightM2'
+    ];
 
     inputs.forEach((id, index) => {
       document.getElementById(id).value = settings[keys[index]];
@@ -872,7 +890,6 @@
           let pctX = (i / segX) * 100;
           let pctY = (j / segY) * 100;
 
-          // inset одинаковый со всех краёв
           let inset = 7;
           if (pctX === 0) pctX = inset;
           if (pctX === 100) pctX = 100 - inset;
@@ -897,6 +914,14 @@
       return parseFloat(val.toString().replace(',', '.')) || 0;
     }
 
+    function clamp01(x) {
+      return Math.max(0, Math.min(1, x));
+    }
+
+    function lerp(a, b, t) {
+      return a + (b - a) * t;
+    }
+
     function calculate() {
       let w = safeParse(widthInput.value);
       let h = safeParse(heightInput.value);
@@ -908,10 +933,26 @@
       let h_m = (unitMode === 'mm') ? h / 1000 : h / 100;
       let area = w_m * h_m;
 
-      let baseCost = area * settings.baseMat;
-      let acrylicCost = sheets * settings.acrylicSheet;
-      let filmCost = 0;
+      // 1) Плавная маржа: от 1 м² (max) до 3 м² (min)
+      const M_START = 1.0;
+      const M_END = 3.0;
+      let tMargin = clamp01((area - M_START) / (M_END - M_START));
+      let margin = lerp(settings.marginSmall, settings.marginLarge, tMargin);
 
+      // 2) Плавная скидка на основу (полистирол): от 1 м² до 3 м²
+      let baseDisc = clamp01((area - 1.0) / (3.0 - 1.0)) * (settings.baseDiscMaxPct / 100);
+      let baseMatEff = settings.baseMat * (1 - baseDisc);
+
+      // 3) Плавная скидка на акрил: от 2 до 5 листов
+      let tAcrylic = clamp01((sheets - 2.0) / (5.0 - 2.0));
+      let acrylicDisc = tAcrylic * (settings.acrylicDiscMaxPct / 100);
+      let acrylicSheetEff = settings.acrylicSheet * (1 - acrylicDisc);
+
+      // Себестоимость
+      let baseCost = area * baseMatEff;
+      let acrylicCost = sheets * acrylicSheetEff;
+
+      let filmCost = 0;
       if (filmInput.checked) {
         filmCost = acrylicCost * (settings.filmMult - 1);
       }
@@ -921,7 +962,6 @@
       let totalOverhead = (area * settings.overheadPerM2) + settings.setupFix;
       let costPrice = productionCost + totalOverhead;
 
-      let margin = (area > 2.0) ? settings.marginLarge : settings.marginSmall;
       let priceWithMargin = costPrice * margin;
 
       let lightCostClient = 0;
@@ -943,7 +983,7 @@
 
       if (finalPrice > 0) {
         priceDisplay.innerText = finalPrice.toLocaleString('ru-RU') + ' ₽';
-        hintDisplay.innerText = `Площадь: ${area.toFixed(2)} м² | Маржа: x${margin}`;
+        hintDisplay.innerText = `Площадь: ${area.toFixed(2)} м² | Маржа: x${margin.toFixed(2)} | Скидки: акрил ${Math.round(acrylicDisc*100)}% / основа ${Math.round(baseDisc*100)}%`;
 
         // Раскладываем priceWithMargin на части пропорционально себестоимости
         let basePartCost = (baseCost * settings.laborMult) + totalOverhead;
