@@ -35,6 +35,44 @@
             position: relative;
         }
 
+        /* Preview Canvas Style */
+        .preview-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 150px; /* Fixed height for preview area */
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+            border: 1px dashed #3a3a3c;
+        }
+
+        .preview-box {
+            background-color: rgba(10, 132, 255, 0.15); /* Blue tint */
+            border: 2px solid #0a84ff;
+            box-shadow: 0 0 15px rgba(10, 132, 255, 0.2);
+            position: relative;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dim-label {
+            position: absolute;
+            font-size: 11px;
+            color: #0a84ff;
+            background-color: #2c2c2e;
+            padding: 2px 4px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .dim-w { top: -10px; }
+        .dim-h { right: -10px; transform: rotate(90deg); transform-origin: center; }
+
         label {
             display: block;
             margin-bottom: 8px;
@@ -63,7 +101,6 @@
         .row { display: flex; gap: 10px; align-items: flex-end; }
         .col { flex: 1; }
 
-        /* Unit toggle - Discreet Style */
         .unit-toggle-container {
             display: flex;
             justify-content: flex-end;
@@ -228,6 +265,17 @@
         <input type="number" id="sheets" placeholder="1.5" inputmode="decimal" step="0.1">
     </div>
 
+    <!-- Preview Area -->
+    <div class="card">
+        <label>Визуализация пропорций</label>
+        <div class="preview-container">
+            <div class="preview-box" id="preview-box">
+                <span class="dim-label dim-w" id="dim-w-label">100</span>
+                <span class="dim-label dim-h" id="dim-h-label">100</span>
+            </div>
+        </div>
+    </div>
+
     <div class="card">
         <div class="toggle-container">
             <span class="toggle-label">🌈 Пленка (+40% к акрилу)</span>
@@ -260,7 +308,6 @@
     <div class="settings-panel" id="settings-panel">
         <h3 style="margin-top: 0; font-size: 16px;">Настройки расчета</h3>
 
-        <!-- Settings inputs remain same as before -->
         <div class="settings-row"><label>Основа (₽/м²)</label><input type="number" id="set-base" value="1133"></div>
         <div class="settings-row"><label>Акрил (₽/лист)</label><input type="number" id="set-acrylic" value="600"></div>
         <div class="settings-row"><label>Работа (множитель)</label><input type="number" id="set-labor" value="1.5" step="0.1"></div>
@@ -323,7 +370,6 @@
         document.getElementById('set-film').value = settings.filmMult;
         document.getElementById('set-complex').value = settings.complexMult;
 
-        // Settings change listener
         ['set-base', 'set-acrylic', 'set-labor', 'set-overhead', 'set-setup', 
          'set-margin-small', 'set-margin-large', 'set-film', 'set-complex'].forEach(id => {
             document.getElementById(id).addEventListener('input', () => {
@@ -343,7 +389,6 @@
             });
         });
 
-        // Reset
         document.getElementById('reset-btn').addEventListener('click', () => {
             settings = {...DEFAULTS};
             document.getElementById('set-base').value = DEFAULTS.baseMat;
@@ -363,7 +408,6 @@
             document.getElementById('settings-panel').classList.toggle('show');
         });
 
-        // Unit toggle logic
         let unitMode = 'cm'; 
         document.getElementById('unit-cm').addEventListener('click', () => {
             unitMode = 'cm';
@@ -395,10 +439,59 @@
         const priceDisplay = document.getElementById('price');
         const hintDisplay = document.getElementById('formula-hint');
 
+        // Preview Elements
+        const previewBox = document.getElementById('preview-box');
+        const dimW = document.getElementById('dim-w-label');
+        const dimH = document.getElementById('dim-h-label');
+
+        function updatePreview(w, h) {
+            if (!w || !h || w <= 0 || h <= 0) {
+                // Default square if empty
+                previewBox.style.width = '100px';
+                previewBox.style.height = '100px';
+                dimW.textContent = unitMode === 'cm' ? '100' : '1000';
+                dimH.textContent = unitMode === 'cm' ? '100' : '1000';
+                return;
+            }
+
+            // Max dimensions in pixels inside the container
+            const MAX_W = 280; 
+            const MAX_H = 130;
+
+            // Calculate aspect ratio
+            const ratio = w / h;
+
+            let newW, newH;
+
+            if (ratio > 1) { // Landscape
+                newW = Math.min(MAX_W, MAX_H * ratio);
+                newH = newW / ratio;
+                if (newH > MAX_H) { // If still too tall
+                    newH = MAX_H;
+                    newW = newH * ratio;
+                }
+            } else { // Portrait or Square
+                newH = Math.min(MAX_H, MAX_W / ratio);
+                newW = newH * ratio;
+                if (newW > MAX_W) { // If still too wide
+                    newW = MAX_W;
+                    newH = newW / ratio;
+                }
+            }
+
+            previewBox.style.width = newW + 'px';
+            previewBox.style.height = newH + 'px';
+
+            dimW.textContent = w;
+            dimH.textContent = h;
+        }
+
         function calculate() {
             let w = parseFloat(widthInput.value) || 0;
             let h = parseFloat(heightInput.value) || 0;
             let sheets = parseFloat(sheetsInput.value) || 0;
+
+            updatePreview(w, h);
 
             let w_m = unitMode === 'mm' ? w / 1000 : w / 100;
             let h_m = unitMode === 'mm' ? h / 1000 : h / 100;
