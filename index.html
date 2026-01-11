@@ -7,8 +7,9 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * { box-sizing: border-box; }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--tg-theme-bg-color, #1c1c1e);
       color: var(--tg-theme-text-color, #ffffff);
       margin: 0;
@@ -16,6 +17,14 @@
       padding-bottom: 60px;
       -webkit-tap-highlight-color: transparent;
       min-height: 100vh;
+      transition: background 240ms ease;
+    }
+
+    /* iOS 26 style (glass / futuristic) */
+    body[data-theme="ios26"] {
+      background: radial-gradient(circle at 20% 10%, #2b1055 0%, #0b1b3f 35%, #000 70%);
+      background-size: 140% 140%;
+      color: rgba(255,255,255,0.92);
     }
 
     h1 {
@@ -23,7 +32,14 @@
       font-size: 20px;
       margin-bottom: 14px;
       color: var(--tg-theme-link-color, #0a84ff);
-      font-weight: 600;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    body[data-theme="ios26"] h1 {
+      color: #7cc4ff;
+      text-shadow: 0 0 22px rgba(124, 196, 255, 0.35);
+      margin-bottom: 18px;
     }
 
     .card {
@@ -33,6 +49,16 @@
       margin-bottom: 16px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
       position: relative;
+    }
+
+    body[data-theme="ios26"] .card,
+    body[data-theme="ios26"] .settings-panel {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: 20px;
     }
 
     /* Preview card */
@@ -48,7 +74,7 @@
     }
 
     .preview-card.show {
-      max-height: 300px;
+      max-height: 320px;
       opacity: 1;
       transform: translateY(0);
       padding-top: 16px;
@@ -63,10 +89,16 @@
       height: 150px;
       background-color: rgba(0,0,0,0.2);
       border-radius: 8px;
-      margin-top: 25px; 
+      margin-top: 25px;
       position: relative;
-      overflow: visible; 
+      overflow: visible;
       border: 1px dashed #3a3a3c;
+    }
+
+    body[data-theme="ios26"] .preview-container {
+      background: rgba(0,0,0,0.18);
+      border: 1px dashed rgba(255,255,255,0.25);
+      border-radius: 14px;
     }
 
     .preview-box {
@@ -80,21 +112,32 @@
       align-items: center;
     }
 
-    /* Mount holes styling */
+    body[data-theme="ios26"] .preview-box {
+      border-color: #7cc4ff;
+      box-shadow: 0 0 26px rgba(124, 196, 255, 0.25);
+    }
+
+    /* Mount holes */
     .mount-hole {
       position: absolute;
       width: 8px;
       height: 8px;
-      background-color: #2c2c2e; /* Dark center */
-      border: 2px solid #0a84ff; /* Blue ring */
+      background-color: #2c2c2e;
+      border: 2px solid #0a84ff;
       border-radius: 50%;
       box-shadow: 0 0 4px rgba(10, 132, 255, 0.6);
       z-index: 10;
     }
 
+    body[data-theme="ios26"] .mount-hole {
+      background: rgba(0,0,0,0.35);
+      border-color: #7cc4ff;
+      box-shadow: 0 0 10px rgba(124, 196, 255, 0.55);
+    }
+
     .mount-info {
       font-size: 13px;
-      color: #30d158; /* Green */
+      color: #30d158;
       margin-top: 8px;
       text-align: center;
     }
@@ -107,11 +150,19 @@
       padding: 2px 4px;
       border-radius: 4px;
       white-space: nowrap;
-      z-index: 20; 
+      z-index: 20;
     }
 
-    .dim-w { top: -22px; left: 50%; transform: translateX(-50%); } 
-    .dim-h { right: -30px; top: 50%; transform: translateY(-50%) rotate(90deg); } 
+    body[data-theme="ios26"] .dim-label {
+      background: rgba(255,255,255,0.10);
+      color: #7cc4ff;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 3px 6px;
+    }
+
+    .dim-w { top: -22px; left: 50%; transform: translateX(-50%); }
+    .dim-h { right: -30px; top: 50%; transform: translateY(-50%) rotate(90deg); }
 
     label {
       display: block;
@@ -119,6 +170,8 @@
       font-size: 14px;
       color: var(--tg-theme-hint-color, #8e8e93);
     }
+
+    body[data-theme="ios26"] label { color: rgba(255,255,255,0.70); }
 
     input[type="text"], input[type="number"] {
       width: 100%;
@@ -130,10 +183,22 @@
       font-size: 18px;
       margin-bottom: 10px;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    body[data-theme="ios26"] input[type="text"],
+    body[data-theme="ios26"] input[type="number"] {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
     }
 
     input:focus { border-color: var(--tg-theme-link-color, #0a84ff); }
+
+    body[data-theme="ios26"] input:focus {
+      border-color: rgba(124,196,255,0.75);
+      box-shadow: 0 0 0 3px rgba(124,196,255,0.15);
+    }
 
     .row { display: flex; gap: 10px; align-items: flex-end; }
     .col { flex: 1; }
@@ -145,6 +210,13 @@
       border-radius: 6px;
       padding: 2px;
     }
+
+    body[data-theme="ios26"] .unit-toggle {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 12px;
+    }
+
     .unit-toggle button {
       border: none;
       background: transparent;
@@ -161,16 +233,25 @@
       box-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
 
-    /* Updated Toggle Container */
+    body[data-theme="ios26"] .unit-toggle button { color: rgba(255,255,255,0.72); font-weight: 600; }
+    body[data-theme="ios26"] .unit-toggle button.active {
+      background: rgba(255,255,255,0.16);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    }
+
     .toggle-container {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 0; 
+      padding: 12px 0;
       border-bottom: 1px solid rgba(128,128,128, 0.2);
     }
-    .toggle-container:first-child { padding-top: 0; } 
-    .toggle-container:last-child { border-bottom: none; padding-bottom: 0; } 
+    .toggle-container:first-child { padding-top: 0; }
+    .toggle-container:last-child { border-bottom: none; padding-bottom: 0; }
+
+    body[data-theme="ios26"] .toggle-container {
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+    }
 
     .toggle-label { font-size: 16px; }
 
@@ -196,6 +277,16 @@
     input:checked + .slider { background-color: #30d158; }
     input:checked + .slider:before { transform: translateX(20px); }
 
+    body[data-theme="ios26"] .slider {
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    body[data-theme="ios26"] input:checked + .slider {
+      background: rgba(124,196,255,0.85);
+      box-shadow: 0 0 16px rgba(124,196,255,0.35);
+    }
+
     .result-box {
       background: linear-gradient(135deg, #0a84ff 0%, #0056b3 100%);
       border-radius: 12px;
@@ -205,8 +296,17 @@
       margin-bottom: 20px;
     }
 
+    body[data-theme="ios26"] .result-box {
+      background: rgba(124,196,255,0.16);
+      border: 1px solid rgba(124,196,255,0.28);
+      box-shadow: 0 18px 44px rgba(0,0,0,0.35);
+      border-radius: 22px;
+    }
+
     .result-title { font-size: 14px; opacity: 0.8; margin-bottom: 5px; color: white; }
     .price-display { font-size: 36px; font-weight: bold; color: white; }
+
+    body[data-theme="ios26"] .price-display { text-shadow: 0 10px 28px rgba(0,0,0,0.35); }
 
     .debug-info {
       font-size: 10px;
@@ -215,27 +315,38 @@
       margin-top: 10px;
     }
 
+    body[data-theme="ios26"] .debug-info { color: rgba(255,255,255,0.6); }
+
     .cost-breakdown {
-        background-color: rgba(255,255,255,0.1);
-        border-radius: 8px;
-        padding: 10px;
-        margin-top: 15px;
-        text-align: left;
+      background-color: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 15px;
+      text-align: left;
     }
+
+    body[data-theme="ios26"] .cost-breakdown {
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+    }
+
     .cost-row {
-        display: flex;
-        justify-content: space-between;
-        font-size: 12px;
-        margin-bottom: 4px;
-        color: rgba(255,255,255,0.9);
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 4px;
+      color: rgba(255,255,255,0.9);
     }
+
     .cost-row.main {
-        border-top: 1px solid rgba(255,255,255,0.2);
-        margin-top: 6px;
-        padding-top: 6px;
-        font-weight: bold;
-        color: white;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      margin-top: 6px;
+      padding-top: 6px;
+      font-weight: bold;
+      color: white;
     }
+
     .cost-row:last-child { margin-bottom: 0; }
     .cost-val { font-weight: 600; }
 
@@ -253,6 +364,13 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
+    }
+
+    body[data-theme="ios26"] .settings-btn {
+      border-color: rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.70);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.05);
     }
 
     .settings-panel {
@@ -276,6 +394,12 @@
       line-height: 1.4;
     }
 
+    body[data-theme="ios26"] .warning-box {
+      background: rgba(255,204,0,0.12);
+      border-color: rgba(255,204,0,0.22);
+      border-radius: 14px;
+    }
+
     .settings-row {
       display: flex;
       justify-content: space-between;
@@ -284,7 +408,11 @@
       border-bottom: 1px solid rgba(128,128,128, 0.2);
     }
     .settings-row:last-child { border-bottom: none; }
-    .settings-row input { width: 80px; padding: 8px; font-size: 14px; margin: 0; text-align: right; }
+    .settings-row input { width: 90px; padding: 8px; font-size: 14px; margin: 0; text-align: right; }
+
+    body[data-theme="ios26"] .settings-row {
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+    }
 
     .reset-btn {
       background-color: #ff453a;
@@ -299,6 +427,11 @@
       font-weight: 600;
     }
 
+    body[data-theme="ios26"] .reset-btn {
+      border-radius: 16px;
+      box-shadow: 0 10px 26px rgba(255, 69, 58, 0.18);
+    }
+
     .changelog {
       margin-top: 20px;
       padding-top: 15px;
@@ -309,11 +442,55 @@
     .log-item { font-size: 11px; color: #8e8e93; margin-bottom: 6px; }
     .log-ver { color: #0a84ff; font-weight: bold; margin-right: 5px; }
 
+    body[data-theme="ios26"] .log-item { color: rgba(255,255,255,0.60); }
+    body[data-theme="ios26"] .log-ver { color: #7cc4ff; }
+
     .hidden-logs { display: none; }
     .show-more-btn {
-        background: none; border: none; padding: 0;
-        color: #0a84ff; font-size: 11px; cursor: pointer;
-        margin-top: 5px; text-decoration: underline;
+      background: none; border: none; padding: 0;
+      color: #0a84ff; font-size: 11px; cursor: pointer;
+      margin-top: 5px; text-decoration: underline;
+    }
+
+    body[data-theme="ios26"] .show-more-btn { color: #7cc4ff; }
+
+    /* Theme picker */
+    .theme-picker {
+      display: flex;
+      gap: 8px;
+      padding: 8px;
+      border-radius: 12px;
+      background: rgba(118,118,128,0.12);
+      margin-bottom: 14px;
+    }
+
+    body[data-theme="ios26"] .theme-picker {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 16px;
+    }
+
+    .theme-pill {
+      flex: 1;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      color: #8e8e93;
+      background: transparent;
+      transition: background 160ms ease, color 160ms ease;
+    }
+
+    .theme-pill.active {
+      background: rgba(99,99,102,0.75);
+      color: #fff;
+    }
+
+    body[data-theme="ios26"] .theme-pill { color: rgba(255,255,255,0.65); }
+    body[data-theme="ios26"] .theme-pill.active {
+      background: rgba(255,255,255,0.16);
+      color: rgba(255,255,255,0.92);
     }
 
     .version-badge {
@@ -329,6 +506,14 @@
       pointer-events: none;
       z-index: 1000;
     }
+
+    body[data-theme="ios26"] .version-badge {
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.10);
+      color: rgba(255,255,255,0.55);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
   </style>
 </head>
 <body>
@@ -342,7 +527,6 @@
       <div class="preview-box" id="preview-box">
         <span class="dim-label dim-w" id="dim-w-label">—</span>
         <span class="dim-label dim-h" id="dim-h-label">—</span>
-        <!-- Mounts will be injected here via JS -->
       </div>
     </div>
     <div class="mount-info" id="mount-info"></div>
@@ -402,39 +586,44 @@
     <div class="price-display" id="price">0 ₽</div>
 
     <div class="cost-breakdown" id="cost-breakdown" style="display:none;">
-        <div class="cost-row">
-            <span>Основа + Работа:</span>
-            <span class="cost-val" id="price-base">0 ₽</span>
-        </div>
-        <div class="cost-row">
-            <span>Акрил (материал):</span>
-            <span class="cost-val" id="price-acrylic">0 ₽</span>
-        </div>
-        <div class="cost-row" id="row-film" style="display:none;">
-            <span>Пленка (опция):</span>
-            <span class="cost-val" id="price-film">0 ₽</span>
-        </div>
-        <div class="cost-row" id="row-light" style="display:none;">
-            <span>Подсветка (комплект):</span>
-            <span class="cost-val" id="price-light">0 ₽</span>
-        </div>
-         <div class="cost-row main" id="row-complex" style="display:none;">
-            <span>+ Сложность (х1.4):</span>
-            <span class="cost-val" id="price-complex">0 ₽</span>
-        </div>
+      <div class="cost-row">
+        <span>Основа + Работа:</span>
+        <span class="cost-val" id="price-base">0 ₽</span>
+      </div>
+      <div class="cost-row">
+        <span>Акрил (материал):</span>
+        <span class="cost-val" id="price-acrylic">0 ₽</span>
+      </div>
+      <div class="cost-row" id="row-film" style="display:none;">
+        <span>Пленка (опция):</span>
+        <span class="cost-val" id="price-film">0 ₽</span>
+      </div>
+      <div class="cost-row" id="row-light" style="display:none;">
+        <span>Подсветка (комплект):</span>
+        <span class="cost-val" id="price-light">0 ₽</span>
+      </div>
+      <div class="cost-row main" id="row-complex" style="display:none;">
+        <span>+ Сложность (х1.4):</span>
+        <span class="cost-val" id="price-complex">0 ₽</span>
+      </div>
     </div>
   </div>
 
   <div class="debug-info" id="formula-hint">Введите размеры для расчета</div>
 
-  <button class="settings-btn" id="settings-toggle">⚙️ Настройки коэффициентов</button>
+  <button class="settings-btn" id="settings-toggle">⚙️ Настройки</button>
 
   <div class="settings-panel" id="settings-panel">
 
+    <div class="theme-picker" aria-label="Переключение темы">
+      <button class="theme-pill" id="theme-tg" type="button">Telegram</button>
+      <button class="theme-pill" id="theme-ios" type="button">iOS 26</button>
+    </div>
+
     <div class="warning-box">
-        <strong>⚠️ Режим редактирования</strong><br>
-        Изменения сохраняются автоматически.<br>
-        Если напутаете — жмите красную кнопку сброса внизу.
+      <strong>⚠️ Режим редактирования</strong><br>
+      Изменения сохраняются автоматически.<br>
+      Если напутаете — жмите красную кнопку сброса внизу.
     </div>
 
     <div class="settings-row"><label>Основа (₽/м²)</label><input type="number" id="set-base" value="1133"></div>
@@ -452,21 +641,21 @@
     <button class="reset-btn" id="reset-btn">🔄 Сбросить к стандартным</button>
 
     <div class="changelog">
-        <h4>История обновлений</h4>
-        <div class="log-item"><span class="log-ver">v1.0.13</span> Полная детализация цены (из чего состоит сумма).</div>
-        <div class="log-item"><span class="log-ver">v1.0.12</span> Шаг крепежей 70-80 см.</div>
-        <div class="log-item"><span class="log-ver">v1.0.11</span> Отступы карточек, дизайн держателей.</div>
+      <h4>История обновлений</h4>
+      <div class="log-item"><span class="log-ver">v1.1.0</span> Переключатель темы + стиль iOS 26 (glass).</div>
+      <div class="log-item"><span class="log-ver">v1.0.13</span> Полная детализация цены (из чего состоит сумма).</div>
+      <div class="log-item"><span class="log-ver">v1.0.12</span> Шаг крепежей 70-80 см.</div>
 
-        <div id="hidden-logs" class="hidden-logs">
-            <div class="log-item"><span class="log-ver">v1.0.10</span> Детализация цены, пленка 30%, подсветка.</div>
-            <div class="log-item"><span class="log-ver">v1.0.9</span> Крепежи только по периметру, отступы цифр.</div>
-            <div class="log-item"><span class="log-ver">v1.0.8</span> Предупреждение о сохранении настроек, Android-фикс.</div>
-        </div>
-        <button class="show-more-btn" onclick="toggleLogs()" id="log-toggle-btn">Показать старые версии...</button>
+      <div id="hidden-logs" class="hidden-logs">
+        <div class="log-item"><span class="log-ver">v1.0.11</span> Отступы карточек, дизайн держателей.</div>
+        <div class="log-item"><span class="log-ver">v1.0.10</span> Детализация цены, пленка 30%, подсветка.</div>
+        <div class="log-item"><span class="log-ver">v1.0.9</span> Крепежи только по периметру, отступы цифр.</div>
+      </div>
+      <button class="show-more-btn" onclick="toggleLogs()" id="log-toggle-btn">Показать старые версии...</button>
     </div>
   </div>
 
-  <div class="version-badge">v1.0.13</div>
+  <div class="version-badge">v1.1.0</div>
 
   <script>
     let tg = window.Telegram.WebApp;
@@ -499,40 +688,69 @@
         complexMult: parseFloat(localStorage.getItem('complexMult')) || DEFAULTS.complexMult,
         lightFix: parseFloat(localStorage.getItem('lightFix')) || DEFAULTS.lightFix,
         lightM2: parseFloat(localStorage.getItem('lightM2')) || DEFAULTS.lightM2,
+        theme: localStorage.getItem('appTheme') || 'telegram'
       };
     }
 
     function saveSettings(settings) {
-      Object.keys(settings).forEach(key => localStorage.setItem(key, settings[key]));
+      Object.keys(settings).forEach(key => {
+        if (key === 'theme') return;
+        localStorage.setItem(key, settings[key]);
+      });
+    }
+
+    function applyTheme(theme) {
+      if (theme === 'ios26') {
+        document.body.setAttribute('data-theme', 'ios26');
+        document.getElementById('theme-ios').classList.add('active');
+        document.getElementById('theme-tg').classList.remove('active');
+      } else {
+        document.body.removeAttribute('data-theme');
+        document.getElementById('theme-tg').classList.add('active');
+        document.getElementById('theme-ios').classList.remove('active');
+      }
+      localStorage.setItem('appTheme', theme);
     }
 
     let settings = loadSettings();
+    applyTheme(settings.theme);
+
+    document.getElementById('theme-tg').addEventListener('click', () => {
+      settings.theme = 'telegram';
+      applyTheme('telegram');
+    });
+
+    document.getElementById('theme-ios').addEventListener('click', () => {
+      settings.theme = 'ios26';
+      applyTheme('ios26');
+    });
 
     // Заполнение полей
     const inputs = ['set-base','set-acrylic','set-labor','set-overhead','set-setup','set-margin-small','set-margin-large','set-film','set-complex','set-light-fix','set-light-m2'];
     const keys = ['baseMat','acrylicSheet','laborMult','overheadPerM2','setupFix','marginSmall','marginLarge','filmMult','complexMult','lightFix','lightM2'];
 
     inputs.forEach((id, index) => {
-        document.getElementById(id).value = settings[keys[index]];
+      document.getElementById(id).value = settings[keys[index]];
     });
 
     inputs.forEach((id, index) => {
-        document.getElementById(id).addEventListener('input', () => {
-          settings[keys[index]] = parseFloat(document.getElementById(id).value);
-          saveSettings(settings);
-          calculate();
-        });
+      document.getElementById(id).addEventListener('input', () => {
+        settings[keys[index]] = parseFloat(document.getElementById(id).value);
+        saveSettings(settings);
+        calculate();
+      });
     });
 
     document.getElementById('reset-btn').addEventListener('click', () => {
       if (confirm("⚠️ Вы точно хотите сбросить настройки к заводским значениям?")) {
-          settings = { ...DEFAULTS };
-          inputs.forEach((id, index) => {
-            document.getElementById(id).value = DEFAULTS[keys[index]];
-          });
-          saveSettings(settings);
-          calculate();
-          alert("Настройки сброшены!");
+        const themeKeep = settings.theme;
+        settings = { ...DEFAULTS, theme: themeKeep };
+        inputs.forEach((id, index) => {
+          document.getElementById(id).value = DEFAULTS[keys[index]];
+        });
+        saveSettings(settings);
+        calculate();
+        alert("Настройки сброшены!");
       }
     });
 
@@ -541,15 +759,15 @@
     });
 
     function toggleLogs() {
-        const logs = document.getElementById('hidden-logs');
-        const btn = document.getElementById('log-toggle-btn');
-        if (logs.style.display === 'block') {
-            logs.style.display = 'none';
-            btn.innerText = 'Показать старые версии...';
-        } else {
-            logs.style.display = 'block';
-            btn.innerText = 'Скрыть';
-        }
+      const logs = document.getElementById('hidden-logs');
+      const btn = document.getElementById('log-toggle-btn');
+      if (logs.style.display === 'block') {
+        logs.style.display = 'none';
+        btn.innerText = 'Показать старые версии...';
+      } else {
+        logs.style.display = 'block';
+        btn.innerText = 'Скрыть';
+      }
     }
 
     let unitMode = 'cm';
@@ -563,6 +781,7 @@
       document.getElementById('height').placeholder = '100';
       calculate();
     });
+
     document.getElementById('unit-mm').addEventListener('click', () => {
       unitMode = 'mm';
       document.getElementById('unit-mm').classList.add('active');
@@ -625,16 +844,16 @@
       dimW.textContent = w.toString();
       dimH.textContent = h.toString();
 
-      drawMounts(w, h, newW, newH);
+      drawMounts(w, h);
     }
 
-    function drawMounts(realW, realH, boxW, boxH) {
+    function drawMounts(realW, realH) {
       const oldMounts = previewBox.querySelectorAll('.mount-hole');
       oldMounts.forEach(el => el.remove());
 
       let w_cm = (unitMode === 'mm') ? realW / 10 : realW;
       let h_cm = (unitMode === 'mm') ? realH / 10 : realH;
-      const MAX_DIST = 75; // Average between 70-80
+      const MAX_DIST = 75; // 70–80см
 
       let segX = Math.ceil(w_cm / MAX_DIST);
       let segY = Math.ceil(h_cm / MAX_DIST);
@@ -647,29 +866,30 @@
 
       for (let i = 0; i < pointsX; i++) {
         for (let j = 0; j < pointsY; j++) {
-           const isEdge = (i === 0 || i === pointsX - 1 || j === 0 || j === pointsY - 1);
-           if (!isEdge) continue;
+          const isEdge = (i === 0 || i === pointsX - 1 || j === 0 || j === pointsY - 1);
+          if (!isEdge) continue;
 
-           let pctX = (i / segX) * 100;
-           let pctY = (j / segY) * 100;
+          let pctX = (i / segX) * 100;
+          let pctY = (j / segY) * 100;
 
-           // Standardized inset: 7% from all edges
-           let inset = 7;
-           if (pctX === 0) pctX = inset;
-           if (pctX === 100) pctX = 100 - inset;
-           if (pctY === 0) pctY = inset;
-           if (pctY === 100) pctY = 100 - inset;
+          // inset одинаковый со всех краёв
+          let inset = 7;
+          if (pctX === 0) pctX = inset;
+          if (pctX === 100) pctX = 100 - inset;
+          if (pctY === 0) pctY = inset;
+          if (pctY === 100) pctY = 100 - inset;
 
-           const dot = document.createElement('div');
-           dot.className = 'mount-hole';
-           dot.style.left = pctX + '%';
-           dot.style.top = pctY + '%';
-           dot.style.transform = 'translate(-50%, -50%)';
-           previewBox.appendChild(dot);
-           totalMounts++;
+          const dot = document.createElement('div');
+          dot.className = 'mount-hole';
+          dot.style.left = pctX + '%';
+          dot.style.top = pctY + '%';
+          dot.style.transform = 'translate(-50%, -50%)';
+          previewBox.appendChild(dot);
+          totalMounts++;
         }
       }
-      mountInfo.innerHTML = `Рекомендуется держателей: <b>${totalMounts} шт</b> <br>(только периметр)`;
+
+      mountInfo.innerHTML = `Рекомендуется держателей: <b>${totalMounts} шт</b> <br>(шаг ~75 см, по периметру)`;
     }
 
     function safeParse(val) {
@@ -688,19 +908,17 @@
       let h_m = (unitMode === 'mm') ? h / 1000 : h / 100;
       let area = w_m * h_m;
 
-      // Base Materials Cost
       let baseCost = area * settings.baseMat;
-      let acrylicCost = sheets * settings.acrylicSheet; 
+      let acrylicCost = sheets * settings.acrylicSheet;
       let filmCost = 0;
 
       if (filmInput.checked) {
-          filmCost = acrylicCost * (settings.filmMult - 1);
+        filmCost = acrylicCost * (settings.filmMult - 1);
       }
 
       let totalMaterial = baseCost + acrylicCost + filmCost;
       let productionCost = totalMaterial * settings.laborMult;
       let totalOverhead = (area * settings.overheadPerM2) + settings.setupFix;
-
       let costPrice = productionCost + totalOverhead;
 
       let margin = (area > 2.0) ? settings.marginLarge : settings.marginSmall;
@@ -708,17 +926,17 @@
 
       let lightCostClient = 0;
       if (lightInput.checked) {
-          lightCostClient = settings.lightFix + (area * settings.lightM2);
+        lightCostClient = settings.lightFix + (area * settings.lightM2);
       }
 
       let finalPrice = priceWithMargin + lightCostClient;
 
-      // Calculate complex extra cost
+      // сложность как надбавка
       let complexExtra = 0;
       if (complexInput.checked) {
-          let priceBeforeComplex = finalPrice;
-          finalPrice *= settings.complexMult;
-          complexExtra = finalPrice - priceBeforeComplex;
+        let before = finalPrice;
+        finalPrice *= settings.complexMult;
+        complexExtra = finalPrice - before;
       }
 
       finalPrice = Math.round(finalPrice / 100) * 100;
@@ -727,56 +945,41 @@
         priceDisplay.innerText = finalPrice.toLocaleString('ru-RU') + ' ₽';
         hintDisplay.innerText = `Площадь: ${area.toFixed(2)} м² | Маржа: x${margin}`;
 
-        let multiplier = settings.laborMult * margin; 
-        // Note: we display base components BEFORE complexity multiplier is applied in breakdown,
-        // and show complexity as a separate line item at the end.
-
-        let clientBase = baseCost * multiplier;
-        // Add overhead to base for simpler display? 
-        // Breakdown usually implies "Material A + Material B".
-        // Let's keep it simple: Base Material Part * Multiplier. 
-        // Overhead is invisible "infrastructure" cost, maybe lump it into Base?
-        // Let's lump overhead + base material into "Основа + Работа".
-        // Actually, logic: (Mat * Labor + Overhead) * Margin.
-        // So Client Price for Base = ((BaseMat * Labor + Overhead) * Margin).
-
-        // Let's distribute Overhead proportionally or just add to Base.
+        // Раскладываем priceWithMargin на части пропорционально себестоимости
         let basePartCost = (baseCost * settings.laborMult) + totalOverhead;
         let acrylicPartCost = (acrylicCost * settings.laborMult);
         let filmPartCost = (filmCost * settings.laborMult);
 
-        // Normalize to ensure sum matches PriceWithMargin
-        let totalCostParts = basePartCost + acrylicPartCost + filmPartCost;
-        if (totalCostParts === 0) totalCostParts = 1; // avoid zero div
+        let totalParts = basePartCost + acrylicPartCost + filmPartCost;
+        if (totalParts === 0) totalParts = 1;
 
-        // Distribute the priceWithMargin proportionally
-        let clientBaseFinal = (basePartCost / totalCostParts) * priceWithMargin;
-        let clientAcrylicFinal = (acrylicPartCost / totalCostParts) * priceWithMargin;
-        let clientFilmFinal = (filmPartCost / totalCostParts) * priceWithMargin;
+        let clientBaseFinal = (basePartCost / totalParts) * priceWithMargin;
+        let clientAcrylicFinal = (acrylicPartCost / totalParts) * priceWithMargin;
+        let clientFilmFinal = (filmPartCost / totalParts) * priceWithMargin;
 
         breakdownBox.style.display = 'block';
-        priceBase.innerText = Math.round(clientBaseFinal).toLocaleString() + ' ₽';
-        priceAcrylic.innerText = Math.round(clientAcrylicFinal).toLocaleString() + ' ₽';
+        priceBase.innerText = Math.round(clientBaseFinal).toLocaleString('ru-RU') + ' ₽';
+        priceAcrylic.innerText = Math.round(clientAcrylicFinal).toLocaleString('ru-RU') + ' ₽';
 
         if (filmInput.checked) {
-            rowFilm.style.display = 'flex';
-            priceFilm.innerText = Math.round(clientFilmFinal).toLocaleString() + ' ₽';
+          rowFilm.style.display = 'flex';
+          priceFilm.innerText = Math.round(clientFilmFinal).toLocaleString('ru-RU') + ' ₽';
         } else {
-            rowFilm.style.display = 'none';
+          rowFilm.style.display = 'none';
         }
 
         if (lightInput.checked) {
-            rowLight.style.display = 'flex';
-            priceLight.innerText = Math.round(lightCostClient).toLocaleString() + ' ₽';
+          rowLight.style.display = 'flex';
+          priceLight.innerText = Math.round(lightCostClient).toLocaleString('ru-RU') + ' ₽';
         } else {
-            rowLight.style.display = 'none';
+          rowLight.style.display = 'none';
         }
 
         if (complexInput.checked) {
-            rowComplex.style.display = 'flex';
-            priceComplex.innerText = '+' + Math.round(complexExtra).toLocaleString() + ' ₽';
+          rowComplex.style.display = 'flex';
+          priceComplex.innerText = '+' + Math.round(complexExtra).toLocaleString('ru-RU') + ' ₽';
         } else {
-            rowComplex.style.display = 'none';
+          rowComplex.style.display = 'none';
         }
 
       } else {
