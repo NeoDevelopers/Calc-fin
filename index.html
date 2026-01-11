@@ -2,537 +2,525 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Калькулятор Вывесок</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--tg-theme-bg-color, #1c1c1e); 
-            color: var(--tg-theme-text-color, #ffffff);
-            margin: 0;
-            padding: 20px;
-            -webkit-tap-highlight-color: transparent;
-            min-height: 100vh;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Калькулятор Вывесок</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--tg-theme-bg-color, #1c1c1e);
+      color: var(--tg-theme-text-color, #ffffff);
+      margin: 0;
+      padding: 20px;
+      -webkit-tap-highlight-color: transparent;
+      min-height: 100vh;
+    }
 
-        h1 {
-            text-align: center;
-            font-size: 20px;
-            margin-bottom: 20px;
-            color: var(--tg-theme-link-color, #0a84ff);
-            font-weight: 600;
-        }
+    h1 {
+      text-align: center;
+      font-size: 20px;
+      margin-bottom: 14px;
+      color: var(--tg-theme-link-color, #0a84ff);
+      font-weight: 600;
+    }
 
-        .card {
-            background-color: var(--tg-theme-secondary-bg-color, #2c2c2e);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            position: relative;
-        }
+    .card {
+      background-color: var(--tg-theme-secondary-bg-color, #2c2c2e);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      position: relative;
+    }
 
-        /* Preview Canvas Style */
-        .preview-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 150px; /* Fixed height for preview area */
-            background-color: rgba(0,0,0,0.2);
-            border-radius: 8px;
-            margin-bottom: 16px;
-            position: relative;
-            overflow: hidden;
-            border: 1px dashed #3a3a3c;
-        }
+    /* Preview card: hidden until dimensions entered */
+    .preview-card {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transform: translateY(-8px);
+      padding-top: 0;
+      padding-bottom: 0;
+      margin-bottom: 0;
+      transition: max-height 220ms ease, opacity 200ms ease, transform 220ms ease, margin-bottom 220ms ease, padding 220ms ease;
+    }
 
-        .preview-box {
-            background-color: rgba(10, 132, 255, 0.15); /* Blue tint */
-            border: 2px solid #0a84ff;
-            box-shadow: 0 0 15px rgba(10, 132, 255, 0.2);
-            position: relative;
-            transition: all 0.3s ease;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+    .preview-card.show {
+      max-height: 260px; /* enough to fit preview content */
+      opacity: 1;
+      transform: translateY(0);
+      padding-top: 16px;
+      padding-bottom: 16px;
+      margin-bottom: 16px;
+    }
 
-        .dim-label {
-            position: absolute;
-            font-size: 11px;
-            color: #0a84ff;
-            background-color: #2c2c2e;
-            padding: 2px 4px;
-            border-radius: 4px;
-            white-space: nowrap;
-        }
+    .preview-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 150px;
+      background-color: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      margin-top: 10px;
+      position: relative;
+      overflow: hidden;
+      border: 1px dashed #3a3a3c;
+    }
 
-        .dim-w { top: -10px; }
-        .dim-h { right: -10px; transform: rotate(90deg); transform-origin: center; }
+    .preview-box {
+      background-color: rgba(10, 132, 255, 0.15);
+      border: 2px solid #0a84ff;
+      box-shadow: 0 0 15px rgba(10, 132, 255, 0.2);
+      position: relative;
+      transition: width 220ms ease, height 220ms ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: var(--tg-theme-hint-color, #8e8e93);
-        }
+    .dim-label {
+      position: absolute;
+      font-size: 11px;
+      color: #0a84ff;
+      background-color: #2c2c2e;
+      padding: 2px 4px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
 
-        input[type="number"] {
-            width: 100%;
-            background-color: var(--tg-theme-bg-color, #3a3a3c);
-            border: 1px solid var(--tg-theme-bg-color, #3a3a3c);
-            border-radius: 8px;
-            color: var(--tg-theme-text-color, #ffffff);
-            padding: 12px;
-            font-size: 18px;
-            box-sizing: border-box;
-            margin-bottom: 10px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
+    .dim-w { top: -10px; }
+    .dim-h { right: -10px; transform: rotate(90deg); transform-origin: center; }
 
-        input[type="number"]:focus {
-            border-color: var(--tg-theme-link-color, #0a84ff);
-        }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: var(--tg-theme-hint-color, #8e8e93);
+    }
 
-        .row { display: flex; gap: 10px; align-items: flex-end; }
-        .col { flex: 1; }
+    /* Changed to type="text" with inputmode="decimal" to handle commas on Android */
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      background-color: var(--tg-theme-bg-color, #3a3a3c);
+      border: 1px solid var(--tg-theme-bg-color, #3a3a3c);
+      border-radius: 8px;
+      color: var(--tg-theme-text-color, #ffffff);
+      padding: 12px;
+      font-size: 18px;
+      margin-bottom: 10px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
 
-        .unit-toggle-container {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 8px;
-        }
+    input:focus { border-color: var(--tg-theme-link-color, #0a84ff); }
 
-        .unit-toggle {
-            display: inline-flex;
-            background-color: rgba(118, 118, 128, 0.12);
-            border-radius: 6px;
-            padding: 2px;
-        }
+    .row { display: flex; gap: 10px; align-items: flex-end; }
+    .col { flex: 1; }
 
-        .unit-toggle button {
-            border: none;
-            background: transparent;
-            color: #8e8e93;
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+    .unit-toggle-container { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+    .unit-toggle {
+      display: inline-flex;
+      background-color: rgba(118, 118, 128, 0.12);
+      border-radius: 6px;
+      padding: 2px;
+    }
+    .unit-toggle button {
+      border: none;
+      background: transparent;
+      color: #8e8e93;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .unit-toggle button.active {
+      background-color: #636366;
+      color: white;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
 
-        .unit-toggle button.active {
-            background-color: #636366;
-            color: white;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
+    .toggle-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(128,128,128, 0.2);
+    }
+    .toggle-container:last-child { border-bottom: none; }
 
-        .toggle-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(128,128,128, 0.2);
-        }
-        .toggle-container:last-child { border-bottom: none; }
+    .toggle-label { font-size: 16px; }
 
-        .toggle-label { font-size: 16px; }
+    .switch { position: relative; display: inline-block; width: 50px; height: 30px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #3a3a3c;
+      transition: .4s;
+      border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px; width: 26px;
+      left: 2px; bottom: 2px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider { background-color: #30d158; }
+    input:checked + .slider:before { transform: translateX(20px); }
 
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 30px;
-        }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #3a3a3c;
-            transition: .4s;
-            border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px; width: 26px;
-            left: 2px; bottom: 2px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider { background-color: #30d158; }
-        input:checked + .slider:before { transform: translateX(20px); }
+    .result-box {
+      background: linear-gradient(135deg, #0a84ff 0%, #0056b3 100%);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
 
-        .result-box {
-            background: linear-gradient(135deg, #0a84ff 0%, #0056b3 100%);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
+    .result-title { font-size: 14px; opacity: 0.8; margin-bottom: 5px; color: white; }
+    .price-display { font-size: 36px; font-weight: bold; color: white; }
 
-        .result-title { font-size: 14px; opacity: 0.8; margin-bottom: 5px; color: white;}
-        .price-display { font-size: 36px; font-weight: bold; color: white;}
+    .debug-info {
+      font-size: 10px;
+      color: var(--tg-theme-hint-color, #555);
+      text-align: center;
+      margin-top: 10px;
+    }
 
-        .debug-info {
-            font-size: 10px;
-            color: var(--tg-theme-hint-color, #555);
-            text-align: center;
-            margin-top: 10px;
-        }
+    .settings-btn {
+      background-color: transparent;
+      border: 1px solid #3a3a3c;
+      border-radius: 8px;
+      padding: 12px;
+      width: 100%;
+      color: #8e8e93;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
 
-        .settings-btn {
-            background-color: transparent;
-            border: 1px solid #3a3a3c;
-            border-radius: 8px;
-            padding: 12px;
-            width: 100%;
-            color: #8e8e93;
-            font-size: 14px;
-            cursor: pointer;
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
+    .settings-panel {
+      display: none;
+      background-color: var(--tg-theme-secondary-bg-color, #2c2c2e);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+    }
 
-        .settings-panel {
-            display: none;
-            background-color: var(--tg-theme-secondary-bg-color, #2c2c2e);
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 16px;
-        }
+    .settings-panel.show { display: block; }
 
-        .settings-panel.show { display: block; }
+    .settings-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(128,128,128, 0.2);
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row input { width: 80px; padding: 8px; font-size: 14px; margin: 0; }
 
-        .settings-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(128,128,128, 0.2);
-        }
-        .settings-row:last-child { border-bottom: none; }
-        .settings-row input { width: 80px; padding: 8px; font-size: 14px; margin: 0; }
-
-        .reset-btn {
-            background-color: #ff453a;
-            border: none;
-            border-radius: 8px;
-            padding: 12px;
-            width: 100%;
-            color: white;
-            font-size: 14px;
-            cursor: pointer;
-            margin-top: 16px;
-            font-weight: 600;
-        }
-    </style>
+    .reset-btn {
+      background-color: #ff453a;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      width: 100%;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 16px;
+      font-weight: 600;
+    }
+  </style>
 </head>
 <body>
 
-    <h1>⚡ Калькулятор вывесок с подложкой</h1>
+  <h1>⚡ Калькулятор вывесок с подложкой</h1>
 
-    <div class="card">
-        <div class="unit-toggle-container">
-            <div class="unit-toggle">
-                <button id="unit-cm" class="active">см</button>
-                <button id="unit-mm">мм</button>
-            </div>
-        </div>
+  <!-- Preview -->
+  <div class="card preview-card" id="preview-card">
+    <label>Визуализация пропорций</label>
+    <div class="preview-container">
+      <div class="preview-box" id="preview-box">
+        <span class="dim-label dim-w" id="dim-w-label">—</span>
+        <span class="dim-label dim-h" id="dim-h-label">—</span>
+      </div>
+    </div>
+  </div>
 
-        <div class="row">
-            <div class="col">
-                <label>Ширина <span id="unit-label-width">(см)</span></label>
-                <input type="number" id="width" placeholder="100" inputmode="numeric">
-            </div>
-            <div class="col">
-                <label>Высота <span id="unit-label-height">(см)</span></label>
-                <input type="number" id="height" placeholder="100" inputmode="numeric">
-            </div>
-        </div>
-
-        <label>Листов акрила 430х570 по нестингу</label>
-        <input type="number" id="sheets" placeholder="1.5" inputmode="decimal" step="0.1">
+  <div class="card">
+    <div class="unit-toggle-container">
+      <div class="unit-toggle">
+        <button id="unit-cm" class="active">см</button>
+        <button id="unit-mm">мм</button>
+      </div>
     </div>
 
-    <!-- Preview Area -->
-    <div class="card">
-        <label>Визуализация пропорций</label>
-        <div class="preview-container">
-            <div class="preview-box" id="preview-box">
-                <span class="dim-label dim-w" id="dim-w-label">100</span>
-                <span class="dim-label dim-h" id="dim-h-label">100</span>
-            </div>
-        </div>
+    <div class="row">
+      <div class="col">
+        <label>Ширина <span id="unit-label-width">(см)</span></label>
+        <input type="text" id="width" placeholder="100" inputmode="decimal">
+      </div>
+      <div class="col">
+        <label>Высота <span id="unit-label-height">(см)</span></label>
+        <input type="text" id="height" placeholder="100" inputmode="decimal">
+      </div>
     </div>
 
-    <div class="card">
-        <div class="toggle-container">
-            <span class="toggle-label">🌈 Пленка (+40% к акрилу)</span>
-            <label class="switch">
-                <input type="checkbox" id="film">
-                <span class="slider"></span>
-            </label>
-        </div>
+    <label>Листов акрила 430х570 по нестингу</label>
+    <input type="text" id="sheets" placeholder="1.5" inputmode="decimal">
+  </div>
 
-        <div class="toggle-container">
-            <span class="toggle-label">🤯 Сложный макет (х1.4)</span>
-            <label class="switch">
-                <input type="checkbox" id="complex">
-                <span class="slider"></span>
-            </label>
-        </div>
+  <div class="card">
+    <div class="toggle-container">
+      <span class="toggle-label">🌈 Пленка (+40% к акрилу)</span>
+      <label class="switch">
+        <input type="checkbox" id="film">
+        <span class="slider"></span>
+      </label>
     </div>
 
-    <div class="result-box">
-        <div class="result-title">ИТОГО</div>
-        <div class="price-display" id="price">0 ₽</div>
+    <div class="toggle-container">
+      <span class="toggle-label">🤯 Сложный макет (х1.4)</span>
+      <label class="switch">
+        <input type="checkbox" id="complex">
+        <span class="slider"></span>
+      </label>
     </div>
+  </div>
 
-    <div class="debug-info" id="formula-hint">Введите размеры для расчета</div>
+  <div class="result-box">
+    <div class="result-title">ИТОГО</div>
+    <div class="price-display" id="price">0 ₽</div>
+  </div>
 
-    <button class="settings-btn" id="settings-toggle">
-        ⚙️ Настройки коэффициентов
-    </button>
+  <div class="debug-info" id="formula-hint">Введите размеры для расчета</div>
 
-    <div class="settings-panel" id="settings-panel">
-        <h3 style="margin-top: 0; font-size: 16px;">Настройки расчета</h3>
+  <button class="settings-btn" id="settings-toggle">⚙️ Настройки коэффициентов</button>
 
-        <div class="settings-row"><label>Основа (₽/м²)</label><input type="number" id="set-base" value="1133"></div>
-        <div class="settings-row"><label>Акрил (₽/лист)</label><input type="number" id="set-acrylic" value="600"></div>
-        <div class="settings-row"><label>Работа (множитель)</label><input type="number" id="set-labor" value="1.5" step="0.1"></div>
-        <div class="settings-row"><label>Расходы (₽/м²)</label><input type="number" id="set-overhead" value="1500"></div>
-        <div class="settings-row"><label>Фикс расход (₽)</label><input type="number" id="set-setup" value="100"></div>
-        <div class="settings-row"><label>Маржа (малые, до 2м²)</label><input type="number" id="set-margin-small" value="5.3" step="0.1"></div>
-        <div class="settings-row"><label>Маржа (опт, >2м²)</label><input type="number" id="set-margin-large" value="4.2" step="0.1"></div>
-        <div class="settings-row"><label>Пленка (множитель)</label><input type="number" id="set-film" value="1.4" step="0.1"></div>
-        <div class="settings-row"><label>Сложность (множитель)</label><input type="number" id="set-complex" value="1.4" step="0.1"></div>
+  <div class="settings-panel" id="settings-panel">
+    <h3 style="margin-top: 0; font-size: 16px;">Настройки расчета</h3>
 
-        <button class="reset-btn" id="reset-btn">🔄 Сбросить к стандартным</button>
-    </div>
+    <div class="settings-row"><label>Основа (₽/м²)</label><input type="number" id="set-base" value="1133"></div>
+    <div class="settings-row"><label>Акрил (₽/лист)</label><input type="number" id="set-acrylic" value="600"></div>
+    <div class="settings-row"><label>Работа (множитель)</label><input type="number" id="set-labor" value="1.5" step="0.1"></div>
+    <div class="settings-row"><label>Расходы (₽/м²)</label><input type="number" id="set-overhead" value="1500"></div>
+    <div class="settings-row"><label>Фикс расход (₽)</label><input type="number" id="set-setup" value="100"></div>
+    <div class="settings-row"><label>Маржа (малые, до 2м²)</label><input type="number" id="set-margin-small" value="5.3" step="0.1"></div>
+    <div class="settings-row"><label>Маржа (опт, >2м²)</label><input type="number" id="set-margin-large" value="4.2" step="0.1"></div>
+    <div class="settings-row"><label>Пленка (множитель)</label><input type="number" id="set-film" value="1.4" step="0.1"></div>
+    <div class="settings-row"><label>Сложность (множитель)</label><input type="number" id="set-complex" value="1.4" step="0.1"></div>
 
-    <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
+    <button class="reset-btn" id="reset-btn">🔄 Сбросить к стандартным</button>
+  </div>
 
-        const DEFAULTS = {
-            baseMat: 1133,
-            acrylicSheet: 600,
-            laborMult: 1.5,
-            overheadPerM2: 1500,
-            setupFix: 100,
-            marginSmall: 5.3,
-            marginLarge: 4.2,
-            filmMult: 1.4,
-            complexMult: 1.4
-        };
+  <script>
+    let tg = window.Telegram.WebApp;
+    tg.expand();
 
-        function loadSettings() {
-            return {
-                baseMat: parseFloat(localStorage.getItem('baseMat')) || DEFAULTS.baseMat,
-                acrylicSheet: parseFloat(localStorage.getItem('acrylicSheet')) || DEFAULTS.acrylicSheet,
-                laborMult: parseFloat(localStorage.getItem('laborMult')) || DEFAULTS.laborMult,
-                overheadPerM2: parseFloat(localStorage.getItem('overheadPerM2')) || DEFAULTS.overheadPerM2,
-                setupFix: parseFloat(localStorage.getItem('setupFix')) || DEFAULTS.setupFix,
-                marginSmall: parseFloat(localStorage.getItem('marginSmall')) || DEFAULTS.marginSmall,
-                marginLarge: parseFloat(localStorage.getItem('marginLarge')) || DEFAULTS.marginLarge,
-                filmMult: parseFloat(localStorage.getItem('filmMult')) || DEFAULTS.filmMult,
-                complexMult: parseFloat(localStorage.getItem('complexMult')) || DEFAULTS.complexMult,
-            };
-        }
+    const DEFAULTS = {
+      baseMat: 1133,
+      acrylicSheet: 600,
+      laborMult: 1.5,
+      overheadPerM2: 1500,
+      setupFix: 100,
+      marginSmall: 5.3,
+      marginLarge: 4.2,
+      filmMult: 1.4,
+      complexMult: 1.4
+    };
 
-        function saveSettings(settings) {
-            Object.keys(settings).forEach(key => {
-                localStorage.setItem(key, settings[key]);
-            });
-        }
+    function loadSettings() {
+      return {
+        baseMat: parseFloat(localStorage.getItem('baseMat')) || DEFAULTS.baseMat,
+        acrylicSheet: parseFloat(localStorage.getItem('acrylicSheet')) || DEFAULTS.acrylicSheet,
+        laborMult: parseFloat(localStorage.getItem('laborMult')) || DEFAULTS.laborMult,
+        overheadPerM2: parseFloat(localStorage.getItem('overheadPerM2')) || DEFAULTS.overheadPerM2,
+        setupFix: parseFloat(localStorage.getItem('setupFix')) || DEFAULTS.setupFix,
+        marginSmall: parseFloat(localStorage.getItem('marginSmall')) || DEFAULTS.marginSmall,
+        marginLarge: parseFloat(localStorage.getItem('marginLarge')) || DEFAULTS.marginLarge,
+        filmMult: parseFloat(localStorage.getItem('filmMult')) || DEFAULTS.filmMult,
+        complexMult: parseFloat(localStorage.getItem('complexMult')) || DEFAULTS.complexMult,
+      };
+    }
 
-        let settings = loadSettings();
+    function saveSettings(settings) {
+      Object.keys(settings).forEach(key => localStorage.setItem(key, settings[key]));
+    }
 
-        // Update inputs
-        document.getElementById('set-base').value = settings.baseMat;
-        document.getElementById('set-acrylic').value = settings.acrylicSheet;
-        document.getElementById('set-labor').value = settings.laborMult;
-        document.getElementById('set-overhead').value = settings.overheadPerM2;
-        document.getElementById('set-setup').value = settings.setupFix;
-        document.getElementById('set-margin-small').value = settings.marginSmall;
-        document.getElementById('set-margin-large').value = settings.marginLarge;
-        document.getElementById('set-film').value = settings.filmMult;
-        document.getElementById('set-complex').value = settings.complexMult;
+    let settings = loadSettings();
 
-        ['set-base', 'set-acrylic', 'set-labor', 'set-overhead', 'set-setup', 
-         'set-margin-small', 'set-margin-large', 'set-film', 'set-complex'].forEach(id => {
-            document.getElementById(id).addEventListener('input', () => {
-                settings = {
-                    baseMat: parseFloat(document.getElementById('set-base').value),
-                    acrylicSheet: parseFloat(document.getElementById('set-acrylic').value),
-                    laborMult: parseFloat(document.getElementById('set-labor').value),
-                    overheadPerM2: parseFloat(document.getElementById('set-overhead').value),
-                    setupFix: parseFloat(document.getElementById('set-setup').value),
-                    marginSmall: parseFloat(document.getElementById('set-margin-small').value),
-                    marginLarge: parseFloat(document.getElementById('set-margin-large').value),
-                    filmMult: parseFloat(document.getElementById('set-film').value),
-                    complexMult: parseFloat(document.getElementById('set-complex').value),
-                };
-                saveSettings(settings);
-                calculate();
-            });
+    document.getElementById('set-base').value = settings.baseMat;
+    document.getElementById('set-acrylic').value = settings.acrylicSheet;
+    document.getElementById('set-labor').value = settings.laborMult;
+    document.getElementById('set-overhead').value = settings.overheadPerM2;
+    document.getElementById('set-setup').value = settings.setupFix;
+    document.getElementById('set-margin-small').value = settings.marginSmall;
+    document.getElementById('set-margin-large').value = settings.marginLarge;
+    document.getElementById('set-film').value = settings.filmMult;
+    document.getElementById('set-complex').value = settings.complexMult;
+
+    ['set-base','set-acrylic','set-labor','set-overhead','set-setup','set-margin-small','set-margin-large','set-film','set-complex']
+      .forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          settings = {
+            baseMat: parseFloat(document.getElementById('set-base').value),
+            acrylicSheet: parseFloat(document.getElementById('set-acrylic').value),
+            laborMult: parseFloat(document.getElementById('set-labor').value),
+            overheadPerM2: parseFloat(document.getElementById('set-overhead').value),
+            setupFix: parseFloat(document.getElementById('set-setup').value),
+            marginSmall: parseFloat(document.getElementById('set-margin-small').value),
+            marginLarge: parseFloat(document.getElementById('set-margin-large').value),
+            filmMult: parseFloat(document.getElementById('set-film').value),
+            complexMult: parseFloat(document.getElementById('set-complex').value),
+          };
+          saveSettings(settings);
+          calculate();
         });
+      });
 
-        document.getElementById('reset-btn').addEventListener('click', () => {
-            settings = {...DEFAULTS};
-            document.getElementById('set-base').value = DEFAULTS.baseMat;
-            document.getElementById('set-acrylic').value = DEFAULTS.acrylicSheet;
-            document.getElementById('set-labor').value = DEFAULTS.laborMult;
-            document.getElementById('set-overhead').value = DEFAULTS.overheadPerM2;
-            document.getElementById('set-setup').value = DEFAULTS.setupFix;
-            document.getElementById('set-margin-small').value = DEFAULTS.marginSmall;
-            document.getElementById('set-margin-large').value = DEFAULTS.marginLarge;
-            document.getElementById('set-film').value = DEFAULTS.filmMult;
-            document.getElementById('set-complex').value = DEFAULTS.complexMult;
-            saveSettings(settings);
-            calculate();
-        });
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      settings = { ...DEFAULTS };
+      document.getElementById('set-base').value = DEFAULTS.baseMat;
+      document.getElementById('set-acrylic').value = DEFAULTS.acrylicSheet;
+      document.getElementById('set-labor').value = DEFAULTS.laborMult;
+      document.getElementById('set-overhead').value = DEFAULTS.overheadPerM2;
+      document.getElementById('set-setup').value = DEFAULTS.setupFix;
+      document.getElementById('set-margin-small').value = DEFAULTS.marginSmall;
+      document.getElementById('set-margin-large').value = DEFAULTS.marginLarge;
+      document.getElementById('set-film').value = DEFAULTS.filmMult;
+      document.getElementById('set-complex').value = DEFAULTS.complexMult;
+      saveSettings(settings);
+      calculate();
+    });
 
-        document.getElementById('settings-toggle').addEventListener('click', () => {
-            document.getElementById('settings-panel').classList.toggle('show');
-        });
+    document.getElementById('settings-toggle').addEventListener('click', () => {
+      document.getElementById('settings-panel').classList.toggle('show');
+    });
 
-        let unitMode = 'cm'; 
-        document.getElementById('unit-cm').addEventListener('click', () => {
-            unitMode = 'cm';
-            document.getElementById('unit-cm').classList.add('active');
-            document.getElementById('unit-mm').classList.remove('active');
-            document.getElementById('unit-label-width').textContent = '(см)';
-            document.getElementById('unit-label-height').textContent = '(см)';
-            document.getElementById('width').placeholder = '100';
-            document.getElementById('height').placeholder = '100';
-            calculate();
-        });
+    let unitMode = 'cm';
+    document.getElementById('unit-cm').addEventListener('click', () => {
+      unitMode = 'cm';
+      document.getElementById('unit-cm').classList.add('active');
+      document.getElementById('unit-mm').classList.remove('active');
+      document.getElementById('unit-label-width').textContent = '(см)';
+      document.getElementById('unit-label-height').textContent = '(см)';
+      document.getElementById('width').placeholder = '100';
+      document.getElementById('height').placeholder = '100';
+      calculate();
+    });
+    document.getElementById('unit-mm').addEventListener('click', () => {
+      unitMode = 'mm';
+      document.getElementById('unit-mm').classList.add('active');
+      document.getElementById('unit-cm').classList.remove('active');
+      document.getElementById('unit-label-width').textContent = '(мм)';
+      document.getElementById('unit-label-height').textContent = '(мм)';
+      document.getElementById('width').placeholder = '1000';
+      document.getElementById('height').placeholder = '1000';
+      calculate();
+    });
 
-        document.getElementById('unit-mm').addEventListener('click', () => {
-            unitMode = 'mm';
-            document.getElementById('unit-mm').classList.add('active');
-            document.getElementById('unit-cm').classList.remove('active');
-            document.getElementById('unit-label-width').textContent = '(мм)';
-            document.getElementById('unit-label-height').textContent = '(мм)';
-            document.getElementById('width').placeholder = '1000';
-            document.getElementById('height').placeholder = '1000';
-            calculate();
-        });
+    const widthInput = document.getElementById('width');
+    const heightInput = document.getElementById('height');
+    const sheetsInput = document.getElementById('sheets');
+    const filmInput = document.getElementById('film');
+    const complexInput = document.getElementById('complex');
+    const priceDisplay = document.getElementById('price');
+    const hintDisplay = document.getElementById('formula-hint');
 
-        const widthInput = document.getElementById('width');
-        const heightInput = document.getElementById('height');
-        const sheetsInput = document.getElementById('sheets');
-        const filmInput = document.getElementById('film');
-        const complexInput = document.getElementById('complex');
-        const priceDisplay = document.getElementById('price');
-        const hintDisplay = document.getElementById('formula-hint');
+    const previewCard = document.getElementById('preview-card');
+    const previewBox = document.getElementById('preview-box');
+    const dimW = document.getElementById('dim-w-label');
+    const dimH = document.getElementById('dim-h-label');
 
-        // Preview Elements
-        const previewBox = document.getElementById('preview-box');
-        const dimW = document.getElementById('dim-w-label');
-        const dimH = document.getElementById('dim-h-label');
+    function updatePreview(w, h) {
+      const shouldShow = (w > 0 && h > 0);
+      previewCard.classList.toggle('show', shouldShow);
+      if (!shouldShow) return;
 
-        function updatePreview(w, h) {
-            if (!w || !h || w <= 0 || h <= 0) {
-                // Default square if empty
-                previewBox.style.width = '100px';
-                previewBox.style.height = '100px';
-                dimW.textContent = unitMode === 'cm' ? '100' : '1000';
-                dimH.textContent = unitMode === 'cm' ? '100' : '1000';
-                return;
-            }
+      const MAX_W = 280;
+      const MAX_H = 130;
+      const ratio = w / h;
 
-            // Max dimensions in pixels inside the container
-            const MAX_W = 280; 
-            const MAX_H = 130;
+      let newW, newH;
+      if (ratio > 1) {
+        newW = Math.min(MAX_W, MAX_H * ratio);
+        newH = newW / ratio;
+        if (newH > MAX_H) { newH = MAX_H; newW = newH * ratio; }
+      } else {
+        newH = Math.min(MAX_H, MAX_W / ratio);
+        newW = newH * ratio;
+        if (newW > MAX_W) { newW = MAX_W; newH = newW / ratio; }
+      }
 
-            // Calculate aspect ratio
-            const ratio = w / h;
+      previewBox.style.width = newW + 'px';
+      previewBox.style.height = newH + 'px';
 
-            let newW, newH;
+      dimW.textContent = w.toString();
+      dimH.textContent = h.toString();
+    }
 
-            if (ratio > 1) { // Landscape
-                newW = Math.min(MAX_W, MAX_H * ratio);
-                newH = newW / ratio;
-                if (newH > MAX_H) { // If still too tall
-                    newH = MAX_H;
-                    newW = newH * ratio;
-                }
-            } else { // Portrait or Square
-                newH = Math.min(MAX_H, MAX_W / ratio);
-                newW = newH * ratio;
-                if (newW > MAX_W) { // If still too wide
-                    newW = MAX_W;
-                    newH = newW / ratio;
-                }
-            }
+    // Helper to safely parse float replacing comma with dot
+    function safeParse(val) {
+      if (!val) return 0;
+      // replace comma with dot, then parse
+      return parseFloat(val.toString().replace(',', '.')) || 0;
+    }
 
-            previewBox.style.width = newW + 'px';
-            previewBox.style.height = newH + 'px';
+    function calculate() {
+      // Use safeParse to handle Android commas
+      let w = safeParse(widthInput.value);
+      let h = safeParse(heightInput.value);
+      let sheets = safeParse(sheetsInput.value);
 
-            dimW.textContent = w;
-            dimH.textContent = h;
-        }
+      updatePreview(w, h);
 
-        function calculate() {
-            let w = parseFloat(widthInput.value) || 0;
-            let h = parseFloat(heightInput.value) || 0;
-            let sheets = parseFloat(sheetsInput.value) || 0;
+      let w_m = (unitMode === 'mm') ? w / 1000 : w / 100;
+      let h_m = (unitMode === 'mm') ? h / 1000 : h / 100;
+      let area = w_m * h_m;
 
-            updatePreview(w, h);
+      let acrylicCost = sheets * settings.acrylicSheet;
+      if (filmInput.checked) acrylicCost *= settings.filmMult;
 
-            let w_m = unitMode === 'mm' ? w / 1000 : w / 100;
-            let h_m = unitMode === 'mm' ? h / 1000 : h / 100;
-            let area = w_m * h_m;
+      let baseCost = area * settings.baseMat;
+      let totalMaterial = baseCost + acrylicCost;
+      let productionCost = totalMaterial * settings.laborMult;
+      let totalOverhead = (area * settings.overheadPerM2) + settings.setupFix;
+      let costPrice = productionCost + totalOverhead;
 
-            let acrylicCost = sheets * settings.acrylicSheet;
-            if (filmInput.checked) {
-                acrylicCost *= settings.filmMult;
-            }
+      let margin = (area > 2.0) ? settings.marginLarge : settings.marginSmall;
+      let finalPrice = costPrice * margin;
+      if (complexInput.checked) finalPrice *= settings.complexMult;
 
-            let baseCost = area * settings.baseMat;
-            let totalMaterial = baseCost + acrylicCost;
-            let productionCost = totalMaterial * settings.laborMult;
+      finalPrice = Math.round(finalPrice / 100) * 100;
 
-            let totalOverhead = (area * settings.overheadPerM2) + settings.setupFix;
-            let costPrice = productionCost + totalOverhead;
+      if (finalPrice > 0) {
+        priceDisplay.innerText = finalPrice.toLocaleString('ru-RU') + ' ₽';
+        hintDisplay.innerText = `Площадь: ${area.toFixed(2)} м² | Маржа: x${margin}`;
+      } else {
+        priceDisplay.innerText = '0 ₽';
+        hintDisplay.innerText = 'Введите размеры';
+      }
+    }
 
-            let margin = (area > 2.0) ? settings.marginLarge : settings.marginSmall;
+    widthInput.addEventListener('input', calculate);
+    heightInput.addEventListener('input', calculate);
+    sheetsInput.addEventListener('input', calculate);
+    filmInput.addEventListener('change', calculate);
+    complexInput.addEventListener('change', calculate);
 
-            let finalPrice = costPrice * margin;
-
-            if (complexInput.checked) {
-                finalPrice *= settings.complexMult;
-            }
-
-            finalPrice = Math.round(finalPrice / 100) * 100;
-
-            if (finalPrice > 0) {
-                priceDisplay.innerText = finalPrice.toLocaleString('ru-RU') + ' ₽';
-                hintDisplay.innerText = `Площадь: ${area.toFixed(2)} м² | Маржа: x${margin}`;
-            } else {
-                priceDisplay.innerText = '0 ₽';
-                hintDisplay.innerText = 'Введите размеры';
-            }
-        }
-
-        widthInput.addEventListener('input', calculate);
-        heightInput.addEventListener('input', calculate);
-        sheetsInput.addEventListener('input', calculate);
-        filmInput.addEventListener('change', calculate);
-        complexInput.addEventListener('change', calculate);
-    </script>
+    updatePreview(0,0);
+  </script>
 </body>
 </html>
