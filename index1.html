@@ -1,0 +1,498 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Калькулятор Вывесок</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--tg-theme-bg-color, #1c1c1e); 
+            color: var(--tg-theme-text-color, #ffffff);
+            margin: 0;
+            padding: 20px;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: var(--tg-theme-link-color, #0a84ff);
+        }
+
+        .card {
+            background-color: var(--tg-theme-secondary-bg-color, #2c2c2e);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #8e8e93);
+        }
+
+        input[type="number"] {
+            width: 100%;
+            background-color: var(--tg-theme-bg-color, #3a3a3c);
+            border: 1px solid var(--tg-theme-bg-color, #3a3a3c);
+            border-radius: 8px;
+            color: var(--tg-theme-text-color, #ffffff);
+            padding: 12px;
+            font-size: 18px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--tg-theme-link-color, #0a84ff);
+        }
+
+        .row { display: flex; gap: 10px; align-items: flex-end; }
+        .col { flex: 1; }
+
+        .unit-toggle {
+            display: flex;
+            background-color: #3a3a3c;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .unit-toggle button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: #8e8e93;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .unit-toggle button.active {
+            background-color: #0a84ff;
+            color: white;
+            font-weight: 600;
+        }
+
+        .toggle-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(128,128,128, 0.2);
+        }
+        .toggle-container:last-child { border-bottom: none; }
+
+        .toggle-label { font-size: 16px; }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 30px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #3a3a3c;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px; width: 26px;
+            left: 2px; bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #30d158; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .result-box {
+            background: linear-gradient(135deg, #0a84ff 0%, #0056b3 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .result-title { font-size: 14px; opacity: 0.8; margin-bottom: 5px; color: white;}
+        .price-display { font-size: 36px; font-weight: bold; color: white;}
+
+        .debug-info {
+            font-size: 10px;
+            color: var(--tg-theme-hint-color, #555);
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .settings-btn {
+            background-color: #3a3a3c;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            width: 100%;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .settings-btn:active {
+            background-color: #4a4a4c;
+        }
+
+        .settings-panel {
+            display: none;
+            background-color: var(--tg-theme-secondary-bg-color, #2c2c2e);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .settings-panel.show {
+            display: block;
+        }
+
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(128,128,128, 0.2);
+        }
+
+        .settings-row:last-child {
+            border-bottom: none;
+        }
+
+        .settings-row label {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .settings-row input {
+            width: 80px;
+            padding: 8px;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .reset-btn {
+            background-color: #ff453a;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            width: 100%;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 16px;
+            font-weight: 600;
+        }
+
+        .reset-btn:active {
+            background-color: #cc3629;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>⚡ Калькулятор Неона</h1>
+
+    <div class="card">
+        <label>Единицы измерения</label>
+        <div class="unit-toggle">
+            <button id="unit-cm" class="active">СМ</button>
+            <button id="unit-mm">МM</button>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label>Ширина <span id="unit-label-width">(см)</span></label>
+                <input type="number" id="width" placeholder="100" inputmode="numeric">
+            </div>
+            <div class="col">
+                <label>Высота <span id="unit-label-height">(см)</span></label>
+                <input type="number" id="height" placeholder="100" inputmode="numeric">
+            </div>
+        </div>
+
+        <label>Листов Акрила (шт)</label>
+        <input type="number" id="sheets" placeholder="1.5" inputmode="decimal" step="0.1">
+    </div>
+
+    <div class="card">
+        <div class="toggle-container">
+            <span class="toggle-label">🌈 Пленка (+40% к акрилу)</span>
+            <label class="switch">
+                <input type="checkbox" id="film">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="toggle-container">
+            <span class="toggle-label">🤯 Сложный макет (х1.4)</span>
+            <label class="switch">
+                <input type="checkbox" id="complex">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="result-box">
+        <div class="result-title">ИТОГО</div>
+        <div class="price-display" id="price">0 ₽</div>
+    </div>
+
+    <div class="debug-info" id="formula-hint">Введите размеры для расчета</div>
+
+    <button class="settings-btn" id="settings-toggle">
+        ⚙️ Настройки коэффициентов
+    </button>
+
+    <div class="settings-panel" id="settings-panel">
+        <h3 style="margin-top: 0; font-size: 16px;">Настройки расчета</h3>
+
+        <div class="settings-row">
+            <label>Основа (₽/м²)</label>
+            <input type="number" id="set-base" value="1133">
+        </div>
+
+        <div class="settings-row">
+            <label>Акрил (₽/лист)</label>
+            <input type="number" id="set-acrylic" value="600">
+        </div>
+
+        <div class="settings-row">
+            <label>Работа (множитель)</label>
+            <input type="number" id="set-labor" value="1.5" step="0.1">
+        </div>
+
+        <div class="settings-row">
+            <label>Расходы (₽/м²)</label>
+            <input type="number" id="set-overhead" value="1500">
+        </div>
+
+        <div class="settings-row">
+            <label>Фикс расход (₽)</label>
+            <input type="number" id="set-setup" value="100">
+        </div>
+
+        <div class="settings-row">
+            <label>Маржа (малые, до 2м²)</label>
+            <input type="number" id="set-margin-small" value="5.3" step="0.1">
+        </div>
+
+        <div class="settings-row">
+            <label>Маржа (опт, >2м²)</label>
+            <input type="number" id="set-margin-large" value="4.2" step="0.1">
+        </div>
+
+        <div class="settings-row">
+            <label>Пленка (множитель)</label>
+            <input type="number" id="set-film" value="1.4" step="0.1">
+        </div>
+
+        <div class="settings-row">
+            <label>Сложность (множитель)</label>
+            <input type="number" id="set-complex" value="1.4" step="0.1">
+        </div>
+
+        <button class="reset-btn" id="reset-btn">🔄 Сбросить к стандартным</button>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // Default values
+        const DEFAULTS = {
+            baseMat: 1133,
+            acrylicSheet: 600,
+            laborMult: 1.5,
+            overheadPerM2: 1500,
+            setupFix: 100,
+            marginSmall: 5.3,
+            marginLarge: 4.2,
+            filmMult: 1.4,
+            complexMult: 1.4
+        };
+
+        // Load from localStorage or use defaults
+        function loadSettings() {
+            return {
+                baseMat: parseFloat(localStorage.getItem('baseMat')) || DEFAULTS.baseMat,
+                acrylicSheet: parseFloat(localStorage.getItem('acrylicSheet')) || DEFAULTS.acrylicSheet,
+                laborMult: parseFloat(localStorage.getItem('laborMult')) || DEFAULTS.laborMult,
+                overheadPerM2: parseFloat(localStorage.getItem('overheadPerM2')) || DEFAULTS.overheadPerM2,
+                setupFix: parseFloat(localStorage.getItem('setupFix')) || DEFAULTS.setupFix,
+                marginSmall: parseFloat(localStorage.getItem('marginSmall')) || DEFAULTS.marginSmall,
+                marginLarge: parseFloat(localStorage.getItem('marginLarge')) || DEFAULTS.marginLarge,
+                filmMult: parseFloat(localStorage.getItem('filmMult')) || DEFAULTS.filmMult,
+                complexMult: parseFloat(localStorage.getItem('complexMult')) || DEFAULTS.complexMult,
+            };
+        }
+
+        function saveSettings(settings) {
+            Object.keys(settings).forEach(key => {
+                localStorage.setItem(key, settings[key]);
+            });
+        }
+
+        let settings = loadSettings();
+
+        // Populate settings inputs
+        document.getElementById('set-base').value = settings.baseMat;
+        document.getElementById('set-acrylic').value = settings.acrylicSheet;
+        document.getElementById('set-labor').value = settings.laborMult;
+        document.getElementById('set-overhead').value = settings.overheadPerM2;
+        document.getElementById('set-setup').value = settings.setupFix;
+        document.getElementById('set-margin-small').value = settings.marginSmall;
+        document.getElementById('set-margin-large').value = settings.marginLarge;
+        document.getElementById('set-film').value = settings.filmMult;
+        document.getElementById('set-complex').value = settings.complexMult;
+
+        // Update settings on input change
+        ['set-base', 'set-acrylic', 'set-labor', 'set-overhead', 'set-setup', 
+         'set-margin-small', 'set-margin-large', 'set-film', 'set-complex'].forEach(id => {
+            document.getElementById(id).addEventListener('input', () => {
+                settings = {
+                    baseMat: parseFloat(document.getElementById('set-base').value),
+                    acrylicSheet: parseFloat(document.getElementById('set-acrylic').value),
+                    laborMult: parseFloat(document.getElementById('set-labor').value),
+                    overheadPerM2: parseFloat(document.getElementById('set-overhead').value),
+                    setupFix: parseFloat(document.getElementById('set-setup').value),
+                    marginSmall: parseFloat(document.getElementById('set-margin-small').value),
+                    marginLarge: parseFloat(document.getElementById('set-margin-large').value),
+                    filmMult: parseFloat(document.getElementById('set-film').value),
+                    complexMult: parseFloat(document.getElementById('set-complex').value),
+                };
+                saveSettings(settings);
+                calculate();
+            });
+        });
+
+        // Reset to defaults
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            settings = {...DEFAULTS};
+            document.getElementById('set-base').value = DEFAULTS.baseMat;
+            document.getElementById('set-acrylic').value = DEFAULTS.acrylicSheet;
+            document.getElementById('set-labor').value = DEFAULTS.laborMult;
+            document.getElementById('set-overhead').value = DEFAULTS.overheadPerM2;
+            document.getElementById('set-setup').value = DEFAULTS.setupFix;
+            document.getElementById('set-margin-small').value = DEFAULTS.marginSmall;
+            document.getElementById('set-margin-large').value = DEFAULTS.marginLarge;
+            document.getElementById('set-film').value = DEFAULTS.filmMult;
+            document.getElementById('set-complex').value = DEFAULTS.complexMult;
+            saveSettings(settings);
+            calculate();
+        });
+
+        // Settings toggle
+        document.getElementById('settings-toggle').addEventListener('click', () => {
+            document.getElementById('settings-panel').classList.toggle('show');
+        });
+
+        // Unit toggle
+        let unitMode = 'cm'; // default
+        document.getElementById('unit-cm').addEventListener('click', () => {
+            unitMode = 'cm';
+            document.getElementById('unit-cm').classList.add('active');
+            document.getElementById('unit-mm').classList.remove('active');
+            document.getElementById('unit-label-width').textContent = '(см)';
+            document.getElementById('unit-label-height').textContent = '(см)';
+            document.getElementById('width').placeholder = '100';
+            document.getElementById('height').placeholder = '100';
+        });
+
+        document.getElementById('unit-mm').addEventListener('click', () => {
+            unitMode = 'mm';
+            document.getElementById('unit-mm').classList.add('active');
+            document.getElementById('unit-cm').classList.remove('active');
+            document.getElementById('unit-label-width').textContent = '(мм)';
+            document.getElementById('unit-label-height').textContent = '(мм)';
+            document.getElementById('width').placeholder = '1000';
+            document.getElementById('height').placeholder = '1000';
+        });
+
+        // Inputs
+        const widthInput = document.getElementById('width');
+        const heightInput = document.getElementById('height');
+        const sheetsInput = document.getElementById('sheets');
+        const filmInput = document.getElementById('film');
+        const complexInput = document.getElementById('complex');
+        const priceDisplay = document.getElementById('price');
+        const hintDisplay = document.getElementById('formula-hint');
+
+        function calculate() {
+            let w = parseFloat(widthInput.value) || 0;
+            let h = parseFloat(heightInput.value) || 0;
+            let sheets = parseFloat(sheetsInput.value) || 0;
+
+            // Convert to meters
+            let w_m = unitMode === 'mm' ? w / 1000 : w / 100;
+            let h_m = unitMode === 'mm' ? h / 1000 : h / 100;
+            let area = w_m * h_m;
+
+            let acrylicCost = sheets * settings.acrylicSheet;
+            if (filmInput.checked) {
+                acrylicCost *= settings.filmMult;
+            }
+
+            let baseCost = area * settings.baseMat;
+            let totalMaterial = baseCost + acrylicCost;
+            let productionCost = totalMaterial * settings.laborMult;
+
+            let totalOverhead = (area * settings.overheadPerM2) + settings.setupFix;
+            let costPrice = productionCost + totalOverhead;
+
+            let margin = (area > 2.0) ? settings.marginLarge : settings.marginSmall;
+
+            let finalPrice = costPrice * margin;
+
+            if (complexInput.checked) {
+                finalPrice *= settings.complexMult;
+            }
+
+            finalPrice = Math.round(finalPrice / 100) * 100;
+
+            if (finalPrice > 0) {
+                priceDisplay.innerText = finalPrice.toLocaleString('ru-RU') + ' ₽';
+                hintDisplay.innerText = `Площадь: ${area.toFixed(2)} м² | Маржа: x${margin}`;
+            } else {
+                priceDisplay.innerText = '0 ₽';
+                hintDisplay.innerText = 'Введите размеры';
+            }
+        }
+
+        // Listeners
+        widthInput.addEventListener('input', calculate);
+        heightInput.addEventListener('input', calculate);
+        sheetsInput.addEventListener('input', calculate);
+        filmInput.addEventListener('change', calculate);
+        complexInput.addEventListener('change', calculate);
+    </script>
+</body>
+</html>
