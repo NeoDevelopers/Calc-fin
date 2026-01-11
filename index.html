@@ -14,6 +14,7 @@
       color: var(--tg-theme-text-color, #ffffff);
       margin: 0;
       padding: 20px;
+      padding-bottom: 60px;
       -webkit-tap-highlight-color: transparent;
       min-height: 100vh;
     }
@@ -48,7 +49,7 @@
     }
 
     .preview-card.show {
-      max-height: 260px; /* enough to fit preview content */
+      max-height: 260px;
       opacity: 1;
       transform: translateY(0);
       padding-top: 16px;
@@ -100,7 +101,6 @@
       color: var(--tg-theme-hint-color, #8e8e93);
     }
 
-    /* Changed to type="text" with inputmode="decimal" to handle commas on Android */
     input[type="text"], input[type="number"] {
       width: 100%;
       background-color: var(--tg-theme-bg-color, #3a3a3c);
@@ -242,6 +242,21 @@
       margin-top: 16px;
       font-weight: 600;
     }
+
+    /* Version Badge */
+    .version-badge {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      background-color: rgba(58, 58, 60, 0.9);
+      color: #8e8e93;
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-family: 'SF Mono', 'Monaco', monospace;
+      pointer-events: none;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
@@ -324,6 +339,9 @@
 
     <button class="reset-btn" id="reset-btn">🔄 Сбросить к стандартным</button>
   </div>
+
+  <!-- Version Badge -->
+  <div class="version-badge">v1.0.7</div>
 
   <script>
     let tg = window.Telegram.WebApp;
@@ -471,15 +489,12 @@
       dimH.textContent = h.toString();
     }
 
-    // Helper to safely parse float replacing comma with dot
     function safeParse(val) {
       if (!val) return 0;
-      // replace comma with dot, then parse
       return parseFloat(val.toString().replace(',', '.')) || 0;
     }
 
     function calculate() {
-      // Use safeParse to handle Android commas
       let w = safeParse(widthInput.value);
       let h = safeParse(heightInput.value);
       let sheets = safeParse(sheetsInput.value);
