@@ -63,9 +63,9 @@
       height: 150px;
       background-color: rgba(0,0,0,0.2);
       border-radius: 8px;
-      margin-top: 25px; /* Added margin top to accommodate top label */
+      margin-top: 25px; 
       position: relative;
-      overflow: visible; /* Changed to visible to allow labels outside */
+      overflow: visible; 
       border: 1px dashed #3a3a3c;
     }
 
@@ -80,15 +80,15 @@
       align-items: center;
     }
 
-    /* Mount holes styling */
+    /* Mount holes styling - Updated Design */
     .mount-hole {
       position: absolute;
-      width: 6px;
-      height: 6px;
-      background-color: #ffffff;
-      border: 1px solid #000;
+      width: 8px;
+      height: 8px;
+      background-color: #2c2c2e; /* Dark center */
+      border: 2px solid #0a84ff; /* Blue ring */
       border-radius: 50%;
-      box-shadow: 0 0 2px rgba(0,0,0,0.5);
+      box-shadow: 0 0 4px rgba(10, 132, 255, 0.6);
       z-index: 10;
     }
 
@@ -110,7 +110,6 @@
       z-index: 20; 
     }
 
-    /* Modified positioning to be safer */
     .dim-w { top: -22px; left: 50%; transform: translateX(-50%); } 
     .dim-h { right: -30px; top: 50%; transform: translateY(-50%) rotate(90deg); } 
 
@@ -162,14 +161,16 @@
       box-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
 
+    /* Updated Toggle Container for uniform spacing */
     .toggle-container {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 0;
+      padding: 12px 0; /* Uniform padding */
       border-bottom: 1px solid rgba(128,128,128, 0.2);
     }
-    .toggle-container:last-child { border-bottom: none; }
+    .toggle-container:first-child { padding-top: 0; } /* Remove top padding for first item */
+    .toggle-container:last-child { border-bottom: none; padding-bottom: 0; } /* Remove bottom padding for last item */
 
     .toggle-label { font-size: 16px; }
 
@@ -214,7 +215,6 @@
       margin-top: 10px;
     }
 
-    /* Cost breakdown styles */
     .cost-breakdown {
         background-color: rgba(255,255,255,0.1);
         border-radius: 8px;
@@ -297,8 +297,18 @@
       padding-top: 15px;
       border-top: 1px solid rgba(128,128,128, 0.2);
     }
+    .changelog h4 { margin: 0 0 10px 0; font-size: 14px; color: #8e8e93; }
+
+    /* Collapsible Logic */
     .log-item { font-size: 11px; color: #8e8e93; margin-bottom: 6px; }
     .log-ver { color: #0a84ff; font-weight: bold; margin-right: 5px; }
+
+    .hidden-logs { display: none; }
+    .show-more-btn {
+        background: none; border: none; padding: 0;
+        color: #0a84ff; font-size: 11px; cursor: pointer;
+        margin-top: 5px; text-decoration: underline;
+    }
 
     .version-badge {
       position: fixed;
@@ -385,7 +395,6 @@
     <div class="result-title">ИТОГО</div>
     <div class="price-display" id="price">0 ₽</div>
 
-    <!-- Cost Breakdown Section (Client Prices) -->
     <div class="cost-breakdown" id="cost-breakdown" style="display:none;">
         <div class="cost-row">
             <span>Основа (полистирол):</span>
@@ -433,13 +442,21 @@
     <button class="reset-btn" id="reset-btn">🔄 Сбросить к стандартным</button>
 
     <div class="changelog">
-        <div class="log-item"><span class="log-ver">v1.0.10</span> Детализация цены для КЛИЕНТА, пленка +30%, кнопка и расчет подсветки.</div>
-        <div class="log-item"><span class="log-ver">v1.0.9</span> Крепежи только по периметру, отступы цифр.</div>
-        <div class="log-item"><span class="log-ver">v1.0.8</span> Предупреждение о сохранении настроек, защита сброса, Android-фикс.</div>
+        <h4>История обновлений</h4>
+        <div class="log-item"><span class="log-ver">v1.0.12</span> Шаг крепежей 70-80 см.</div>
+        <div class="log-item"><span class="log-ver">v1.0.11</span> Отступы карточек, дизайн держателей, скрытие старых логов.</div>
+        <div class="log-item"><span class="log-ver">v1.0.10</span> Детализация цены (клиент), пленка 30%, подсветка.</div>
+
+        <div id="hidden-logs" class="hidden-logs">
+            <div class="log-item"><span class="log-ver">v1.0.9</span> Крепежи только по периметру, отступы цифр.</div>
+            <div class="log-item"><span class="log-ver">v1.0.8</span> Предупреждение о сохранении настроек, Android-фикс.</div>
+            <div class="log-item"><span class="log-ver">v1.0.7</span> Темная тема, Telegram UI.</div>
+        </div>
+        <button class="show-more-btn" onclick="toggleLogs()" id="log-toggle-btn">Показать старые версии...</button>
     </div>
   </div>
 
-  <div class="version-badge">v1.0.10</div>
+  <div class="version-badge">v1.0.12</div>
 
   <script>
     let tg = window.Telegram.WebApp;
@@ -512,6 +529,18 @@
     document.getElementById('settings-toggle').addEventListener('click', () => {
       document.getElementById('settings-panel').classList.toggle('show');
     });
+
+    function toggleLogs() {
+        const logs = document.getElementById('hidden-logs');
+        const btn = document.getElementById('log-toggle-btn');
+        if (logs.style.display === 'block') {
+            logs.style.display = 'none';
+            btn.innerText = 'Показать старые версии...';
+        } else {
+            logs.style.display = 'block';
+            btn.innerText = 'Скрыть';
+        }
+    }
 
     let unitMode = 'cm';
     document.getElementById('unit-cm').addEventListener('click', () => {
@@ -593,7 +622,7 @@
 
       let w_cm = (unitMode === 'mm') ? realW / 10 : realW;
       let h_cm = (unitMode === 'mm') ? realH / 10 : realH;
-      const MAX_DIST = 50; 
+      const MAX_DIST = 75; // Average between 70-80
 
       let segX = Math.ceil(w_cm / MAX_DIST);
       let segY = Math.ceil(h_cm / MAX_DIST);
@@ -612,10 +641,12 @@
            let pctX = (i / segX) * 100;
            let pctY = (j / segY) * 100;
 
-           if (pctX === 0) pctX = 5;
-           if (pctX === 100) pctX = 95;
-           if (pctY === 0) pctY = 5;
-           if (pctY === 100) pctY = 95;
+           // Standardized inset: 7% from all edges
+           let inset = 7;
+           if (pctX === 0) pctX = inset;
+           if (pctX === 100) pctX = 100 - inset;
+           if (pctY === 0) pctY = inset;
+           if (pctY === 100) pctY = 100 - inset;
 
            const dot = document.createElement('div');
            dot.className = 'mount-hole';
@@ -650,12 +681,6 @@
       let acrylicCost = sheets * settings.acrylicSheet; 
       let filmCost = 0;
 
-      // If film selected: increase acrylic cost basis for calculation or just add extra?
-      // Logic: film is extra cost.
-      // Settings: FilmMult (1.3). 
-      // User says: "+30% к акрилу".
-      // So Cost with Film = AcrylicCost * 1.3
-      // Film Part = AcrylicCost * 0.3
       if (filmInput.checked) {
           filmCost = acrylicCost * (settings.filmMult - 1);
       }
@@ -664,31 +689,18 @@
       let productionCost = totalMaterial * settings.laborMult;
       let totalOverhead = (area * settings.overheadPerM2) + settings.setupFix;
 
-      // Cost Price
       let costPrice = productionCost + totalOverhead;
 
-      // Margin
       let margin = (area > 2.0) ? settings.marginLarge : settings.marginSmall;
       let priceWithMargin = costPrice * margin;
 
-      // Light Logic (Added on top or part of base?)
-      // Usually Light is calculated separately and added.
-      // Let's assume Light = (Fix + Area*Price) and it has NO margin (or has?).
-      // In v1.0.8 chat history, light was added separate.
-      // Let's add it at the end to be safe, or include in margin base.
-      // User requested "Подсветка" button and "Стоимость подсветки" in breakdown.
       let lightCostClient = 0;
       if (lightInput.checked) {
-          // Logic from history: Fix + (Area * 2000). Usually this is cost price? 
-          // If we want Client Price, we usually multiply. 
-          // BUT, let's treat the settings (700 fix, 2000 per m2) as FINAL client add-ons or cost to be multiplied?
-          // Let's assume these are DIRECT additions to final price for now (as per "don't multiply block by 5.3" in old chat).
           lightCostClient = settings.lightFix + (area * settings.lightM2);
       }
 
       let finalPrice = priceWithMargin + lightCostClient;
 
-      // Complexity
       if (complexInput.checked) finalPrice *= settings.complexMult;
 
       finalPrice = Math.round(finalPrice / 100) * 100;
@@ -697,13 +709,6 @@
         priceDisplay.innerText = finalPrice.toLocaleString('ru-RU') + ' ₽';
         hintDisplay.innerText = `Площадь: ${area.toFixed(2)} м² | Маржа: x${margin}`;
 
-        // BREAKDOWN: Client Prices (approximate share of total)
-        // We need to show how much of the Final Price is Acrylic, Base, etc.
-        // This is tricky because of margin multipliers.
-        // Let's distribute the 'Margin Part' proportionally to material costs.
-        // Or simpler: Show (Cost Component * Labor * Margin).
-
-        // Factor to multiply raw costs by to get Client Price Component (excluding light/complex)
         let multiplier = settings.laborMult * margin; 
         if (complexInput.checked) multiplier *= settings.complexMult;
 
@@ -711,8 +716,6 @@
         let clientAcrylic = acrylicCost * multiplier;
         let clientFilm = filmCost * multiplier;
 
-        // Light is not multiplied by margin in our logic above, so we just take it as is.
-        // If complex applies to light too:
         if (complexInput.checked) lightCostClient *= settings.complexMult;
 
         breakdownBox.style.display = 'block';
