@@ -20,7 +20,6 @@
       transition: background 240ms ease;
     }
 
-    /* iOS 26 style (glass / futuristic) */
     body[data-theme="ios26"] {
       background: radial-gradient(circle at 20% 10%, #2b1055 0%, #0b1b3f 35%, #000 70%);
       background-size: 140% 140%;
@@ -105,8 +104,670 @@
       border-radius: 20px;
     }
 
-    /* Preview card */
     .preview-card {
       overflow: hidden;
       max-height: 0;
-      opa
+      opacity: 0;
+      transition: max-height 400ms ease, opacity 320ms ease;
+      margin-bottom: 0;
+    }
+
+    .preview-card.show {
+      max-height: 1200px;
+      opacity: 1;
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--tg-theme-hint-color, #8e8e93);
+    }
+
+    body[data-theme="ios26"] label {
+      color: rgba(255,255,255,0.65);
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 11px 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      background-color: var(--tg-theme-bg-color, #1c1c1e);
+      color: var(--tg-theme-text-color, #ffffff);
+      margin-bottom: 12px;
+      transition: all 240ms ease;
+    }
+
+    body[data-theme="ios26"] input[type="number"],
+    body[data-theme="ios26"] input[type="text"],
+    body[data-theme="ios26"] select {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.92);
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--tg-theme-link-color, #0a84ff);
+    }
+
+    body[data-theme="ios26"] input:focus,
+    body[data-theme="ios26"] select:focus {
+      box-shadow: 0 0 0 2px #7cc4ff, 0 0 12px rgba(124, 196, 255, 0.3);
+    }
+
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding: 10px 0;
+    }
+
+    .toggle-label {
+      font-size: 15px;
+      font-weight: 500;
+      margin: 0;
+      color: var(--tg-theme-text-color, #ffffff);
+    }
+
+    body[data-theme="ios26"] .toggle-label {
+      color: rgba(255,255,255,0.92);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 51px;
+      height: 31px;
+      background-color: #3a3a3c;
+      border-radius: 31px;
+      cursor: pointer;
+      transition: background-color 240ms ease;
+    }
+
+    body[data-theme="ios26"] .toggle-switch {
+      background-color: rgba(58,58,60,0.5);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .toggle-switch.active {
+      background-color: var(--tg-theme-link-color, #34c759);
+    }
+
+    body[data-theme="ios26"] .toggle-switch.active {
+      background-color: #7cc4ff;
+      box-shadow: 0 0 12px rgba(124, 196, 255, 0.4);
+    }
+
+    .toggle-knob {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 27px;
+      height: 27px;
+      background-color: white;
+      border-radius: 50%;
+      transition: transform 240ms ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .toggle-switch.active .toggle-knob {
+      transform: translateX(20px);
+    }
+
+    .result-section {
+      background: linear-gradient(135deg, var(--tg-theme-link-color, #0a84ff), #0055cc);
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+      margin-top: 20px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+
+    body[data-theme="ios26"] .result-section {
+      background: linear-gradient(135deg, #7cc4ff 0%, #4d8eff 100%);
+      box-shadow: 0 12px 32px rgba(124, 196, 255, 0.3);
+    }
+
+    .result-label {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      opacity: 0.9;
+      color: white;
+    }
+
+    .result-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: white;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .settings-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--tg-theme-link-color, #0a84ff);
+      color: white;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: all 240ms ease;
+      z-index: 100;
+    }
+
+    body[data-theme="ios26"] .settings-btn {
+      background: #7cc4ff;
+      box-shadow: 0 6px 20px rgba(124, 196, 255, 0.4);
+    }
+
+    .settings-btn:active {
+      transform: scale(0.95);
+    }
+
+    .settings-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 20px;
+    }
+
+    .settings-overlay.show {
+      display: flex;
+    }
+
+    .settings-panel {
+      background: var(--tg-theme-secondary-bg-color, #2c2c2e);
+      border-radius: 16px;
+      padding: 20px;
+      max-width: 400px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+    }
+
+    .settings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .settings-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--tg-theme-text-color, #ffffff);
+    }
+
+    body[data-theme="ios26"] .settings-title {
+      color: #7cc4ff;
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      font-size: 24px;
+      color: var(--tg-theme-hint-color, #8e8e93);
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      font-size: 14px;
+      color: var(--tg-theme-hint-color, #8e8e93);
+    }
+
+    body[data-theme="ios26"] .detail-label {
+      color: rgba(255,255,255,0.6);
+    }
+
+    .detail-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--tg-theme-text-color, #ffffff);
+    }
+
+    body[data-theme="ios26"] .detail-value {
+      color: rgba(255,255,255,0.92);
+    }
+
+    .theme-selector {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .theme-btn {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--tg-theme-text-color, #ffffff);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 240ms ease;
+    }
+
+    .theme-btn.active {
+      background: var(--tg-theme-link-color, #0a84ff);
+      border-color: var(--tg-theme-link-color, #0a84ff);
+    }
+
+    body[data-theme="ios26"] .theme-btn.active {
+      background: #7cc4ff;
+      border-color: #7cc4ff;
+      color: #1c1c1e;
+    }
+
+    @media (max-width: 400px) {
+      body {
+        padding: 12px;
+        padding-bottom: 60px;
+      }
+
+      h1 {
+        font-size: 18px;
+      }
+
+      .result-value {
+        font-size: 30px;
+      }
+    }
+  </style>
+</head>
+<body data-theme="ios26">
+
+  <h1>Калькулятор Вывесок</h1>
+
+  <div class="tabs-container">
+    <button class="tab-btn active" onclick="switchTab('substrate')">На подложке</button>
+    <button class="tab-btn" onclick="switchTab('wall')">Акрил на стену</button>
+  </div>
+
+  <!-- Вкладка 1: На подложке -->
+  <div id="tab-substrate" class="tab-content active">
+    <div class="card">
+      <label for="width">Ширина (см)</label>
+      <input type="number" id="width" value="100" oninput="calculate()">
+
+      <label for="height">Высота (см)</label>
+      <input type="number" id="height" value="50" oninput="calculate()">
+
+      <label for="substrate">Основа</label>
+      <select id="substrate" onchange="calculate()">
+        <option value="polystyrene">Полистирол (1133₽/м²)</option>
+        <option value="composite">Композит (3900₽/м²)</option>
+      </select>
+
+      <label for="sheets">Листов акрила</label>
+      <input type="number" id="sheets" value="1" min="1" oninput="calculate()">
+    </div>
+
+    <div class="card">
+      <div class="toggle-container">
+        <span class="toggle-label">Пленка</span>
+        <div class="toggle-switch" id="filmToggle" onclick="toggleOption('film')">
+          <div class="toggle-knob"></div>
+        </div>
+      </div>
+
+      <div class="toggle-container">
+        <span class="toggle-label">Подсветка</span>
+        <div class="toggle-switch" id="lightingToggle" onclick="toggleOption('lighting')">
+          <div class="toggle-knob"></div>
+        </div>
+      </div>
+
+      <div class="toggle-container">
+        <span class="toggle-label">Сложность</span>
+        <div class="toggle-switch" id="complexityToggle" onclick="toggleOption('complexity')">
+          <div class="toggle-knob"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card preview-card" id="previewCard">
+      <label>Детализация</label>
+      <div class="detail-row">
+        <span class="detail-label">Площадь</span>
+        <span class="detail-value" id="areaDisplay">—</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Стоимость основы</span>
+        <span class="detail-value" id="substrateCost">—</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Стоимость акрила</span>
+        <span class="detail-value" id="acrylicCost">—</span>
+      </div>
+      <div class="detail-row" id="filmCostRow" style="display:none;">
+        <span class="detail-label">Стоимость пленки</span>
+        <span class="detail-value" id="filmCost">—</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Себестоимость</span>
+        <span class="detail-value" id="costPrice">—</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Наценка</span>
+        <span class="detail-value" id="marginDisplay">—</span>
+      </div>
+      <div class="detail-row" id="lightingCostRow" style="display:none;">
+        <span class="detail-label">Подсветка</span>
+        <span class="detail-value" id="lightingCost">—</span>
+      </div>
+      <div class="detail-row" id="complexityCostRow" style="display:none;">
+        <span class="detail-label">Сложность</span>
+        <span class="detail-value" id="complexityCost">—</span>
+      </div>
+    </div>
+
+    <div class="result-section">
+      <div class="result-label">Итоговая цена</div>
+      <div class="result-value" id="result">0 ₽</div>
+    </div>
+  </div>
+
+  <!-- Вкладка 2: Акрил на стену -->
+  <div id="tab-wall" class="tab-content">
+    <div class="card">
+      <label for="widthWall">Ширина (см)</label>
+      <input type="number" id="widthWall" value="100" oninput="calculateWall()">
+
+      <label for="heightWall">Высота (см)</label>
+      <input type="number" id="heightWall" value="50" oninput="calculateWall()">
+
+      <label for="materialWall">Материал</label>
+      <select id="materialWall" onchange="calculateWall()">
+        <option value="black">Чёрный акрил 3мм (600₽/лист)</option>
+        <option value="milk">Молочный акрил 3мм (600₽/лист)</option>
+        <option value="silver">Зеркальное серебро 3мм (720₽/лист)</option>
+        <option value="gold">Зеркальное золото 3мм (720₽/лист)</option>
+      </select>
+
+      <label for="sheetsWall">Листов акрила</label>
+      <input type="number" id="sheetsWall" value="1" min="1" oninput="calculateWall()">
+    </div>
+
+    <div class="card">
+      <div class="toggle-container">
+        <span class="toggle-label">Пленка (×1.2)</span>
+        <div class="toggle-switch" id="filmToggleWall" onclick="toggleOptionWall('film')">
+          <div class="toggle-knob"></div>
+        </div>
+      </div>
+
+      <div class="toggle-container">
+        <span class="toggle-label">Скотч (+200₽/лист)</span>
+        <div class="toggle-switch" id="tapeToggleWall" onclick="toggleOptionWall('tape')">
+          <div class="toggle-knob"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card preview-card" id="previewCardWall">
+      <label>Детализация</label>
+      <div class="detail-row">
+        <span class="detail-label">Площадь</span>
+        <span class="detail-value" id="areaDisplayWall">—</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Стоимость акрила</span>
+        <span class="detail-value" id="acrylicCostWall">—</span>
+      </div>
+      <div class="detail-row" id="filmCostRowWall" style="display:none;">
+        <span class="detail-label">Пленка (×1.2)</span>
+        <span class="detail-value" id="filmCostWall">—</span>
+      </div>
+      <div class="detail-row" id="tapeCostRowWall" style="display:none;">
+        <span class="detail-label">Скотч</span>
+        <span class="detail-value" id="tapeCostWall">—</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Себестоимость</span>
+        <span class="detail-value" id="costPriceWall">—</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Наценка</span>
+        <span class="detail-value" id="marginDisplayWall">—</span>
+      </div>
+    </div>
+
+    <div class="result-section">
+      <div class="result-label">Итоговая цена</div>
+      <div class="result-value" id="resultWall">0 ₽</div>
+    </div>
+  </div>
+
+  <button class="settings-btn" onclick="toggleSettings()">⚙</button>
+
+  <div class="settings-overlay" id="settingsOverlay" onclick="closeSettings(event)">
+    <div class="settings-panel" onclick="event.stopPropagation()">
+      <div class="settings-header">
+        <span class="settings-title">Настройки</span>
+        <button class="close-btn" onclick="toggleSettings()">×</button>
+      </div>
+
+      <label>Тема оформления</label>
+      <div class="theme-selector">
+        <button class="theme-btn" id="themeAuto" onclick="setTheme('auto')">Авто</button>
+        <button class="theme-btn active" id="themeIOS" onclick="setTheme('ios26')">iOS 26</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let options = {
+      film: false,
+      lighting: false,
+      complexity: false
+    };
+
+    let optionsWall = {
+      film: false,
+      tape: false
+    };
+
+    // Переключение вкладок
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+      if (tab === 'substrate') {
+        document.querySelector('.tab-btn:first-child').classList.add('active');
+        document.getElementById('tab-substrate').classList.add('active');
+        calculate();
+      } else {
+        document.querySelector('.tab-btn:last-child').classList.add('active');
+        document.getElementById('tab-wall').classList.add('active');
+        calculateWall();
+      }
+    }
+
+    // Переключение опций (вкладка 1)
+    function toggleOption(option) {
+      options[option] = !options[option];
+      const toggle = document.getElementById(option + 'Toggle');
+      toggle.classList.toggle('active');
+      calculate();
+    }
+
+    // Переключение опций (вкладка 2)
+    function toggleOptionWall(option) {
+      optionsWall[option] = !optionsWall[option];
+      const toggle = document.getElementById(option + 'ToggleWall');
+      toggle.classList.toggle('active');
+      calculateWall();
+    }
+
+    // Расчет для вкладки "На подложке"
+    function calculate() {
+      const width = parseFloat(document.getElementById('width').value) || 0;
+      const height = parseFloat(document.getElementById('height').value) || 0;
+      const area = (width / 100) * (height / 100);
+      const sheets = parseInt(document.getElementById('sheets').value) || 1;
+      const substrate = document.getElementById('substrate').value;
+
+      const substratePricePerM2 = substrate === 'polystyrene' ? 1133 : 3900;
+
+      const substrateDiscount = Math.max(0, Math.min(1, (area - 1) / 2)) * 0.12;
+      const substrateCostValue = area * substratePricePerM2 * (1 - substrateDiscount);
+
+      const acrylicDiscount = Math.max(0, Math.min(1, (sheets - 2) / 3)) * 0.2;
+      const acrylicPricePerSheet = 600 * (1 - acrylicDiscount);
+      const acrylicCostValue = sheets * acrylicPricePerSheet;
+
+      const filmCostValue = options.film ? acrylicCostValue * 0.3 : 0;
+
+      const materials = substrateCostValue + acrylicCostValue + filmCostValue;
+      const production = materials * 1.5;
+      const overhead = area * 1500 + 100;
+      const costPriceValue = production + overhead;
+
+      const marginValue = 5.3 + ((area - 1) / (3 - 1)) * (3.8 - 5.3);
+      const marginClamped = Math.max(3.8, Math.min(5.3, marginValue));
+
+      let basePrice = costPriceValue * marginClamped;
+
+      const lightingCostValue = options.lighting ? (700 + area * 2000) : 0;
+      basePrice += lightingCostValue;
+
+      const beforeComplexity = basePrice;
+      const complexityMultiplier = options.complexity ? 1.4 : 1;
+      const finalPrice = basePrice * complexityMultiplier;
+      const complexityCostValue = options.complexity ? (beforeComplexity * 0.4) : 0;
+
+      document.getElementById('areaDisplay').textContent = area.toFixed(2) + ' м²';
+      document.getElementById('substrateCost').textContent = substrateCostValue.toFixed(0) + ' ₽';
+      document.getElementById('acrylicCost').textContent = acrylicCostValue.toFixed(0) + ' ₽';
+      document.getElementById('filmCost').textContent = filmCostValue.toFixed(0) + ' ₽';
+      document.getElementById('costPrice').textContent = costPriceValue.toFixed(0) + ' ₽';
+      document.getElementById('marginDisplay').textContent = '×' + marginClamped.toFixed(2);
+      document.getElementById('lightingCost').textContent = '+' + lightingCostValue.toFixed(0) + ' ₽';
+      document.getElementById('complexityCost').textContent = '+' + complexityCostValue.toFixed(0) + ' ₽';
+
+      document.getElementById('filmCostRow').style.display = options.film ? 'flex' : 'none';
+      document.getElementById('lightingCostRow').style.display = options.lighting ? 'flex' : 'none';
+      document.getElementById('complexityCostRow').style.display = options.complexity ? 'flex' : 'none';
+
+      document.getElementById('result').textContent = Math.round(finalPrice / 100) * 100 + ' ₽';
+      document.getElementById('previewCard').classList.add('show');
+    }
+
+    // Расчет для вкладки "Акрил на стену"
+    function calculateWall() {
+      const width = parseFloat(document.getElementById('widthWall').value) || 0;
+      const height = parseFloat(document.getElementById('heightWall').value) || 0;
+      const area = (width / 100) * (height / 100);
+      const sheets = parseInt(document.getElementById('sheetsWall').value) || 1;
+      const material = document.getElementById('materialWall').value;
+
+      const basePricePerSheet = 600;
+      const materialMultiplier = (material === 'silver' || material === 'gold') ? 1.2 : 1;
+
+      const acrylicDiscount = Math.max(0, Math.min(1, (sheets - 2) / 3)) * 0.2;
+      const acrylicPricePerSheet = basePricePerSheet * materialMultiplier * (1 - acrylicDiscount);
+      let acrylicCostValue = sheets * acrylicPricePerSheet;
+
+      const filmMultiplier = optionsWall.film ? 1.2 : 1;
+      const filmCostValue = optionsWall.film ? (acrylicCostValue * 0.2) : 0;
+      acrylicCostValue *= filmMultiplier;
+
+      const tapeCostValue = optionsWall.tape ? (sheets * 200) : 0;
+
+      const materials = acrylicCostValue + tapeCostValue;
+      const production = materials * 1.5;
+      const overhead = area * 1500 + 100;
+      const costPriceValue = production + overhead;
+
+      const marginValue = 5.3 + ((area - 1) / (3 - 1)) * (3.8 - 5.3);
+      const marginClamped = Math.max(3.8, Math.min(5.3, marginValue));
+
+      const finalPrice = costPriceValue * marginClamped;
+
+      document.getElementById('areaDisplayWall').textContent = area.toFixed(2) + ' м²';
+      document.getElementById('acrylicCostWall').textContent = acrylicCostValue.toFixed(0) + ' ₽';
+      document.getElementById('filmCostWall').textContent = '+' + filmCostValue.toFixed(0) + ' ₽';
+      document.getElementById('tapeCostWall').textContent = '+' + tapeCostValue.toFixed(0) + ' ₽';
+      document.getElementById('costPriceWall').textContent = costPriceValue.toFixed(0) + ' ₽';
+      document.getElementById('marginDisplayWall').textContent = '×' + marginClamped.toFixed(2);
+
+      document.getElementById('filmCostRowWall').style.display = optionsWall.film ? 'flex' : 'none';
+      document.getElementById('tapeCostRowWall').style.display = optionsWall.tape ? 'flex' : 'none';
+
+      document.getElementById('resultWall').textContent = Math.round(finalPrice / 100) * 100 + ' ₽';
+      document.getElementById('previewCardWall').classList.add('show');
+    }
+
+    function toggleSettings() {
+      document.getElementById('settingsOverlay').classList.toggle('show');
+    }
+
+    function closeSettings(event) {
+      if (event.target.id === 'settingsOverlay') {
+        toggleSettings();
+      }
+    }
+
+    function setTheme(theme) {
+      document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+
+      if (theme === 'auto') {
+        document.body.removeAttribute('data-theme');
+        document.getElementById('themeAuto').classList.add('active');
+      } else {
+        document.body.setAttribute('data-theme', theme);
+        document.getElementById('themeIOS').classList.add('active');
+      }
+    }
+
+    // Инициализация Telegram WebApp
+    if (window.Telegram && window.Telegram.WebApp) {
+      Telegram.WebApp.ready();
+      Telegram.WebApp.expand();
+    }
+
+    // Первоначальный расчет
+    calculate();
+  </script>
+
+</body>
+</html>
