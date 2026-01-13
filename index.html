@@ -20,6 +20,7 @@
       transition: background 240ms ease;
     }
 
+    /* iOS 26 style (glass / futuristic) */
     body[data-theme="ios26"] {
       background: radial-gradient(circle at 20% 10%, #2b1055 0%, #0b1b3f 35%, #000 70%);
       background-size: 140% 140%;
@@ -29,7 +30,7 @@
     h1 {
       text-align: center;
       font-size: 20px;
-      margin-bottom: 8px;
+      margin-bottom: 14px;
       color: var(--tg-theme-link-color, #0a84ff);
       font-weight: 700;
       letter-spacing: -0.3px;
@@ -38,51 +39,7 @@
     body[data-theme="ios26"] h1 {
       color: #7cc4ff;
       text-shadow: 0 0 22px rgba(124, 196, 255, 0.35);
-      margin-bottom: 12px;
-    }
-
-    .tabs-container {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-      justify-content: center;
-    }
-
-    .tab-btn {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 240ms ease;
-      background: var(--tg-theme-secondary-bg-color, #2c2c2e);
-      color: var(--tg-theme-text-color, #ffffff);
-    }
-
-    body[data-theme="ios26"] .tab-btn {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: rgba(255,255,255,0.6);
-    }
-
-    .tab-btn.active {
-      background: var(--tg-theme-link-color, #0a84ff);
-      color: white;
-    }
-
-    body[data-theme="ios26"] .tab-btn.active {
-      background: #7cc4ff;
-      color: #1c1c1e;
-      box-shadow: 0 0 16px rgba(124, 196, 255, 0.4);
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
+      margin-bottom: 18px;
     }
 
     .card {
@@ -104,670 +61,982 @@
       border-radius: 20px;
     }
 
+    /* Preview card */
     .preview-card {
       overflow: hidden;
       max-height: 0;
       opacity: 0;
-      transition: max-height 400ms ease, opacity 320ms ease;
+      transform: translateY(-8px);
+      padding-top: 0;
+      padding-bottom: 0;
       margin-bottom: 0;
+      transition: max-height 220ms ease, opacity 200ms ease, transform 220ms ease, margin-bottom 220ms ease, padding 220ms ease;
     }
 
     .preview-card.show {
-      max-height: 1200px;
+      max-height: 320px;
       opacity: 1;
+      transform: translateY(0);
+      padding-top: 16px;
+      padding-bottom: 16px;
       margin-bottom: 16px;
     }
 
+    .preview-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 150px;
+      background-color: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      margin-top: 25px;
+      position: relative;
+      overflow: visible;
+      border: 1px dashed #3a3a3c;
+    }
+
+    body[data-theme="ios26"] .preview-container {
+      background: rgba(0,0,0,0.18);
+      border: 1px dashed rgba(255,255,255,0.25);
+      border-radius: 14px;
+    }
+
+    .preview-box {
+      background-color: rgba(10, 132, 255, 0.15);
+      border: 2px solid #0a84ff;
+      box-shadow: 0 0 15px rgba(10, 132, 255, 0.2);
+      position: relative;
+      transition: width 220ms ease, height 220ms ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    body[data-theme="ios26"] .preview-box {
+      border-color: #7cc4ff;
+      box-shadow: 0 0 26px rgba(124, 196, 255, 0.25);
+    }
+
+    /* Mount holes */
+    .mount-hole {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background-color: #2c2c2e;
+      border: 2px solid #0a84ff;
+      border-radius: 50%;
+      box-shadow: 0 0 4px rgba(10, 132, 255, 0.6);
+      z-index: 10;
+    }
+
+    body[data-theme="ios26"] .mount-hole {
+      background: rgba(0,0,0,0.35);
+      border-color: #7cc4ff;
+      box-shadow: 0 0 10px rgba(124, 196, 255, 0.55);
+    }
+
+    .mount-info {
+      font-size: 13px;
+      color: #30d158;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .dim-label {
+      position: absolute;
+      font-size: 11px;
+      color: #0a84ff;
+      background-color: #2c2c2e;
+      padding: 2px 4px;
+      border-radius: 4px;
+      white-space: nowrap;
+      z-index: 20;
+    }
+
+    body[data-theme="ios26"] .dim-label {
+      background: rgba(255,255,255,0.10);
+      color: #7cc4ff;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 3px 6px;
+    }
+
+    .dim-w { top: -22px; left: 50%; transform: translateX(-50%); }
+    .dim-h { right: -30px; top: 50%; transform: translateY(-50%) rotate(90deg); }
+
     label {
       display: block;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+      font-size: 14px;
       color: var(--tg-theme-hint-color, #8e8e93);
     }
 
-    body[data-theme="ios26"] label {
-      color: rgba(255,255,255,0.65);
-    }
+    body[data-theme="ios26"] label { color: rgba(255,255,255,0.70); }
 
-    input[type="number"],
-    input[type="text"],
-    select {
+    input[type="text"], input[type="number"] {
       width: 100%;
-      padding: 11px 14px;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      background-color: var(--tg-theme-bg-color, #1c1c1e);
+      background-color: var(--tg-theme-bg-color, #3a3a3c);
+      border: 1px solid var(--tg-theme-bg-color, #3a3a3c);
+      border-radius: 8px;
       color: var(--tg-theme-text-color, #ffffff);
-      margin-bottom: 12px;
-      transition: all 240ms ease;
-    }
-
-    body[data-theme="ios26"] input[type="number"],
-    body[data-theme="ios26"] input[type="text"],
-    body[data-theme="ios26"] select {
-      background: rgba(0,0,0,0.25);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: rgba(255,255,255,0.92);
-    }
-
-    input:focus, select:focus {
+      padding: 12px;
+      font-size: 18px;
+      margin-bottom: 10px;
       outline: none;
-      box-shadow: 0 0 0 2px var(--tg-theme-link-color, #0a84ff);
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    body[data-theme="ios26"] input:focus,
-    body[data-theme="ios26"] select:focus {
-      box-shadow: 0 0 0 2px #7cc4ff, 0 0 12px rgba(124, 196, 255, 0.3);
+    body[data-theme="ios26"] input[type="text"],
+    body[data-theme="ios26"] input[type="number"] {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+    }
+
+    input:focus { border-color: var(--tg-theme-link-color, #0a84ff); }
+
+    body[data-theme="ios26"] input:focus {
+      border-color: rgba(124,196,255,0.75);
+      box-shadow: 0 0 0 3px rgba(124,196,255,0.15);
+    }
+
+    .row { display: flex; gap: 10px; align-items: flex-end; }
+    .col { flex: 1; }
+
+    .unit-toggle-container { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+    .unit-toggle {
+      display: inline-flex;
+      background-color: rgba(118, 118, 128, 0.12);
+      border-radius: 6px;
+      padding: 2px;
+    }
+
+    body[data-theme="ios26"] .unit-toggle {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 12px;
+    }
+
+    .unit-toggle button {
+      border: none;
+      background: transparent;
+      color: #8e8e93;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .unit-toggle button.active {
+      background-color: #636366;
+      color: white;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    body[data-theme="ios26"] .unit-toggle button { color: rgba(255,255,255,0.72); font-weight: 600; }
+    body[data-theme="ios26"] .unit-toggle button.active {
+      background: rgba(255,255,255,0.16);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
     }
 
     .toggle-container {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      margin-bottom: 12px;
-      padding: 10px 0;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(128,128,128, 0.2);
+    }
+    .toggle-container:first-child { padding-top: 0; }
+    .toggle-container:last-child { border-bottom: none; padding-bottom: 0; }
+
+    body[data-theme="ios26"] .toggle-container {
+      border-bottom: 1px solid rgba(255,255,255,0.10);
     }
 
-    .toggle-label {
-      font-size: 15px;
-      font-weight: 500;
-      margin: 0;
-      color: var(--tg-theme-text-color, #ffffff);
-    }
+    .toggle-label { font-size: 16px; }
 
-    body[data-theme="ios26"] .toggle-label {
-      color: rgba(255,255,255,0.92);
-    }
-
-    .toggle-switch {
-      position: relative;
-      width: 51px;
-      height: 31px;
-      background-color: #3a3a3c;
-      border-radius: 31px;
-      cursor: pointer;
-      transition: background-color 240ms ease;
-    }
-
-    body[data-theme="ios26"] .toggle-switch {
-      background-color: rgba(58,58,60,0.5);
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .toggle-switch.active {
-      background-color: var(--tg-theme-link-color, #34c759);
-    }
-
-    body[data-theme="ios26"] .toggle-switch.active {
-      background-color: #7cc4ff;
-      box-shadow: 0 0 12px rgba(124, 196, 255, 0.4);
-    }
-
-    .toggle-knob {
+    .switch { position: relative; display: inline-block; width: 50px; height: 30px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
       position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 27px;
-      height: 27px;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #3a3a3c;
+      transition: .4s;
+      border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px; width: 26px;
+      left: 2px; bottom: 2px;
       background-color: white;
+      transition: .4s;
       border-radius: 50%;
-      transition: transform 240ms ease;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    input:checked + .slider { background-color: #30d158; }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    body[data-theme="ios26"] .slider {
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.12);
     }
 
-    .toggle-switch.active .toggle-knob {
-      transform: translateX(20px);
+    body[data-theme="ios26"] input:checked + .slider {
+      background: rgba(124,196,255,0.85);
+      box-shadow: 0 0 16px rgba(124,196,255,0.35);
     }
 
-    .result-section {
-      background: linear-gradient(135deg, var(--tg-theme-link-color, #0a84ff), #0055cc);
+    .result-box {
+      background: linear-gradient(135deg, #0a84ff 0%, #0056b3 100%);
       border-radius: 12px;
-      padding: 18px;
+      padding: 20px;
       text-align: center;
       margin-top: 20px;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      margin-bottom: 20px;
     }
 
-    body[data-theme="ios26"] .result-section {
-      background: linear-gradient(135deg, #7cc4ff 0%, #4d8eff 100%);
-      box-shadow: 0 12px 32px rgba(124, 196, 255, 0.3);
+    body[data-theme="ios26"] .result-box {
+      background: rgba(124,196,255,0.16);
+      border: 1px solid rgba(124,196,255,0.28);
+      box-shadow: 0 18px 44px rgba(0,0,0,0.35);
+      border-radius: 22px;
     }
 
-    .result-label {
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      opacity: 0.9;
+    .result-title { font-size: 14px; opacity: 0.8; margin-bottom: 5px; color: white; }
+    .price-display { font-size: 36px; font-weight: bold; color: white; }
+
+    body[data-theme="ios26"] .price-display { text-shadow: 0 10px 28px rgba(0,0,0,0.35); }
+
+    .debug-info {
+      font-size: 10px;
+      color: var(--tg-theme-hint-color, #555);
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    body[data-theme="ios26"] .debug-info { color: rgba(255,255,255,0.6); }
+
+    .cost-breakdown {
+      background-color: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 15px;
+      text-align: left;
+    }
+
+    body[data-theme="ios26"] .cost-breakdown {
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+    }
+
+    .cost-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 4px;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .cost-row.main {
+      border-top: 1px solid rgba(255,255,255,0.2);
+      margin-top: 6px;
+      padding-top: 6px;
+      font-weight: bold;
       color: white;
     }
 
-    .result-value {
-      font-size: 36px;
-      font-weight: 700;
-      color: white;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
+    .cost-row:last-child { margin-bottom: 0; }
+    .cost-val { font-weight: 600; }
 
     .settings-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: var(--tg-theme-link-color, #0a84ff);
-      color: white;
-      border: none;
-      font-size: 22px;
+      background-color: transparent;
+      border: 1px solid #3a3a3c;
+      border-radius: 8px;
+      padding: 12px;
+      width: 100%;
+      color: #8e8e93;
+      font-size: 14px;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      transition: all 240ms ease;
-      z-index: 100;
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
     body[data-theme="ios26"] .settings-btn {
-      background: #7cc4ff;
-      box-shadow: 0 6px 20px rgba(124, 196, 255, 0.4);
-    }
-
-    .settings-btn:active {
-      transform: scale(0.95);
-    }
-
-    .settings-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 200;
-      padding: 20px;
-    }
-
-    .settings-overlay.show {
-      display: flex;
+      border-color: rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.70);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.05);
     }
 
     .settings-panel {
-      background: var(--tg-theme-secondary-bg-color, #2c2c2e);
-      border-radius: 16px;
-      padding: 20px;
-      max-width: 400px;
-      width: 100%;
-      max-height: 80vh;
-      overflow-y: auto;
-      box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+      display: none;
+      background-color: var(--tg-theme-secondary-bg-color, #2c2c2e);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
     }
 
-    .settings-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .settings-panel.show { display: block; }
+
+    .warning-box {
+      background-color: rgba(255, 204, 0, 0.15);
+      border: 1px solid #ffcc00;
+      color: #ffcc00;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
       margin-bottom: 16px;
+      line-height: 1.4;
     }
 
-    .settings-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--tg-theme-text-color, #ffffff);
+    body[data-theme="ios26"] .warning-box {
+      background: rgba(255,204,0,0.12);
+      border-color: rgba(255,204,0,0.22);
+      border-radius: 14px;
     }
 
-    body[data-theme="ios26"] .settings-title {
-      color: #7cc4ff;
-    }
-
-    .close-btn {
-      background: transparent;
-      border: none;
-      font-size: 24px;
-      color: var(--tg-theme-hint-color, #8e8e93);
-      cursor: pointer;
-      padding: 0;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .detail-row {
+    .settings-row {
       display: flex;
       justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(128,128,128, 0.2);
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row input { width: 90px; padding: 8px; font-size: 14px; margin: 0; text-align: right; }
+
+    body[data-theme="ios26"] .settings-row {
+      border-bottom: 1px solid rgba(255,255,255,0.10);
     }
 
-    .detail-row:last-child {
-      border-bottom: none;
-    }
-
-    .detail-label {
+    .reset-btn {
+      background-color: #ff453a;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      width: 100%;
+      color: white;
       font-size: 14px;
-      color: var(--tg-theme-hint-color, #8e8e93);
-    }
-
-    body[data-theme="ios26"] .detail-label {
-      color: rgba(255,255,255,0.6);
-    }
-
-    .detail-value {
-      font-size: 14px;
+      cursor: pointer;
+      margin-top: 16px;
       font-weight: 600;
-      color: var(--tg-theme-text-color, #ffffff);
     }
 
-    body[data-theme="ios26"] .detail-value {
+    body[data-theme="ios26"] .reset-btn {
+      border-radius: 16px;
+      box-shadow: 0 10px 26px rgba(255, 69, 58, 0.18);
+    }
+
+    .changelog {
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid rgba(128,128,128, 0.2);
+    }
+    .changelog h4 { margin: 0 0 10px 0; font-size: 14px; color: #8e8e93; }
+
+    .log-item { font-size: 11px; color: #8e8e93; margin-bottom: 6px; }
+    .log-ver { color: #0a84ff; font-weight: bold; margin-right: 5px; }
+
+    body[data-theme="ios26"] .log-item { color: rgba(255,255,255,0.60); }
+    body[data-theme="ios26"] .log-ver { color: #7cc4ff; }
+
+    .hidden-logs { display: none; }
+    .show-more-btn {
+      background: none; border: none; padding: 0;
+      color: #0a84ff; font-size: 11px; cursor: pointer;
+      margin-top: 5px; text-decoration: underline;
+    }
+
+    body[data-theme="ios26"] .show-more-btn { color: #7cc4ff; }
+
+    /* Theme picker */
+    .theme-picker {
+      display: flex;
+      gap: 8px;
+      padding: 8px;
+      border-radius: 12px;
+      background: rgba(118,118,128,0.12);
+      margin-bottom: 14px;
+    }
+
+    body[data-theme="ios26"] .theme-picker {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 16px;
+    }
+
+    .theme-pill {
+      flex: 1;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      color: #8e8e93;
+      background: transparent;
+      transition: background 160ms ease, color 160ms ease;
+    }
+
+    .theme-pill.active {
+      background: rgba(99,99,102,0.75);
+      color: #fff;
+    }
+
+    body[data-theme="ios26"] .theme-pill { color: rgba(255,255,255,0.65); }
+    body[data-theme="ios26"] .theme-pill.active {
+      background: rgba(255,255,255,0.16);
       color: rgba(255,255,255,0.92);
     }
 
-    .theme-selector {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
+    .version-badge {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      background-color: rgba(58, 58, 60, 0.9);
+      color: #8e8e93;
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-family: 'SF Mono', 'Monaco', monospace;
+      pointer-events: none;
+      z-index: 1000;
     }
 
-    .theme-btn {
-      flex: 1;
-      padding: 10px;
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 8px;
-      background: transparent;
-      color: var(--tg-theme-text-color, #ffffff);
-      font-size: 13px;
-      cursor: pointer;
-      transition: all 240ms ease;
-    }
-
-    .theme-btn.active {
-      background: var(--tg-theme-link-color, #0a84ff);
-      border-color: var(--tg-theme-link-color, #0a84ff);
-    }
-
-    body[data-theme="ios26"] .theme-btn.active {
-      background: #7cc4ff;
-      border-color: #7cc4ff;
-      color: #1c1c1e;
-    }
-
-    @media (max-width: 400px) {
-      body {
-        padding: 12px;
-        padding-bottom: 60px;
-      }
-
-      h1 {
-        font-size: 18px;
-      }
-
-      .result-value {
-        font-size: 30px;
-      }
+    body[data-theme="ios26"] .version-badge {
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.10);
+      color: rgba(255,255,255,0.55);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
   </style>
 </head>
-<body data-theme="ios26">
+<body>
 
-  <h1>Калькулятор Вывесок</h1>
+  <h1>⚡ Калькулятор вывесок с подложкой</h1>
 
-  <div class="tabs-container">
-    <button class="tab-btn active" onclick="switchTab('substrate')">На подложке</button>
-    <button class="tab-btn" onclick="switchTab('wall')">Акрил на стену</button>
+  <!-- Preview -->
+  <div class="card preview-card" id="preview-card">
+    <label>Визуализация пропорций</label>
+    <div class="preview-container">
+      <div class="preview-box" id="preview-box">
+        <span class="dim-label dim-w" id="dim-w-label">—</span>
+        <span class="dim-label dim-h" id="dim-h-label">—</span>
+      </div>
+    </div>
+    <div class="mount-info" id="mount-info"></div>
   </div>
 
-  <!-- Вкладка 1: На подложке -->
-  <div id="tab-substrate" class="tab-content active">
-    <div class="card">
-      <label for="width">Ширина (см)</label>
-      <input type="number" id="width" value="100" oninput="calculate()">
-
-      <label for="height">Высота (см)</label>
-      <input type="number" id="height" value="50" oninput="calculate()">
-
-      <label for="substrate">Основа</label>
-      <select id="substrate" onchange="calculate()">
-        <option value="polystyrene">Полистирол (1133₽/м²)</option>
-        <option value="composite">Композит (3900₽/м²)</option>
-      </select>
-
-      <label for="sheets">Листов акрила</label>
-      <input type="number" id="sheets" value="1" min="1" oninput="calculate()">
-    </div>
-
-    <div class="card">
-      <div class="toggle-container">
-        <span class="toggle-label">Пленка</span>
-        <div class="toggle-switch" id="filmToggle" onclick="toggleOption('film')">
-          <div class="toggle-knob"></div>
-        </div>
-      </div>
-
-      <div class="toggle-container">
-        <span class="toggle-label">Подсветка</span>
-        <div class="toggle-switch" id="lightingToggle" onclick="toggleOption('lighting')">
-          <div class="toggle-knob"></div>
-        </div>
-      </div>
-
-      <div class="toggle-container">
-        <span class="toggle-label">Сложность</span>
-        <div class="toggle-switch" id="complexityToggle" onclick="toggleOption('complexity')">
-          <div class="toggle-knob"></div>
-        </div>
+  <div class="card">
+    <div class="unit-toggle-container">
+      <div class="unit-toggle">
+        <button id="unit-cm" class="active">см</button>
+        <button id="unit-mm">мм</button>
       </div>
     </div>
 
-    <div class="card preview-card" id="previewCard">
-      <label>Детализация</label>
-      <div class="detail-row">
-        <span class="detail-label">Площадь</span>
-        <span class="detail-value" id="areaDisplay">—</span>
+    <div class="row">
+      <div class="col">
+        <label>Ширина <span id="unit-label-width">(см)</span></label>
+        <input type="text" id="width" placeholder="100" inputmode="decimal">
       </div>
-      <div class="detail-row">
-        <span class="detail-label">Стоимость основы</span>
-        <span class="detail-value" id="substrateCost">—</span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label">Стоимость акрила</span>
-        <span class="detail-value" id="acrylicCost">—</span>
-      </div>
-      <div class="detail-row" id="filmCostRow" style="display:none;">
-        <span class="detail-label">Стоимость пленки</span>
-        <span class="detail-value" id="filmCost">—</span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label">Себестоимость</span>
-        <span class="detail-value" id="costPrice">—</span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label">Наценка</span>
-        <span class="detail-value" id="marginDisplay">—</span>
-      </div>
-      <div class="detail-row" id="lightingCostRow" style="display:none;">
-        <span class="detail-label">Подсветка</span>
-        <span class="detail-value" id="lightingCost">—</span>
-      </div>
-      <div class="detail-row" id="complexityCostRow" style="display:none;">
-        <span class="detail-label">Сложность</span>
-        <span class="detail-value" id="complexityCost">—</span>
+      <div class="col">
+        <label>Высота <span id="unit-label-height">(см)</span></label>
+        <input type="text" id="height" placeholder="100" inputmode="decimal">
       </div>
     </div>
 
-    <div class="result-section">
-      <div class="result-label">Итоговая цена</div>
-      <div class="result-value" id="result">0 ₽</div>
+    <label>Листов акрила 430х570 по нестингу</label>
+    <input type="text" id="sheets" placeholder="1.5" inputmode="decimal">
+  </div>
+
+  <div class="card">
+    <div class="toggle-container">
+      <span class="toggle-label">🌈 Пленка (+30% к акрилу)</span>
+      <label class="switch">
+        <input type="checkbox" id="film">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-container">
+      <span class="toggle-label">💡 Подсветка (блок + лента)</span>
+      <label class="switch">
+        <input type="checkbox" id="light">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-container">
+      <span class="toggle-label">🤯 Сложный макет (х1.4)</span>
+      <label class="switch">
+        <input type="checkbox" id="complex">
+        <span class="slider"></span>
+      </label>
     </div>
   </div>
 
-  <!-- Вкладка 2: Акрил на стену -->
-  <div id="tab-wall" class="tab-content">
-    <div class="card">
-      <label for="widthWall">Ширина (см)</label>
-      <input type="number" id="widthWall" value="100" oninput="calculateWall()">
+  <div class="result-box">
+    <div class="result-title">ИТОГО</div>
+    <div class="price-display" id="price">0 ₽</div>
 
-      <label for="heightWall">Высота (см)</label>
-      <input type="number" id="heightWall" value="50" oninput="calculateWall()">
-
-      <label for="materialWall">Материал</label>
-      <select id="materialWall" onchange="calculateWall()">
-        <option value="black">Чёрный акрил 3мм (600₽/лист)</option>
-        <option value="milk">Молочный акрил 3мм (600₽/лист)</option>
-        <option value="silver">Зеркальное серебро 3мм (720₽/лист)</option>
-        <option value="gold">Зеркальное золото 3мм (720₽/лист)</option>
-      </select>
-
-      <label for="sheetsWall">Листов акрила</label>
-      <input type="number" id="sheetsWall" value="1" min="1" oninput="calculateWall()">
-    </div>
-
-    <div class="card">
-      <div class="toggle-container">
-        <span class="toggle-label">Пленка (×1.2)</span>
-        <div class="toggle-switch" id="filmToggleWall" onclick="toggleOptionWall('film')">
-          <div class="toggle-knob"></div>
-        </div>
+    <div class="cost-breakdown" id="cost-breakdown" style="display:none;">
+      <div class="cost-row">
+        <span>Основа + Работа:</span>
+        <span class="cost-val" id="price-base">0 ₽</span>
       </div>
-
-      <div class="toggle-container">
-        <span class="toggle-label">Скотч (+200₽/лист)</span>
-        <div class="toggle-switch" id="tapeToggleWall" onclick="toggleOptionWall('tape')">
-          <div class="toggle-knob"></div>
-        </div>
+      <div class="cost-row">
+        <span>Акрил (материал):</span>
+        <span class="cost-val" id="price-acrylic">0 ₽</span>
       </div>
-    </div>
-
-    <div class="card preview-card" id="previewCardWall">
-      <label>Детализация</label>
-      <div class="detail-row">
-        <span class="detail-label">Площадь</span>
-        <span class="detail-value" id="areaDisplayWall">—</span>
+      <div class="cost-row" id="row-film" style="display:none;">
+        <span>Пленка (опция):</span>
+        <span class="cost-val" id="price-film">0 ₽</span>
       </div>
-      <div class="detail-row">
-        <span class="detail-label">Стоимость акрила</span>
-        <span class="detail-value" id="acrylicCostWall">—</span>
+      <div class="cost-row" id="row-light" style="display:none;">
+        <span>Подсветка (комплект):</span>
+        <span class="cost-val" id="price-light">0 ₽</span>
       </div>
-      <div class="detail-row" id="filmCostRowWall" style="display:none;">
-        <span class="detail-label">Пленка (×1.2)</span>
-        <span class="detail-value" id="filmCostWall">—</span>
-      </div>
-      <div class="detail-row" id="tapeCostRowWall" style="display:none;">
-        <span class="detail-label">Скотч</span>
-        <span class="detail-value" id="tapeCostWall">—</span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label">Себестоимость</span>
-        <span class="detail-value" id="costPriceWall">—</span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label">Наценка</span>
-        <span class="detail-value" id="marginDisplayWall">—</span>
-      </div>
-    </div>
-
-    <div class="result-section">
-      <div class="result-label">Итоговая цена</div>
-      <div class="result-value" id="resultWall">0 ₽</div>
-    </div>
-  </div>
-
-  <button class="settings-btn" onclick="toggleSettings()">⚙</button>
-
-  <div class="settings-overlay" id="settingsOverlay" onclick="closeSettings(event)">
-    <div class="settings-panel" onclick="event.stopPropagation()">
-      <div class="settings-header">
-        <span class="settings-title">Настройки</span>
-        <button class="close-btn" onclick="toggleSettings()">×</button>
-      </div>
-
-      <label>Тема оформления</label>
-      <div class="theme-selector">
-        <button class="theme-btn" id="themeAuto" onclick="setTheme('auto')">Авто</button>
-        <button class="theme-btn active" id="themeIOS" onclick="setTheme('ios26')">iOS 26</button>
+      <div class="cost-row main" id="row-complex" style="display:none;">
+        <span>+ Сложность (х1.4):</span>
+        <span class="cost-val" id="price-complex">0 ₽</span>
       </div>
     </div>
   </div>
+
+  <div class="debug-info" id="formula-hint">Введите размеры для расчета</div>
+
+  <button class="settings-btn" id="settings-toggle">⚙️ Настройки</button>
+
+  <div class="settings-panel" id="settings-panel">
+
+    <div class="theme-picker" aria-label="Переключение темы">
+      <button class="theme-pill" id="theme-tg" type="button">Telegram</button>
+      <button class="theme-pill" id="theme-ios" type="button">iOS 26</button>
+    </div>
+
+    <div class="warning-box">
+      <strong>⚠️ Режим редактирования</strong><br>
+      Изменения сохраняются автоматически.<br>
+      Если напутаете — жмите красную кнопку сброса внизу.
+    </div>
+
+    <div class="settings-row"><label>Основа (₽/м²)</label><input type="number" id="set-base" value="1133"></div>
+    <div class="settings-row"><label>Акрил (₽/лист)</label><input type="number" id="set-acrylic" value="600"></div>
+    <div class="settings-row"><label>Работа (множитель)</label><input type="number" id="set-labor" value="1.5" step="0.1"></div>
+    <div class="settings-row"><label>Расходы (₽/м²)</label><input type="number" id="set-overhead" value="1500"></div>
+    <div class="settings-row"><label>Фикс расход (₽)</label><input type="number" id="set-setup" value="100"></div>
+
+    <div class="settings-row"><label>Маржа макс (≈1 м²)</label><input type="number" id="set-margin-small" value="5.3" step="0.1"></div>
+    <div class="settings-row"><label>Маржа мин (≥3 м²)</label><input type="number" id="set-margin-large" value="3.8" step="0.1"></div>
+
+    <div class="settings-row"><label>Скидка акрил max (%) (2→5 листов)</label><input type="number" id="set-acrylic-disc" value="20" step="1"></div>
+    <div class="settings-row"><label>Скидка основа max (%) (1→3 м²)</label><input type="number" id="set-base-disc" value="12" step="1"></div>
+
+    <div class="settings-row"><label>Пленка (множитель)</label><input type="number" id="set-film" value="1.3" step="0.1"></div>
+    <div class="settings-row"><label>Сложность (множитель)</label><input type="number" id="set-complex" value="1.4" step="0.1"></div>
+    <div class="settings-row"><label>Подсветка (фикс, ₽)</label><input type="number" id="set-light-fix" value="700"></div>
+    <div class="settings-row"><label>Подсветка (₽/м²)</label><input type="number" id="set-light-m2" value="2000"></div>
+
+    <button class="reset-btn" id="reset-btn">🔄 Сбросить к стандартным</button>
+
+    <div class="changelog">
+      <h4>История обновлений</h4>
+      <div class="log-item"><span class="log-ver">v1.1.2</span> Плавная маржа + плавные скидки: акрил (2→5 листов) и основа (1→3 м²). Мин. маржа 3.8.</div>
+      <div class="log-item"><span class="log-ver">v1.1.0</span> Переключатель темы + стиль iOS 26 (glass).</div>
+      <div class="log-item"><span class="log-ver">v1.0.13</span> Полная детализация цены (из чего состоит сумма).</div>
+
+      <div id="hidden-logs" class="hidden-logs">
+        <div class="log-item"><span class="log-ver">v1.0.12</span> Шаг крепежей 70-80 см.</div>
+        <div class="log-item"><span class="log-ver">v1.0.11</span> Отступы карточек, дизайн держателей.</div>
+        <div class="log-item"><span class="log-ver">v1.0.10</span> Детализация цены, пленка 30%, подсветка.</div>
+      </div>
+      <button class="show-more-btn" onclick="toggleLogs()" id="log-toggle-btn">Показать старые версии...</button>
+    </div>
+  </div>
+
+  <div class="version-badge">v1.1.2</div>
 
   <script>
-    let options = {
-      film: false,
-      lighting: false,
-      complexity: false
+    let tg = window.Telegram.WebApp;
+    tg.expand();
+
+    const DEFAULTS = {
+      baseMat: 1133,
+      acrylicSheet: 600,
+      laborMult: 1.5,
+      overheadPerM2: 1500,
+      setupFix: 100,
+      marginSmall: 5.3,
+      marginLarge: 3.8,
+      acrylicDiscMaxPct: 20,
+      baseDiscMaxPct: 12,
+      filmMult: 1.3,
+      complexMult: 1.4,
+      lightFix: 700,
+      lightM2: 2000
     };
 
-    let optionsWall = {
-      film: false,
-      tape: false
-    };
+    function loadSettings() {
+      return {
+        baseMat: parseFloat(localStorage.getItem('baseMat')) || DEFAULTS.baseMat,
+        acrylicSheet: parseFloat(localStorage.getItem('acrylicSheet')) || DEFAULTS.acrylicSheet,
+        laborMult: parseFloat(localStorage.getItem('laborMult')) || DEFAULTS.laborMult,
+        overheadPerM2: parseFloat(localStorage.getItem('overheadPerM2')) || DEFAULTS.overheadPerM2,
+        setupFix: parseFloat(localStorage.getItem('setupFix')) || DEFAULTS.setupFix,
+        marginSmall: parseFloat(localStorage.getItem('marginSmall')) || DEFAULTS.marginSmall,
+        marginLarge: parseFloat(localStorage.getItem('marginLarge')) || DEFAULTS.marginLarge,
+        acrylicDiscMaxPct: parseFloat(localStorage.getItem('acrylicDiscMaxPct')) || DEFAULTS.acrylicDiscMaxPct,
+        baseDiscMaxPct: parseFloat(localStorage.getItem('baseDiscMaxPct')) || DEFAULTS.baseDiscMaxPct,
+        filmMult: parseFloat(localStorage.getItem('filmMult')) || DEFAULTS.filmMult,
+        complexMult: parseFloat(localStorage.getItem('complexMult')) || DEFAULTS.complexMult,
+        lightFix: parseFloat(localStorage.getItem('lightFix')) || DEFAULTS.lightFix,
+        lightM2: parseFloat(localStorage.getItem('lightM2')) || DEFAULTS.lightM2,
+        theme: localStorage.getItem('appTheme') || 'telegram'
+      };
+    }
 
-    // Переключение вкладок
-    function switchTab(tab) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    function saveSettings(settings) {
+      Object.keys(settings).forEach(key => {
+        if (key === 'theme') return;
+        localStorage.setItem(key, settings[key]);
+      });
+    }
 
-      if (tab === 'substrate') {
-        document.querySelector('.tab-btn:first-child').classList.add('active');
-        document.getElementById('tab-substrate').classList.add('active');
-        calculate();
+    function applyTheme(theme) {
+      if (theme === 'ios26') {
+        document.body.setAttribute('data-theme', 'ios26');
+        document.getElementById('theme-ios').classList.add('active');
+        document.getElementById('theme-tg').classList.remove('active');
       } else {
-        document.querySelector('.tab-btn:last-child').classList.add('active');
-        document.getElementById('tab-wall').classList.add('active');
-        calculateWall();
-      }
-    }
-
-    // Переключение опций (вкладка 1)
-    function toggleOption(option) {
-      options[option] = !options[option];
-      const toggle = document.getElementById(option + 'Toggle');
-      toggle.classList.toggle('active');
-      calculate();
-    }
-
-    // Переключение опций (вкладка 2)
-    function toggleOptionWall(option) {
-      optionsWall[option] = !optionsWall[option];
-      const toggle = document.getElementById(option + 'ToggleWall');
-      toggle.classList.toggle('active');
-      calculateWall();
-    }
-
-    // Расчет для вкладки "На подложке"
-    function calculate() {
-      const width = parseFloat(document.getElementById('width').value) || 0;
-      const height = parseFloat(document.getElementById('height').value) || 0;
-      const area = (width / 100) * (height / 100);
-      const sheets = parseInt(document.getElementById('sheets').value) || 1;
-      const substrate = document.getElementById('substrate').value;
-
-      const substratePricePerM2 = substrate === 'polystyrene' ? 1133 : 3900;
-
-      const substrateDiscount = Math.max(0, Math.min(1, (area - 1) / 2)) * 0.12;
-      const substrateCostValue = area * substratePricePerM2 * (1 - substrateDiscount);
-
-      const acrylicDiscount = Math.max(0, Math.min(1, (sheets - 2) / 3)) * 0.2;
-      const acrylicPricePerSheet = 600 * (1 - acrylicDiscount);
-      const acrylicCostValue = sheets * acrylicPricePerSheet;
-
-      const filmCostValue = options.film ? acrylicCostValue * 0.3 : 0;
-
-      const materials = substrateCostValue + acrylicCostValue + filmCostValue;
-      const production = materials * 1.5;
-      const overhead = area * 1500 + 100;
-      const costPriceValue = production + overhead;
-
-      const marginValue = 5.3 + ((area - 1) / (3 - 1)) * (3.8 - 5.3);
-      const marginClamped = Math.max(3.8, Math.min(5.3, marginValue));
-
-      let basePrice = costPriceValue * marginClamped;
-
-      const lightingCostValue = options.lighting ? (700 + area * 2000) : 0;
-      basePrice += lightingCostValue;
-
-      const beforeComplexity = basePrice;
-      const complexityMultiplier = options.complexity ? 1.4 : 1;
-      const finalPrice = basePrice * complexityMultiplier;
-      const complexityCostValue = options.complexity ? (beforeComplexity * 0.4) : 0;
-
-      document.getElementById('areaDisplay').textContent = area.toFixed(2) + ' м²';
-      document.getElementById('substrateCost').textContent = substrateCostValue.toFixed(0) + ' ₽';
-      document.getElementById('acrylicCost').textContent = acrylicCostValue.toFixed(0) + ' ₽';
-      document.getElementById('filmCost').textContent = filmCostValue.toFixed(0) + ' ₽';
-      document.getElementById('costPrice').textContent = costPriceValue.toFixed(0) + ' ₽';
-      document.getElementById('marginDisplay').textContent = '×' + marginClamped.toFixed(2);
-      document.getElementById('lightingCost').textContent = '+' + lightingCostValue.toFixed(0) + ' ₽';
-      document.getElementById('complexityCost').textContent = '+' + complexityCostValue.toFixed(0) + ' ₽';
-
-      document.getElementById('filmCostRow').style.display = options.film ? 'flex' : 'none';
-      document.getElementById('lightingCostRow').style.display = options.lighting ? 'flex' : 'none';
-      document.getElementById('complexityCostRow').style.display = options.complexity ? 'flex' : 'none';
-
-      document.getElementById('result').textContent = Math.round(finalPrice / 100) * 100 + ' ₽';
-      document.getElementById('previewCard').classList.add('show');
-    }
-
-    // Расчет для вкладки "Акрил на стену"
-    function calculateWall() {
-      const width = parseFloat(document.getElementById('widthWall').value) || 0;
-      const height = parseFloat(document.getElementById('heightWall').value) || 0;
-      const area = (width / 100) * (height / 100);
-      const sheets = parseInt(document.getElementById('sheetsWall').value) || 1;
-      const material = document.getElementById('materialWall').value;
-
-      const basePricePerSheet = 600;
-      const materialMultiplier = (material === 'silver' || material === 'gold') ? 1.2 : 1;
-
-      const acrylicDiscount = Math.max(0, Math.min(1, (sheets - 2) / 3)) * 0.2;
-      const acrylicPricePerSheet = basePricePerSheet * materialMultiplier * (1 - acrylicDiscount);
-      let acrylicCostValue = sheets * acrylicPricePerSheet;
-
-      const filmMultiplier = optionsWall.film ? 1.2 : 1;
-      const filmCostValue = optionsWall.film ? (acrylicCostValue * 0.2) : 0;
-      acrylicCostValue *= filmMultiplier;
-
-      const tapeCostValue = optionsWall.tape ? (sheets * 200) : 0;
-
-      const materials = acrylicCostValue + tapeCostValue;
-      const production = materials * 1.5;
-      const overhead = area * 1500 + 100;
-      const costPriceValue = production + overhead;
-
-      const marginValue = 5.3 + ((area - 1) / (3 - 1)) * (3.8 - 5.3);
-      const marginClamped = Math.max(3.8, Math.min(5.3, marginValue));
-
-      const finalPrice = costPriceValue * marginClamped;
-
-      document.getElementById('areaDisplayWall').textContent = area.toFixed(2) + ' м²';
-      document.getElementById('acrylicCostWall').textContent = acrylicCostValue.toFixed(0) + ' ₽';
-      document.getElementById('filmCostWall').textContent = '+' + filmCostValue.toFixed(0) + ' ₽';
-      document.getElementById('tapeCostWall').textContent = '+' + tapeCostValue.toFixed(0) + ' ₽';
-      document.getElementById('costPriceWall').textContent = costPriceValue.toFixed(0) + ' ₽';
-      document.getElementById('marginDisplayWall').textContent = '×' + marginClamped.toFixed(2);
-
-      document.getElementById('filmCostRowWall').style.display = optionsWall.film ? 'flex' : 'none';
-      document.getElementById('tapeCostRowWall').style.display = optionsWall.tape ? 'flex' : 'none';
-
-      document.getElementById('resultWall').textContent = Math.round(finalPrice / 100) * 100 + ' ₽';
-      document.getElementById('previewCardWall').classList.add('show');
-    }
-
-    function toggleSettings() {
-      document.getElementById('settingsOverlay').classList.toggle('show');
-    }
-
-    function closeSettings(event) {
-      if (event.target.id === 'settingsOverlay') {
-        toggleSettings();
-      }
-    }
-
-    function setTheme(theme) {
-      document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
-
-      if (theme === 'auto') {
         document.body.removeAttribute('data-theme');
-        document.getElementById('themeAuto').classList.add('active');
+        document.getElementById('theme-tg').classList.add('active');
+        document.getElementById('theme-ios').classList.remove('active');
+      }
+      localStorage.setItem('appTheme', theme);
+    }
+
+    let settings = loadSettings();
+    applyTheme(settings.theme);
+
+    document.getElementById('theme-tg').addEventListener('click', () => {
+      settings.theme = 'telegram';
+      applyTheme('telegram');
+    });
+
+    document.getElementById('theme-ios').addEventListener('click', () => {
+      settings.theme = 'ios26';
+      applyTheme('ios26');
+    });
+
+    // Заполнение полей
+    const inputs = [
+      'set-base','set-acrylic','set-labor','set-overhead','set-setup',
+      'set-margin-small','set-margin-large','set-acrylic-disc','set-base-disc',
+      'set-film','set-complex','set-light-fix','set-light-m2'
+    ];
+
+    const keys = [
+      'baseMat','acrylicSheet','laborMult','overheadPerM2','setupFix',
+      'marginSmall','marginLarge','acrylicDiscMaxPct','baseDiscMaxPct',
+      'filmMult','complexMult','lightFix','lightM2'
+    ];
+
+    inputs.forEach((id, index) => {
+      document.getElementById(id).value = settings[keys[index]];
+    });
+
+    inputs.forEach((id, index) => {
+      document.getElementById(id).addEventListener('input', () => {
+        settings[keys[index]] = parseFloat(document.getElementById(id).value);
+        saveSettings(settings);
+        calculate();
+      });
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      if (confirm("⚠️ Вы точно хотите сбросить настройки к заводским значениям?")) {
+        const themeKeep = settings.theme;
+        settings = { ...DEFAULTS, theme: themeKeep };
+        inputs.forEach((id, index) => {
+          document.getElementById(id).value = DEFAULTS[keys[index]];
+        });
+        saveSettings(settings);
+        calculate();
+        alert("Настройки сброшены!");
+      }
+    });
+
+    document.getElementById('settings-toggle').addEventListener('click', () => {
+      document.getElementById('settings-panel').classList.toggle('show');
+    });
+
+    function toggleLogs() {
+      const logs = document.getElementById('hidden-logs');
+      const btn = document.getElementById('log-toggle-btn');
+      if (logs.style.display === 'block') {
+        logs.style.display = 'none';
+        btn.innerText = 'Показать старые версии...';
       } else {
-        document.body.setAttribute('data-theme', theme);
-        document.getElementById('themeIOS').classList.add('active');
+        logs.style.display = 'block';
+        btn.innerText = 'Скрыть';
       }
     }
 
-    // Инициализация Telegram WebApp
-    if (window.Telegram && window.Telegram.WebApp) {
-      Telegram.WebApp.ready();
-      Telegram.WebApp.expand();
+    let unitMode = 'cm';
+    document.getElementById('unit-cm').addEventListener('click', () => {
+      unitMode = 'cm';
+      document.getElementById('unit-cm').classList.add('active');
+      document.getElementById('unit-mm').classList.remove('active');
+      document.getElementById('unit-label-width').textContent = '(см)';
+      document.getElementById('unit-label-height').textContent = '(см)';
+      document.getElementById('width').placeholder = '100';
+      document.getElementById('height').placeholder = '100';
+      calculate();
+    });
+
+    document.getElementById('unit-mm').addEventListener('click', () => {
+      unitMode = 'mm';
+      document.getElementById('unit-mm').classList.add('active');
+      document.getElementById('unit-cm').classList.remove('active');
+      document.getElementById('unit-label-width').textContent = '(мм)';
+      document.getElementById('unit-label-height').textContent = '(мм)';
+      document.getElementById('width').placeholder = '1000';
+      document.getElementById('height').placeholder = '1000';
+      calculate();
+    });
+
+    const widthInput = document.getElementById('width');
+    const heightInput = document.getElementById('height');
+    const sheetsInput = document.getElementById('sheets');
+    const filmInput = document.getElementById('film');
+    const lightInput = document.getElementById('light');
+    const complexInput = document.getElementById('complex');
+    const priceDisplay = document.getElementById('price');
+    const hintDisplay = document.getElementById('formula-hint');
+
+    const previewCard = document.getElementById('preview-card');
+    const previewBox = document.getElementById('preview-box');
+    const mountInfo = document.getElementById('mount-info');
+    const dimW = document.getElementById('dim-w-label');
+    const dimH = document.getElementById('dim-h-label');
+
+    // Breakdown elements
+    const breakdownBox = document.getElementById('cost-breakdown');
+    const priceBase = document.getElementById('price-base');
+    const priceAcrylic = document.getElementById('price-acrylic');
+    const priceFilm = document.getElementById('price-film');
+    const rowFilm = document.getElementById('row-film');
+    const rowLight = document.getElementById('row-light');
+    const priceLight = document.getElementById('price-light');
+    const rowComplex = document.getElementById('row-complex');
+    const priceComplex = document.getElementById('price-complex');
+
+    function updatePreview(w, h) {
+      const shouldShow = (w > 0 && h > 0);
+      previewCard.classList.toggle('show', shouldShow);
+      if (!shouldShow) return;
+
+      const MAX_W = 280;
+      const MAX_H = 130;
+      const ratio = w / h;
+      let newW, newH;
+
+      if (ratio > 1) {
+        newW = Math.min(MAX_W, MAX_H * ratio);
+        newH = newW / ratio;
+        if (newH > MAX_H) { newH = MAX_H; newW = newH * ratio; }
+      } else {
+        newH = Math.min(MAX_H, MAX_W / ratio);
+        newW = newH * ratio;
+        if (newW > MAX_W) { newW = MAX_W; newH = newW / ratio; }
+      }
+
+      previewBox.style.width = newW + 'px';
+      previewBox.style.height = newH + 'px';
+      dimW.textContent = w.toString();
+      dimH.textContent = h.toString();
+
+      drawMounts(w, h);
     }
 
-    // Первоначальный расчет
-    calculate();
-  </script>
+    function drawMounts(realW, realH) {
+      const oldMounts = previewBox.querySelectorAll('.mount-hole');
+      oldMounts.forEach(el => el.remove());
 
+      let w_cm = (unitMode === 'mm') ? realW / 10 : realW;
+      let h_cm = (unitMode === 'mm') ? realH / 10 : realH;
+      const MAX_DIST = 75; // 70–80см
+
+      let segX = Math.ceil(w_cm / MAX_DIST);
+      let segY = Math.ceil(h_cm / MAX_DIST);
+      if (segX < 1) segX = 1;
+      if (segY < 1) segY = 1;
+
+      let pointsX = segX + 1;
+      let pointsY = segY + 1;
+      let totalMounts = 0;
+
+      for (let i = 0; i < pointsX; i++) {
+        for (let j = 0; j < pointsY; j++) {
+          const isEdge = (i === 0 || i === pointsX - 1 || j === 0 || j === pointsY - 1);
+          if (!isEdge) continue;
+
+          let pctX = (i / segX) * 100;
+          let pctY = (j / segY) * 100;
+
+          let inset = 7;
+          if (pctX === 0) pctX = inset;
+          if (pctX === 100) pctX = 100 - inset;
+          if (pctY === 0) pctY = inset;
+          if (pctY === 100) pctY = 100 - inset;
+
+          const dot = document.createElement('div');
+          dot.className = 'mount-hole';
+          dot.style.left = pctX + '%';
+          dot.style.top = pctY + '%';
+          dot.style.transform = 'translate(-50%, -50%)';
+          previewBox.appendChild(dot);
+          totalMounts++;
+        }
+      }
+
+      mountInfo.innerHTML = `Рекомендуется держателей: <b>${totalMounts} шт</b> <br>(шаг ~75 см, по периметру)`;
+    }
+
+    function safeParse(val) {
+      if (!val) return 0;
+      return parseFloat(val.toString().replace(',', '.')) || 0;
+    }
+
+    function clamp01(x) {
+      return Math.max(0, Math.min(1, x));
+    }
+
+    function lerp(a, b, t) {
+      return a + (b - a) * t;
+    }
+
+    function calculate() {
+      let w = safeParse(widthInput.value);
+      let h = safeParse(heightInput.value);
+      let sheets = safeParse(sheetsInput.value);
+
+      updatePreview(w, h);
+
+      let w_m = (unitMode === 'mm') ? w / 1000 : w / 100;
+      let h_m = (unitMode === 'mm') ? h / 1000 : h / 100;
+      let area = w_m * h_m;
+
+      // 1) Плавная маржа: от 1 м² (max) до 3 м² (min)
+      const M_START = 1.0;
+      const M_END = 3.0;
+      let tMargin = clamp01((area - M_START) / (M_END - M_START));
+      let margin = lerp(settings.marginSmall, settings.marginLarge, tMargin);
+
+      // 2) Плавная скидка на основу (полистирол): от 1 м² до 3 м²
+      let baseDisc = clamp01((area - 1.0) / (3.0 - 1.0)) * (settings.baseDiscMaxPct / 100);
+      let baseMatEff = settings.baseMat * (1 - baseDisc);
+
+      // 3) Плавная скидка на акрил: от 2 до 5 листов
+      let tAcrylic = clamp01((sheets - 2.0) / (5.0 - 2.0));
+      let acrylicDisc = tAcrylic * (settings.acrylicDiscMaxPct / 100);
+      let acrylicSheetEff = settings.acrylicSheet * (1 - acrylicDisc);
+
+      // Себестоимость
+      let baseCost = area * baseMatEff;
+      let acrylicCost = sheets * acrylicSheetEff;
+
+      let filmCost = 0;
+      if (filmInput.checked) {
+        filmCost = acrylicCost * (settings.filmMult - 1);
+      }
+
+      let totalMaterial = baseCost + acrylicCost + filmCost;
+      let productionCost = totalMaterial * settings.laborMult;
+      let totalOverhead = (area * settings.overheadPerM2) + settings.setupFix;
+      let costPrice = productionCost + totalOverhead;
+
+      let priceWithMargin = costPrice * margin;
+
+      let lightCostClient = 0;
+      if (lightInput.checked) {
+        lightCostClient = settings.lightFix + (area * settings.lightM2);
+      }
+
+      let finalPrice = priceWithMargin + lightCostClient;
+
+      // сложность как надбавка
+      let complexExtra = 0;
+      if (complexInput.checked) {
+        let before = finalPrice;
+        finalPrice *= settings.complexMult;
+        complexExtra = finalPrice - before;
+      }
+
+      finalPrice = Math.round(finalPrice / 100) * 100;
+
+      if (finalPrice > 0) {
+        priceDisplay.innerText = finalPrice.toLocaleString('ru-RU') + ' ₽';
+        hintDisplay.innerText = `Площадь: ${area.toFixed(2)} м² | Маржа: x${margin.toFixed(2)} | Скидки: акрил ${Math.round(acrylicDisc*100)}% / основа ${Math.round(baseDisc*100)}%`;
+
+        // Раскладываем priceWithMargin на части пропорционально себестоимости
+        let basePartCost = (baseCost * settings.laborMult) + totalOverhead;
+        let acrylicPartCost = (acrylicCost * settings.laborMult);
+        let filmPartCost = (filmCost * settings.laborMult);
+
+        let totalParts = basePartCost + acrylicPartCost + filmPartCost;
+        if (totalParts === 0) totalParts = 1;
+
+        let clientBaseFinal = (basePartCost / totalParts) * priceWithMargin;
+        let clientAcrylicFinal = (acrylicPartCost / totalParts) * priceWithMargin;
+        let clientFilmFinal = (filmPartCost / totalParts) * priceWithMargin;
+
+        breakdownBox.style.display = 'block';
+        priceBase.innerText = Math.round(clientBaseFinal).toLocaleString('ru-RU') + ' ₽';
+        priceAcrylic.innerText = Math.round(clientAcrylicFinal).toLocaleString('ru-RU') + ' ₽';
+
+        if (filmInput.checked) {
+          rowFilm.style.display = 'flex';
+          priceFilm.innerText = Math.round(clientFilmFinal).toLocaleString('ru-RU') + ' ₽';
+        } else {
+          rowFilm.style.display = 'none';
+        }
+
+        if (lightInput.checked) {
+          rowLight.style.display = 'flex';
+          priceLight.innerText = Math.round(lightCostClient).toLocaleString('ru-RU') + ' ₽';
+        } else {
+          rowLight.style.display = 'none';
+        }
+
+        if (complexInput.checked) {
+          rowComplex.style.display = 'flex';
+          priceComplex.innerText = '+' + Math.round(complexExtra).toLocaleString('ru-RU') + ' ₽';
+        } else {
+          rowComplex.style.display = 'none';
+        }
+
+      } else {
+        priceDisplay.innerText = '0 ₽';
+        hintDisplay.innerText = 'Введите размеры';
+        breakdownBox.style.display = 'none';
+      }
+    }
+
+    widthInput.addEventListener('input', calculate);
+    heightInput.addEventListener('input', calculate);
+    sheetsInput.addEventListener('input', calculate);
+    filmInput.addEventListener('change', calculate);
+    lightInput.addEventListener('change', calculate);
+    complexInput.addEventListener('change', calculate);
+
+    updatePreview(0,0);
+  </script>
 </body>
 </html>
