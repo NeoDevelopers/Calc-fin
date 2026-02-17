@@ -14,7 +14,7 @@
     body { background: var(--bg); color: var(--text); padding: 20px; padding-bottom: 90px; }
     
     .card { background: var(--card); border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-    h1, h3 { text-align: center; color: var(--blue); margin-bottom: 15px; }
+    h1, h3 { text-align: center; color: var(--blue); margin-bottom: 15px; font-weight: bold; }
     
     input, textarea { 
       width: 100%; background: #3a3a3c; border: 1px solid transparent; border-radius: 10px; 
@@ -24,21 +24,25 @@
     label { color: var(--hint); font-size: 13px; margin-bottom: 6px; display: block; }
     
     button { border: none; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 600; padding: 14px; transition: 0.2s; }
-    button:active { transform: scale(0.98); }
+    button:active { transform: scale(0.98); opacity: 0.8; }
 
     .login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-    .role-btn { width: 280px; background: #3a3a3c; color: var(--blue); margin-bottom: 10px; text-align: left; display: flex; justify-content: space-between; }
+    .role-btn { 
+      width: 280px; background: #3a3a3c; color: var(--blue); margin-bottom: 12px; 
+      text-align: left; display: flex; justify-content: space-between; align-items: center;
+      padding: 18px; border-radius: 12px;
+    }
+    .role-btn span { color: var(--hint); font-size: 12px; font-weight: normal; }
 
     .nav { display: flex; gap: 6px; margin-bottom: 20px; background: #3a3a3c; padding: 4px; border-radius: 12px; }
     .nav-btn { flex: 1; padding: 10px; background: transparent; color: var(--hint); border-radius: 8px; font-size: 13px; }
-    .nav-btn.active { background: var(--card); color: var(--blue); }
+    .nav-btn.active { background: var(--card); color: var(--blue); box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
     .tab { display: none; }
     .tab.active { display: block; }
 
     .price-big { font-size: 32px; font-weight: 800; color: #fff; text-align: center; margin: 20px 0; }
-    .order-card { background: var(--card); border-left: 4px solid var(--blue); padding: 16px; margin-bottom: 12px; border-radius: 12px; }
-
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
+    
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
     .modal.show { display: flex; }
     .modal-content { background: var(--card); width: 100%; max-width: 450px; padding: 24px; border-radius: 18px; position: relative; }
   </style>
@@ -46,86 +50,142 @@
 <body>
 
   <div class="login-screen" id="loginScreen">
-    <h1>🔐 CRM Вход</h1>
-    <input type="password" id="loginPass" placeholder="Пароль" style="width:280px; text-align:center;">
-    <button class="role-btn" onclick="login('roma')">Рома (Цех) <span>2222</span></button>
-    <button class="role-btn" onclick="login('mikhail')">Михаил (Менеджер) <span>1234</span></button>
-    <button class="role-btn" onclick="login('owner')">Владелец <span>9999</span></button>
-    <div id="loginErr" style="color:var(--red); display:none; margin-top:10px;">Неверный пароль</div>
+    <h1 style="margin-bottom: 30px;">🔐 CRM Вход</h1>
+    
+    <button class="role-btn" onclick="login('roma')">
+      Рома (Цех) <span>2222</span>
+    </button>
+    
+    <button class="role-btn" onclick="login('mikhail')">
+      Михаил (Менеджер) <span>1234</span>
+    </button>
+    
+    <button class="role-btn" onclick="login('owner')">
+      Владелец <span>9999</span>
+    </button>
+
+    <div style="margin-top: 20px; color: var(--hint); font-size: 12px;">@Sam_Laser_bot</div>
   </div>
 
   <div id="app" style="display:none;">
     <div class="nav">
-      <button class="nav-btn active" onclick="setTab('calc')" id="btn-calc">Калькулятор</button>
-      <button class="nav-btn" onclick="setTab('queue')" id="btn-queue">Очередь</button>
+      <button class="nav-btn active" onclick="setTab('calc')" id="btn-calc">🧮 Калькулятор</button>
+      <button class="nav-btn" onclick="setTab('queue')" id="btn-queue">📋 Очередь</button>
     </div>
 
     <div class="tab active" id="tab-calc">
       <div class="card">
         <h3>Новый расчет</h3>
-        <label>Ширина (см)</label><input type="number" id="c-width" value="100">
-        <label>Высота (см)</label><input type="number" id="c-height" value="50">
-        <label>Листов акрила</label><input type="number" id="c-sheets" value="1.5">
+        <label>Ширина (см)</label>
+        <input type="number" id="c-width" value="100" inputmode="decimal">
+        
+        <label>Высота (см)</label>
+        <input type="number" id="c-height" value="50" inputmode="decimal">
+        
+        <label>Листов акрила (430х570)</label>
+        <input type="number" id="c-sheets" value="1.5" step="0.1" inputmode="decimal">
+        
         <div class="price-big" id="c-result">0 ₽</div>
-        <button onclick="openOrder()" style="width:100%; background:var(--green); color:white;">Оформить заказ</button>
+        
+        <button onclick="openOrder()" style="width:100%; background:var(--green); color:white; font-size: 17px;">
+          📝 Оформить заказ
+        </button>
       </div>
     </div>
 
     <div class="tab" id="tab-queue">
-      <div id="ordersList" style="text-align:center; color:var(--hint); padding:20px;">Заказов пока нет</div>
+      <div class="card" style="text-align:center; padding:40px; color:var(--hint);">
+        <div style="font-size: 40px; margin-bottom: 10px;">📋</div>
+        Список заказов пуст.<br>Оформите новый заказ в калькуляторе.
+      </div>
     </div>
   </div>
 
   <div class="modal" id="orderModal">
     <div class="modal-content">
-      <h3>Подтверждение</h3>
-      <input type="text" id="ord-title" placeholder="Название заказа (обязательно)">
-      <input type="text" id="ord-contact" placeholder="Телефон клиента">
-      <textarea id="ord-desc" placeholder="Комментарий..."></textarea>
-      <button onclick="submitOrder()" id="subBtn" style="width:100%; background:var(--green); color:white;">🚀 В производство</button>
-      <button onclick="closeModal()" style="width:100%; background:transparent; color:var(--hint); margin-top:10px;">Отмена</button>
+      <h2 style="color: var(--blue); margin-bottom: 20px;">Новый заказ</h2>
+      
+      <label>Название заказа (обязательно)</label>
+      <input type="text" id="ord-title" placeholder="Например: Вывеска 'Кофе'">
+      
+      <label>Телефон / Контакт клиента</label>
+      <input type="text" id="ord-contact" placeholder="+7 (900) ...">
+      
+      <label>Комментарий / Тех. задание</label>
+      <textarea id="ord-desc" rows="3" placeholder="Нюансы производства..."></textarea>
+      
+      <div style="display: flex; justify-content: space-between; margin: 15px 0; font-weight: bold;">
+        <span>Итого:</span>
+        <span id="modal-price" style="color: var(--green);">0 ₽</span>
+      </div>
+
+      <button onclick="submitOrder()" id="subBtn" style="width:100%; background:var(--green); color:white;">
+        🚀 Отправить в производство
+      </button>
+      
+      <button onclick="closeModal()" style="width:100%; background:transparent; color:var(--hint); margin-top:10px; font-weight: normal;">
+        Отмена
+      </button>
     </div>
   </div>
 
   <script>
-    // ВАША ССЫЛКА ИЗ GOOGLE
+    // ССЫЛКА НА ВАШ GOOGLE SCRIPT
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxyfKEG2iVZBcc9ZTx0bLud8uQ2kUAADyJEAJrpODfC9wSRCnSAqNghuP-F1CcQzpZXRw/exec";
 
-    const USERS = { 'roma': '2222', 'mikhail': '1234', 'owner': '9999' };
     let currentPrice = 0;
+    let currentUserRole = '';
 
-    function login(u) {
-      if(document.getElementById('loginPass').value === USERS[u]) {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
-        calculate();
-      } else { alert('Ошибка'); }
+    // БЫСТРЫЙ ВХОД БЕЗ ОШИБОК
+    function login(role) {
+      currentUserRole = role;
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      
+      // Настройка видимости для ролей
+      if(role === 'roma') {
+          setTab('queue');
+          document.getElementById('btn-calc').style.display = 'none';
+      }
+      
+      calculate();
     }
 
     function setTab(t) {
       document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      
       document.getElementById('tab-'+t).classList.add('active');
+      document.getElementById('btn-'+t).classList.add('active');
     }
 
     function calculate() {
-      const w = document.getElementById('c-width').value;
-      const h = document.getElementById('c-height').value;
-      const s = document.getElementById('c-sheets').value;
+      const w = parseFloat(document.getElementById('c-width').value) || 0;
+      const h = parseFloat(document.getElementById('c-height').value) || 0;
+      const s = parseFloat(document.getElementById('c-sheets').value) || 0;
+      
+      // Базовая математика
       currentPrice = Math.round((w * h / 10000 * 1133) + (s * 600) + 1500);
-      document.getElementById('c-result').innerText = currentPrice + " ₽";
+      document.getElementById('c-result').innerText = currentPrice.toLocaleString() + " ₽";
+      document.getElementById('modal-price').innerText = currentPrice.toLocaleString() + " ₽";
     }
 
     document.querySelectorAll('input').forEach(i => i.addEventListener('input', calculate));
 
-    function openOrder() { document.getElementById('orderModal').classList.add('show'); }
+    function openOrder() { 
+      if(currentPrice <= 1500) return alert("Введите размеры для расчета");
+      document.getElementById('orderModal').classList.add('show'); 
+    }
+    
     function closeModal() { document.getElementById('orderModal').classList.remove('show'); }
 
     function submitOrder() {
       const title = document.getElementById('ord-title').value;
-      if(!title) return alert("Введите название!");
+      if(!title) return alert("Введите название заказа!");
       
       const btn = document.getElementById('subBtn');
-      btn.innerText = "Отправка..."; btn.disabled = true;
+      btn.innerText = "⏳ Отправка..."; 
+      btn.disabled = true;
 
       const data = {
         id: Math.floor(Math.random() * 9000) + 1000,
@@ -134,16 +194,22 @@
         desc: document.getElementById('ord-desc').value,
         price: currentPrice,
         size: document.getElementById('c-width').value + "x" + document.getElementById('c-height').value,
-        sheets: document.getElementById('c-sheets').value
+        sheets: document.getElementById('c-sheets').value,
+        status: 'Новый'
       };
 
       fetch(WEB_APP_URL, {
         method: 'POST',
         mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       }).then(() => {
-        alert("Заказ отправлен!");
+        alert("✅ Заказ успешно отправлен в цех и таблицу!");
         location.reload();
+      }).catch(err => {
+        alert("Ошибка отправки: " + err);
+        btn.innerText = "🚀 Отправить в производство";
+        btn.disabled = false;
       });
     }
   </script>
