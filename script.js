@@ -68,7 +68,6 @@ function toBase64(file) {
 
 function getDriveDirectLink(url) {
     if (!url || typeof url !== 'string') return '';
-    // Для кнопок оставляем ссылку как есть, чтобы открывалась в новой вкладке
     return url;
 }
 
@@ -81,7 +80,6 @@ function updateFileLabel(input, labelId) {
     }
 }
 
-// === АВТОРИЗАЦИЯ ===
 function validateLoginInput() {
     const user = document.getElementById('user-select').value;
     const pass = document.getElementById('user-pass').value;
@@ -111,7 +109,6 @@ function handleLogin() {
             setTab('calc');
         }
         loadData();
-        showToast("Добро пожаловать, " + user + "!");
     } else {
         inputField.classList.add('shake');
         setTimeout(() => inputField.classList.remove('shake'), 300);
@@ -131,7 +128,6 @@ function logout() {
     setTab('calc');
 }
 
-// === КАЛЬКУЛЯТОР ===
 function setUnit(unit) {
     currentUnit = unit;
     document.getElementById('unit-cm').classList.toggle('active', unit === 'cm');
@@ -327,7 +323,6 @@ function resetToDefaults() {
     }
 }
 
-// === БЭКЕНД И ОТРИСОВКА ===
 async function loadData() {
     const loaderQ = document.getElementById('loader-queue');
     const loaderH = document.getElementById('loader-history');
@@ -451,9 +446,6 @@ async function saveStatus(newStatus) {
     isStatusSaving = true;
 
     const btnBox = document.getElementById('modal-status').querySelector('.modal-content');
-    const originalContent = btnBox.innerHTML;
-    
-    // Блокируем кнопки
     const btns = btnBox.querySelectorAll('button');
     btns.forEach(b => b.disabled = true);
     
@@ -486,7 +478,6 @@ async function saveStatus(newStatus) {
         btns.forEach(b => b.disabled = false);
         setTimeout(() => {
             if (!document.getElementById('modal-status').classList.contains('show')) {
-                // Если модалка закрыта (через closeModals или вручную), сбрасываем заголовок
                 title.innerText = "Изменить статус";
             }
         }, 500);
