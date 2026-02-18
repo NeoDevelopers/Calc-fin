@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SamLaser CRM v6.3</title>
+  <title>SamLaser CRM v6.5</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root { 
@@ -14,11 +14,10 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background: var(--bg); color: var(--text); padding: 12px; padding-bottom: 90px; }
     
-    /* НАВИГАЦИЯ */
     .nav { display: flex; gap: 8px; margin-bottom: 20px; background: rgba(28,28,30,0.8); backdrop-filter: blur(10px); padding: 6px; border-radius: 16px; position: sticky; top: 10px; z-index: 100; border: 1px solid #333; }
     .nav-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: transparent; color: var(--hint); font-size: 12px; font-weight: 600; transition: 0.2s; white-space: nowrap; }
     .nav-btn.active { background: var(--blue); color: #fff; box-shadow: 0 4px 10px rgba(10, 132, 255, 0.3); }
-    .nav-icon-btn { flex: 0 0 40px; font-size: 18px; padding: 0; display: flex; align-items: center; justify-content: center; }
+    .nav-icon-btn { flex: 0 0 44px; padding: 0; display: flex; align-items: center; justify-content: center; }
 
     .card { background: var(--card); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; border: 1px solid #333; position: relative; }
     
@@ -28,8 +27,9 @@
 
     .input-label { font-size: 13px; color: var(--hint); margin-bottom: 6px; margin-left: 4px; display: block; }
     .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
-    .custom-input { width: 100%; background: var(--input-bg); border: 1px solid transparent; border-radius: 12px; color: #fff; padding: 14px; font-size: 16px; outline: none; transition: 0.2s; text-align: center; font-weight: 600; }
+    .custom-input { width: 100%; background: var(--input-bg); border: 1px solid transparent; border-radius: 12px; color: #fff; padding: 14px; font-size: 16px; outline: none; transition: 0.2s; text-align: center; font-weight: 600; margin-bottom: 10px; }
     .custom-input:focus { border-color: var(--blue); background: #3a3a3c; }
+    .custom-input::placeholder { color: #5c5c5e; }
 
     .stepper { display: flex; align-items: center; background: var(--input-bg); border-radius: 12px; padding: 4px; }
     .step-btn { width: 50px; height: 44px; background: #3a3a3c; border: none; border-radius: 8px; color: var(--blue); font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
@@ -57,9 +57,15 @@
     .tab.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     
-    input[type="file"] { padding: 10px; background: #2c2c2e; width: 100%; border-radius: 8px; margin-bottom: 10px; color: var(--hint); font-size: 12px; }
-    
     .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    
+    /* СТИЛИ ДЛЯ ФАЙЛОВ */
+    .file-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .file-custom { flex: 1; background: #2c2c2e; padding: 15px; border-radius: 12px; text-align: center; color: var(--hint); font-size: 13px; border: 1px dashed #444; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 5px; }
+    .file-custom.active { border-color: var(--blue); color: #fff; background: rgba(10, 132, 255, 0.1); border-style: solid; }
+    .file-custom span { font-weight: 600; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+    input[type="file"] { display: none; }
   </style>
 </head>
 <body>
@@ -69,7 +75,13 @@
     <button class="nav-btn" onclick="setTab('queue')">Очередь</button>
     <button class="nav-btn" onclick="setTab('history')">Архив</button>
     <button class="nav-btn nav-icon-btn" onclick="setTab('admin')" id="admin-nav" style="display:none;">⚙️</button>
-    <button class="nav-btn nav-icon-btn" onclick="logout()" style="background:rgba(255, 69, 58, 0.2); color:var(--red);">🚪</button>
+    <button class="nav-btn nav-icon-btn" onclick="logout()" style="color:var(--red); margin-left:5px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+        <polyline points="16 17 21 12 16 7"></polyline>
+        <line x1="21" y1="12" x2="9" y2="12"></line>
+      </svg>
+    </button>
   </div>
 
   <div id="login-screen" class="modal show" style="z-index: 2000;">
@@ -100,11 +112,11 @@
       <div class="input-row">
         <div>
           <label class="input-label">Ширина (см)</label>
-          <input type="number" id="c-w" class="custom-input" placeholder="100" value="100" inputmode="numeric" oninput="calc()">
+          <input type="number" id="c-w" class="custom-input" placeholder="100" value="100" inputmode="numeric" oninput="calc()" style="margin-bottom:0">
         </div>
         <div>
           <label class="input-label">Высота (см)</label>
-          <input type="number" id="c-h" class="custom-input" placeholder="50" value="50" inputmode="numeric" oninput="calc()">
+          <input type="number" id="c-h" class="custom-input" placeholder="50" value="50" inputmode="numeric" oninput="calc()" style="margin-bottom:0">
         </div>
       </div>
 
@@ -112,7 +124,7 @@
         <label class="input-label">Листов акрила (шт)</label>
         <div class="stepper">
           <button class="step-btn" onclick="stepSheets(-0.5)">−</button>
-          <input type="number" id="c-s" class="custom-input" style="border:none; background:transparent;" value="1.5" readonly>
+          <input type="number" id="c-s" class="custom-input" style="border:none; background:transparent; margin-bottom:0" value="1.5" readonly>
           <button class="step-btn" onclick="stepSheets(0.5)">+</button>
         </div>
       </div>
@@ -155,24 +167,26 @@
   <div class="modal" id="modal-new">
     <div class="modal-content">
       <h3>Новый заказ</h3>
-      <label class="input-label">Имя клиента</label>
-      <input type="text" id="n-client" class="custom-input" style="text-align:left; font-size:16px;">
       
-      <label class="input-label">Телефон</label>
-      <input type="text" id="n-phone" class="custom-input" style="text-align:left; font-size:16px;">
+      <input type="text" id="n-client" class="custom-input" placeholder="👤 Имя клиента" style="text-align:left;">
+      <input type="tel" id="n-phone" class="custom-input" placeholder="📞 Телефон" style="text-align:left;">
+      <input type="number" id="n-paid" class="custom-input" placeholder="💰 Предоплата (если есть)" inputmode="numeric" style="text-align:left;">
       
-      <label class="input-label">Предоплата (₽)</label>
-      <input type="number" id="n-paid" class="custom-input" inputmode="numeric">
-      
-      <div style="margin-top:15px;">
-        <label class="input-label">Фото / Скриншот</label>
-        <input type="file" id="n-photo" accept="image/*">
+      <div class="file-row">
+        <label class="file-custom" id="lbl-photo">
+          <span style="font-size:16px;">📸</span>
+          <span>Фото/Скрин</span>
+          <input type="file" id="n-photo" accept="image/*" onchange="updateFileLabel(this, 'lbl-photo')">
+        </label>
         
-        <label class="input-label">Файл макета</label>
-        <input type="file" id="n-layout">
+        <label class="file-custom" id="lbl-layout">
+          <span style="font-size:16px;">📂</span>
+          <span>Файл макета</span>
+          <input type="file" id="n-layout" onchange="updateFileLabel(this, 'lbl-layout')">
+        </label>
       </div>
 
-      <textarea id="n-desc" class="custom-input" style="text-align:left; font-size:14px; min-height:80px; margin-top:10px;" placeholder="Комментарий..."></textarea>
+      <textarea id="n-desc" class="custom-input" style="text-align:left; font-size:14px; min-height:80px; margin-bottom:0;" placeholder="💬 Комментарий к заказу..."></textarea>
       
       <button class="main-btn" id="btn-submit" onclick="submitOrder()">🚀 Отправить</button>
       <button class="btn-action" onclick="closeModals()">Отмена</button>
@@ -185,7 +199,7 @@
       <div id="edit-info" style="margin-bottom:15px; font-size:13px; color:var(--hint); text-align:center;"></div>
       
       <label class="input-label">Статус заказа</label>
-      <select id="e-status" class="custom-input" style="text-align:left;" onchange="checkStatusReq()">
+      <select id="e-status" class="custom-input" style="text-align:left; margin-bottom:10px;" onchange="checkStatusReq()">
         <option>Новый</option>
         <option>В работе</option>
         <option>Отправлен</option>
@@ -193,13 +207,17 @@
 
       <div id="finish-reqs" style="display:none; background:rgba(48, 209, 88, 0.1); padding:15px; border-radius:12px; margin: 10px 0; border: 1px solid var(--green);">
         <label class="input-label" style="color:var(--green);">Фото готового изделия (Обязательно)</label>
-        <input type="file" id="e-photo" accept="image/*">
+        <label class="file-custom" id="lbl-e-photo" style="margin-bottom:10px; background:#1c1c1e;">
+           <span>📸 Прикрепить фото</span>
+           <input type="file" id="e-photo" accept="image/*" onchange="updateFileLabel(this, 'lbl-e-photo')">
+        </label>
+        
         <label class="input-label" style="color:var(--green);">Номер накладной ТК</label>
-        <input type="text" id="e-tk" class="custom-input" style="text-align:left;">
+        <input type="text" id="e-tk" class="custom-input" style="text-align:left; margin-bottom:0;" placeholder="№ Накладной">
       </div>
 
       <label class="input-label" style="margin-top:10px;">Внести доплату (₽)</label>
-      <input type="number" id="e-paid-add" class="custom-input" placeholder="0">
+      <input type="number" id="e-paid-add" class="custom-input" placeholder="0" style="margin-bottom:0;">
 
       <button class="main-btn" id="btn-update" onclick="updateOrder()">💾 Сохранить</button>
       <button class="btn-action" onclick="closeModals()">Закрыть</button>
@@ -214,6 +232,14 @@
     let currentEditRow = null;
     let sheetsValue = 1.5;
     let globalShowPrice = true;
+
+    function updateFileLabel(input, labelId) {
+      if(input.files && input.files[0]) {
+        const lbl = document.getElementById(labelId);
+        lbl.classList.add('active');
+        lbl.querySelectorAll('span')[1].innerText = "✅ " + input.files[0].name;
+      }
+    }
 
     function stepSheets(val) {
       sheetsValue = parseFloat((sheetsValue + val).toFixed(1));
@@ -257,7 +283,7 @@
       currentUser = '';
       document.getElementById('login-screen').classList.add('show');
       document.getElementById('admin-nav').style.display = 'none';
-      setTab('calc'); // Сброс на вкладку по умолчанию
+      setTab('calc'); 
     }
 
     async function loadData() {
