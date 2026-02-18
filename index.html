@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CRM v8.0</title>
+  <title>CRM v8.2</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -114,13 +114,17 @@
   </div>
 
   <div id="tab-queue" class="tab" style="display:none;">
-    <div id="loader-queue" style="text-align:center; padding:20px; color:var(--hint);">Загрузка очереди...</div>
-    <div id="queue-list"></div>
+    <div class="card">
+      <div id="loader-queue" style="text-align:center; padding:20px; color:var(--hint);">Загрузка очереди...</div>
+      <div id="queue-list"></div>
+    </div>
   </div>
 
   <div id="tab-history" class="tab" style="display:none;">
-    <div id="loader-history" style="text-align:center; padding:20px; color:var(--hint);">Загрузка архива...</div>
-    <div id="history-list"></div>
+    <div class="card">
+      <div id="loader-history" style="text-align:center; padding:20px; color:var(--hint);">Загрузка архива...</div>
+      <div id="history-list"></div>
+    </div>
   </div>
 
   <div class="modal" id="modal-new">
@@ -133,7 +137,7 @@
         <label class="file-custom" id="lbl-layout"><span>📂 Макет</span><input type="file" id="n-layout" onchange="updateFileLabel(this, 'lbl-layout')"></label>
       </div>
       <textarea id="n-desc" class="custom-input compact-input" style="min-height:60px;" placeholder="💬 Комментарий..."></textarea>
-      <button class="main-btn" onclick="submitOrder()">🚀 Отправить в работу</button>
+      <button class="main-btn" id="btn-submit" onclick="submitOrder()">🚀 Отправить в работу</button>
       <button class="btn-action" onclick="closeModals()">Отмена</button>
     </div>
   </div>
