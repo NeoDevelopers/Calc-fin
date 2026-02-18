@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CRM SoftMastera v2.1</title>
+  <title>CRM SoftMastera v2.2</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -11,12 +11,11 @@
       --blue: #0a84ff; --green: #30d158; --red: #ff453a;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 15px; padding-bottom: 90px; }
+    body { background: var(--bg); color: var(--text); padding: 15px; padding-bottom: 90px; overflow-x: hidden; }
     
-    /* ШАПКА */
     .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px; }
     .user-tag { font-size: 13px; color: var(--hint); }
-    .logout-btn { background: rgba(255, 255, 255, 0.1); color: var(--text); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; }
+    .logout-btn { background: rgba(255, 255, 255, 0.1); color: var(--text); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; border: none; }
 
     .card { background: var(--card); border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
     h1, h3 { text-align: center; color: var(--blue); margin-bottom: 15px; font-weight: bold; }
@@ -30,13 +29,21 @@
     button { border: none; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 600; padding: 14px; transition: 0.2s; }
     button:active { transform: scale(0.98); opacity: 0.8; }
 
+    /* КРАСИВОЕ УВЕДОМЛЕНИЕ */
+    #toast {
+      position: fixed; bottom: -100px; left: 20px; right: 20px;
+      background: var(--green); color: white; padding: 16px;
+      border-radius: 12px; text-align: center; font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 9999;
+      transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    #toast.show { bottom: 30px; }
+
     .login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
     .role-btn { 
       width: 280px; background: #3a3a3c; color: var(--blue); margin-bottom: 12px; 
-      text-align: left; display: flex; justify-content: space-between; align-items: center;
-      padding: 18px; border-radius: 12px;
+      text-align: left; display: flex; justify-content: space-between; align-items: center; padding: 18px; border-radius: 12px;
     }
-    .role-btn span { color: var(--hint); font-size: 12px; }
 
     .nav { display: flex; gap: 6px; margin-bottom: 20px; background: #3a3a3c; padding: 4px; border-radius: 12px; }
     .nav-btn { flex: 1; padding: 10px; background: transparent; color: var(--hint); border-radius: 8px; font-size: 13px; }
@@ -52,6 +59,8 @@
   </style>
 </head>
 <body>
+
+  <div id="toast">✅ Заказ успешно отправлен!</div>
 
   <div class="login-screen" id="loginScreen">
     <h1 style="margin-bottom: 30px;">🔐 CRM Вход</h1>
@@ -108,11 +117,16 @@
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxyfKEG2iVZBcc9ZTx0bLud8uQ2kUAADyJEAJrpODfC9wSRCnSAqNghuP-F1CcQzpZXRw/exec";
     let currentPrice = 0;
 
+    function showToast() {
+      const t = document.getElementById('toast');
+      t.classList.add('show');
+      setTimeout(() => { t.classList.remove('show'); location.reload(); }, 2500);
+    }
+
     function login(role, name) {
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('app').style.display = 'block';
       document.getElementById('userDisplay').innerText = "Вы: " + name;
-      
       if(role === 'roma') {
           setTab('queue');
           document.getElementById('btn-calc').style.display = 'none';
@@ -123,10 +137,7 @@
       calculate();
     }
 
-    function logout() {
-      document.getElementById('app').style.display = 'none';
-      document.getElementById('loginScreen').style.display = 'flex';
-    }
+    function logout() { location.reload(); }
 
     function setTab(t) {
       document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
@@ -167,8 +178,8 @@
 
       fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) })
       .then(() => {
-        alert("✅ Заказ отправлен!");
-        location.reload();
+        closeModal();
+        showToast(); // ВМЕСТО ALERT
       });
     }
   </script>
