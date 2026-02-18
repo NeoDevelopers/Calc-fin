@@ -34,6 +34,28 @@ function formatMoscowDate(dateStr) {
     } catch (e) { return dateStr; }
 }
 
+function formatOrderDate(dateStr) {
+    try {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return dateStr;
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const orderDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        const timeStr = date.toLocaleTimeString('ru-RU', {
+            timeZone: 'Europe/Moscow',
+            hour: '2-digit', minute: '2-digit'
+        });
+        if (orderDay.getTime() === today.getTime()) return 'Сегодня ' + timeStr;
+        if (orderDay.getTime() === yesterday.getTime()) return 'Вчера ' + timeStr;
+        return date.toLocaleString('ru-RU', {
+            timeZone: 'Europe/Moscow',
+            day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+        }).replace(',', '');
+    } catch (e) { return dateStr; }
+}
+
 function toBase64(file) {
     return new Promise((resolve, reject) => {
         if (!file) { resolve(null); return; }
@@ -230,7 +252,13 @@ function updatePreview(w, h) {
     const info = document.getElementById('mount-info');
     if (w <= 0 || h <= 0) return;
 
-    const maxSize = 100; 
+    const pad = 16;
+    const viewportW = document.documentElement.clientWidth || 400;
+    const viewportH = document.documentElement.clientHeight || 600;
+    const availW = Math.max(100, viewportW - pad * 4);
+    const availH = Math.max(80, viewportH * 0.4);
+    const maxSize = Math.min(280, availW, availH);
+
     const ratio = w / h;
     let previewWidth, previewHeight;
 
@@ -331,7 +359,13 @@ function renderOrders() {
     const isWorker = (currentUser === 'Рома' || currentUser === 'Дима');
     const shouldHidePrice = isWorker && globalHidePrice;
 
-    orders.forEach(order => {
+    const sortedOrders = [...orders].sort((a, b) => {
+        const idA = parseInt(a.id, 10) || 0;
+        const idB = parseInt(b.id, 10) || 0;
+        return idB - idA;
+    });
+
+    sortedOrders.forEach(order => {
         const isArchive = (order.status === 'Готово' || order.status === 'Отправлен'); 
         
         const price = parseFloat(order.price) || 0;
@@ -352,44 +386,53 @@ function renderOrders() {
         if (order.status === 'Отправить') { cardStatusClass = 'card-st-send'; statusClass = 'st-send'; }
         if (order.status === 'Готово') { cardStatusClass = 'card-st-done'; statusClass = 'st-done'; }
 
-        // Кнопки файлов
         const layoutLink = order.layout ? getDriveDirectLink(order.layout) : '';
-        const layoutBtn = layoutLink ? `<a href="${layoutLink}" target="_blank" class="btn-dl">📂 Макет</a>` : '';
+        const layoutBtn = layoutLink ? `<a href="${layoutLink}" target="_blank" class="btn-dl btn-file" title="Макет">📂</a>` : '';
 
         const photoLink = order.photo ? getDriveDirectLink(order.photo) : '';
-        const photoBtn = photoLink ? `<a href="${photoLink}" target="_blank" class="btn-dl">📷 Фото</a>` : '';
+        const photoBtn = photoLink ? `<a href="${photoLink}" target="_blank" class="btn-dl btn-file" title="Фото">📷</a>` : '';
+
+        const deliveryBadge = (order.delivery || order.track) 
+            ? `<span class="badge badge-delivery">${(order.delivery || '').trim()}${order.track ? ' (' + order.track + ')' : ''}</span>` 
+            : '';
+
+        const escapeHtml = (str) => {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        };
 
         const card = document.createElement('div');
         card.className = `order-card ${cardStatusClass}`;
 
-        const gearIcon = `
-            <button class="gear-btn" onclick="openEdit('${order.id}')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                </svg>
-            </button>
-        `;
-
         card.innerHTML = `
-            ${gearIcon}
-            <div class="order-flex">
-                <div class="order-left">
-                    <div class="order-header">#${order.id} ${order.client}</div>
-                    <div class="order-desc">${order.desc || 'Нет описания'}</div>
-                    <div class="order-meta">
-                        <span class="status-badge ${statusClass}" onclick="openStatusModal(${order.id})">${order.status}</span>
-                        <span>${order.delivery || ''} ${order.track ? '('+order.track+')' : ''}</span>
-                    </div>
-                    <div class="order-meta" style="margin-top:5px;">
-                        ${layoutBtn}
-                        ${photoBtn}
-                    </div>
-                    <div class="order-footer">
-                        <div class="paid-tag">${payText}</div>
-                        <div style="font-size:11px; color:var(--hint)">${formatMoscowDate(order.date)}</div>
-                    </div>
+            <div class="card-header">
+                <div class="card-header-text">
+                    <span class="card-id">#${order.id}</span>
+                    <span class="card-client">${escapeHtml(order.client)}</span>
                 </div>
+                <button class="gear-btn" onclick="openEdit('${order.id}')" type="button" aria-label="Настройки">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="card-desc line-clamp-3">${escapeHtml(order.desc || 'Нет описания')}</div>
+                <div class="card-badges">
+                    <span class="status-badge ${statusClass}" onclick="openStatusModal(${order.id})">${order.status}</span>
+                    ${deliveryBadge}
+                </div>
+                <div class="card-files">
+                    ${layoutBtn}
+                    ${photoBtn}
+                </div>
+            </div>
+            <div class="card-footer">
+                <span class="card-date">${formatOrderDate(order.date)}</span>
+                <div class="paid-tag">${payText}</div>
             </div>
         `;
 

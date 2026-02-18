@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>CRM v2.3</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -12,15 +12,20 @@
   <div id="toast-container"></div>
 
   <div class="nav">
-    <button class="nav-btn active" onclick="setTab('calc')" id="nav-calc">🧮 Калькулятор</button>
-    <button class="nav-btn" onclick="setTab('queue')" id="nav-queue">📋 Очередь</button>
-    <button class="nav-btn" onclick="setTab('history')" id="nav-history">📂 Архив</button>
-    <button class="nav-btn nav-icon-btn" onclick="logout()" style="color:var(--red); margin-left:5px;">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-        <polyline points="16 17 21 12 16 7"></polyline>
-        <line x1="21" y1="12" x2="9" y2="12"></line>
-      </svg>
+    <button class="nav-btn active" onclick="setTab('calc')" id="nav-calc">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h8M8 14h4M12 18v-4"/></svg>
+      Калькулятор
+    </button>
+    <button class="nav-btn" onclick="setTab('queue')" id="nav-queue">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Очередь
+    </button>
+    <button class="nav-btn" onclick="setTab('history')" id="nav-history">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      Архив
+    </button>
+    <button class="nav-btn nav-icon-btn" onclick="logout()" style="color:var(--red);">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
     </button>
   </div>
 
@@ -69,7 +74,7 @@
           <input type="number" id="c-h" class="custom-input" placeholder="0" oninput="calc()" style="margin-bottom:0">
         </div>
       </div>
-      <label class="input-label" style="margin-top:10px;">Листов акрила по нестингу</label>
+      <label class="input-label" style="margin-top:var(--gap);">Листов акрила по нестингу</label>
       <div class="stepper">
         <button class="step-btn" onclick="stepSheets(-0.1)">−</button>
         <input type="number" id="c-s" class="custom-input" style="border:none; background:transparent; margin-bottom:0" value="1.5" step="0.1" oninput="calc()">
