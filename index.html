@@ -3,232 +3,301 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CRM SamLaser v3.1</title>
+  <title>SamLaser CRM v5.0</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    :root {
-      --bg: #1c1c1e; --card: #2c2c2e; --text: #fff; --hint: #8e8e93; 
-      --blue: #0a84ff; --green: #30d158; --red: #ff453a;
-    }
+    :root { --bg: #1c1c1e; --card: #2c2c2e; --text: #fff; --hint: #8e8e93; --blue: #0a84ff; --green: #30d158; --orange: #ff9f0a; --red: #ff453a; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 15px; padding-bottom: 90px; }
+    body { background: var(--bg); color: var(--text); padding: 10px; padding-bottom: 90px; }
     
-    .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .logout-btn { background: rgba(255, 255, 255, 0.1); color: var(--text); padding: 6px 12px; border-radius: 8px; font-size: 12px; border: none; }
+    .nav { display: flex; gap: 5px; margin-bottom: 15px; position: sticky; top: 0; background: var(--bg); z-index: 100; padding: 5px 0; }
+    .nav-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: #3a3a3c; color: var(--hint); font-size: 12px; font-weight: 600; }
+    .nav-btn.active { background: var(--blue); color: #fff; }
 
-    .card { background: var(--card); border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-    h3 { text-align: center; color: var(--blue); margin-bottom: 15px; }
+    .card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 12px; position: relative; }
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .status-badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,0.1); }
     
-    input, textarea { 
-      width: 100%; background: #3a3a3c; border: 1px solid transparent; border-radius: 10px; 
-      color: #fff; padding: 12px; margin-bottom: 12px; font-size: 16px; outline: none;
-    }
-    input[type="file"] { padding: 8px; font-size: 13px; background: #2c2c2e; border: 1px dashed var(--hint); }
-    label { color: var(--hint); font-size: 13px; margin-bottom: 6px; display: block; }
+    .info-row { font-size: 13px; color: var(--hint); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .money-row { display: flex; justify-content: space-between; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; margin-top: 8px; font-size: 13px; }
+    .debt { color: var(--red); }
+    .paid { color: var(--green); }
+
+    .thumb { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; background: #000; }
     
-    button { border: none; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 600; padding: 14px; transition: 0.2s; }
-    button:active { transform: scale(0.98); }
-
-    #toast {
-      position: fixed; bottom: -100px; left: 20px; right: 20px;
-      background: var(--green); color: white; padding: 16px;
-      border-radius: 12px; text-align: center; z-index: 9999; transition: 0.5s;
-    }
-    #toast.show { bottom: 30px; }
-
-    .price-big { font-size: 32px; font-weight: 800; text-align: center; margin: 20px 0; transition: 0.3s; }
-    .price-big.hidden { filter: blur(8px); opacity: 0.3; pointer-events: none; }
-
-    .login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-    .role-btn { width: 280px; background: #3a3a3c; color: var(--blue); margin-bottom: 12px; padding: 18px; border-radius: 12px; text-align: left; display: flex; justify-content: space-between; }
-
-    .nav { display: flex; gap: 6px; margin-bottom: 20px; background: #3a3a3c; padding: 4px; border-radius: 12px; }
-    .nav-btn { flex: 1; padding: 10px; background: transparent; color: var(--hint); border-radius: 8px; font-size: 13px; }
-    .nav-btn.active { background: var(--card); color: var(--blue); }
+    input, textarea, select { width: 100%; background: #3a3a3c; border: none; border-radius: 8px; color: #fff; padding: 12px; margin-bottom: 10px; outline: none; }
+    button { width: 100%; padding: 14px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
+    .btn-main { background: var(--blue); color: #fff; }
+    .btn-action { background: #3a3a3c; color: var(--blue); margin-top: 10px; }
+    
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; padding: 20px; align-items: center; justify-content: center; }
+    .modal.show { display: flex; }
+    .modal-content { background: var(--card); width: 100%; max-width: 400px; padding: 20px; border-radius: 15px; max-height: 90vh; overflow-y: auto; }
+    
     .tab { display: none; }
     .tab.active { display: block; }
-
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
-    .modal.show { display: flex; }
-    .modal-content { background: var(--card); width: 100%; max-width: 450px; padding: 24px; border-radius: 18px; }
-
-    .toggle-box { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #3a3a3c; }
+    #loader { text-align: center; padding: 20px; color: var(--hint); }
   </style>
 </head>
 <body>
 
-  <div id="toast">✅ Заказ и файлы отправлены!</div>
-
-  <div class="login-screen" id="loginScreen">
-    <h1 style="margin-bottom: 30px;">🔐 SamLaser CRM</h1>
-    <button class="role-btn" onclick="login('roma', 'Рома (Цех)')">Рома (Цех) <span>2222</span></button>
-    <button class="role-btn" onclick="login('mikhail', 'Михаил (Мен.)')">Михаил (Менеджер) <span>1234</span></button>
-    <button class="role-btn" onclick="login('owner', 'Владелец')">Владелец <span>9999</span></button>
+  <div class="nav">
+    <button class="nav-btn active" onclick="setTab('calc')">🧮 Кальк</button>
+    <button class="nav-btn" onclick="setTab('queue')">📋 Очередь</button>
+    <button class="nav-btn" onclick="setTab('history')">🗄 Архив</button>
+    <button class="nav-btn" onclick="setTab('admin')" id="admin-nav" style="display:none;">⚙️</button>
   </div>
 
-  <div id="app" style="display:none;">
-    <div class="app-header">
-      <span class="user-tag" id="userDisplay">Вы: —</span>
-      <button class="logout-btn" onclick="location.reload()">🚪 Выйти</button>
+  <div id="login-screen" class="modal show" style="z-index: 2000;">
+    <div class="modal-content" style="text-align: center;">
+      <h2>Кто вы?</h2>
+      <button class="btn-action" onclick="login('Рома')">Рома (Цех)</button>
+      <button class="btn-action" onclick="login('Михаил')">Михаил (Менеджер)</button>
+      <button class="btn-main" onclick="login('Владелец')">Владелец</button>
     </div>
+  </div>
 
-    <div class="nav">
-      <button class="nav-btn active" onclick="setTab('calc')" id="btn-calc">🧮 Калькулятор</button>
-      <button class="nav-btn" onclick="setTab('queue')" id="btn-queue">📋 Очередь</button>
-      <button class="nav-btn" onclick="setTab('admin')" id="btn-admin" style="display:none;">⚙️ Админ</button>
-    </div>
-
-    <div class="tab active" id="tab-calc">
-      <div class="card">
-        <h3>Новый расчет</h3>
-        <label>Ширина (см)</label><input type="number" id="c-width" value="100">
-        <label>Высота (см)</label><input type="number" id="c-height" value="50">
-        <label>Листов акрила</label><input type="number" id="c-sheets" value="1.5" step="0.1">
-        
-        <div class="price-big" id="price-wrapper">
-          <span id="c-result">0 ₽</span>
-        </div>
-        
-        <button onclick="openOrder()" style="width:100%; background:var(--green); color:white;">📝 Оформить заказ</button>
+  <div id="tab-calc" class="tab active">
+    <div class="card" style="text-align: center;">
+      <h1 id="price-display" style="color:var(--blue); margin: 20px 0;">0 ₽</h1>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <input type="number" id="c-w" placeholder="Ширина" oninput="calc()">
+        <input type="number" id="c-h" placeholder="Высота" oninput="calc()">
       </div>
+      <input type="number" id="c-s" placeholder="Листов" value="1.5" oninput="calc()">
+      <button class="btn-main" onclick="openOrderModal()">📝 Оформить заказ</button>
     </div>
+  </div>
 
-    <div class="tab" id="tab-queue">
-      <div class="card" style="text-align:center; padding:30px; color:var(--hint);">Список заказов пуст.</div>
-    </div>
+  <div id="tab-queue" class="tab">
+    <div id="loader">Загрузка...</div>
+    <div id="queue-list"></div>
+  </div>
 
-    <div class="tab" id="tab-admin">
-      <div class="card">
-        <h3>Настройки</h3>
-        <div class="toggle-box">
-          <span>Отображать цену менеджерам</span>
-          <input type="checkbox" id="sett-price" style="width: 40px;" onchange="updateSettings()">
-        </div>
+  <div id="tab-history" class="tab">
+    <div id="history-list" style="opacity: 0.7;"></div>
+  </div>
+
+  <div id="tab-admin" class="tab">
+    <div class="card">
+      <h3>Настройки</h3>
+      <div style="display:flex; justify-content:space-between; margin-top:15px;">
+        <span>Скрывать цены менеджерам</span>
+        <input type="checkbox" id="sett-price" style="width:20px;" onchange="saveSettings()">
       </div>
     </div>
   </div>
 
-  <div class="modal" id="orderModal">
+  <div class="modal" id="modal-new">
     <div class="modal-content">
-      <h2 style="color: var(--blue); margin-bottom: 20px;">Оформление</h2>
-      
-      <input type="text" id="ord-title" placeholder="Имя клиента или заказ">
-      <input type="text" id="ord-contact" placeholder="Телефон / Контакт">
-      
-      <label>📸 Фото / Скриншот</label>
-      <input type="file" id="file-photo" accept="image/*">
-      
-      <label>📂 Файл макета</label>
-      <input type="file" id="file-layout">
+      <h3>Новый заказ</h3>
+      <input type="text" id="n-client" placeholder="Имя клиента">
+      <input type="text" id="n-phone" placeholder="Телефон">
+      <input type="number" id="n-paid" placeholder="Предоплата (если есть)">
+      <label style="font-size:12px; color:var(--hint);">Фото макета / скриншот</label>
+      <input type="file" id="n-photo" accept="image/*">
+      <label style="font-size:12px; color:var(--hint);">Файл макета</label>
+      <input type="file" id="n-layout">
+      <textarea id="n-desc" placeholder="Комментарий..."></textarea>
+      <button class="btn-main" id="btn-submit" onclick="submitOrder()">🚀 Отправить</button>
+      <button class="btn-action" onclick="closeModals()">Отмена</button>
+    </div>
+  </div>
 
-      <textarea id="ord-desc" rows="2" placeholder="Комментарий..."></textarea>
+  <div class="modal" id="modal-edit">
+    <div class="modal-content">
+      <h3>Управление заказом</h3>
+      <div id="edit-info" style="margin-bottom:15px; font-size:13px; color:var(--hint);"></div>
       
-      <button onclick="submitOrder()" id="subBtn" style="width:100%; background:var(--green); color:white;">🚀 В производство</button>
-      <button onclick="closeModal()" style="width:100%; background:transparent; color:var(--hint); margin-top:10px;">Отмена</button>
+      <label>Статус</label>
+      <select id="e-status" onchange="checkStatusReq()">
+        <option>Новый</option>
+        <option>В работе</option>
+        <option>Отправлен</option>
+      </select>
+
+      <div id="finish-reqs" style="display:none; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px;">
+        <label style="color:var(--green);">Для отправки обязательно:</label>
+        <input type="text" id="e-tk" placeholder="№ Накладной ТК">
+        <label>Фото готового изделия</label>
+        <input type="file" id="e-photo" accept="image/*">
+      </div>
+
+      <label>Внести оплату (Добавить к сумме)</label>
+      <input type="number" id="e-paid-add" placeholder="Сумма (например 5000)">
+
+      <button class="btn-main" id="btn-update" onclick="updateOrder()">💾 Сохранить</button>
+      <button class="btn-action" onclick="closeModals()">Закрыть</button>
     </div>
   </div>
 
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxyfKEG2iVZBcc9ZTx0bLud8uQ2kUAADyJEAJrpODfC9wSRCnSAqNgHuP-F1CcQzpZXrw/exec";
-    let currentPrice = 0;
     let currentUser = '';
-    let showPriceSetting = true;
+    let orders = [];
+    let currentEditId = null;
+    let currentEditRow = null;
 
-    async function login(role, name) {
-      currentUser = role;
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-      document.getElementById('userDisplay').innerText = "Вы: " + name;
-
-      if(role === 'owner') document.getElementById('btn-admin').style.display = 'block';
-      if(role === 'roma') {
-          setTab('queue');
-          document.getElementById('btn-calc').style.display = 'none';
-      }
-
-      const resp = await fetch(WEB_APP_URL);
-      const settings = await resp.json();
-      showPriceSetting = settings.showPrice;
-      document.getElementById('sett-price').checked = showPriceSetting;
-      
-      applyPriceVisibility();
-      calculate();
+    function login(user) {
+      currentUser = user;
+      document.getElementById('login-screen').classList.remove('show');
+      if(user === 'Владелец') document.getElementById('admin-nav').style.display = 'block';
+      if(user === 'Рома') setTab('queue');
+      loadData();
     }
 
-    function applyPriceVisibility() {
-        const wrapper = document.getElementById('price-wrapper');
-        if(currentUser === 'mikhail' && !showPriceSetting) wrapper.classList.add('hidden');
-        else wrapper.classList.remove('hidden');
+    async function loadData() {
+      document.getElementById('loader').style.display = 'block';
+      try {
+        const res = await fetch(WEB_APP_URL);
+        const data = await res.json();
+        orders = data.orders;
+        renderOrders();
+      } catch(e) { alert("Ошибка загрузки"); }
     }
 
-    async function updateSettings() {
-        const val = document.getElementById('sett-price').checked;
-        fetch(WEB_APP_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({ action: 'updateSettings', showPrice: val })
-        });
-        showPriceSetting = val;
-        applyPriceVisibility();
-    }
+    function renderOrders() {
+      const q = document.getElementById('queue-list');
+      const h = document.getElementById('history-list');
+      q.innerHTML = ''; h.innerHTML = '';
+      document.getElementById('loader').style.display = 'none';
 
-    function setTab(t) {
-      document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-      document.getElementById('tab-'+t).classList.add('active');
-      event.target.classList.add('active');
-    }
+      orders.forEach(o => {
+        const isDone = o.status === 'Отправлен';
+        const debt = (o.price - (o.paid || 0));
+        const color = debt > 0 ? 'debt' : 'paid';
+        const debtText = debt > 0 ? `Долг: ${debt}` : 'Оплачено';
+        
+        const photoHtml = o.photo ? `<img src="${o.photo}" class="thumb" onclick="window.open('${o.photo}')">` : '';
 
-    function calculate() {
-      const w = parseFloat(document.getElementById('c-width').value) || 0;
-      const h = parseFloat(document.getElementById('c-height').value) || 0;
-      const s = parseFloat(document.getElementById('c-sheets').value) || 0;
-      currentPrice = Math.round((w * h / 10000 * 1133) + (s * 600) + 1500);
-      document.getElementById('c-result').innerText = currentPrice.toLocaleString() + " ₽";
-    }
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="card-header">
+            <div>
+               <b>№${o.id} ${o.client}</b>
+               <div style="font-size:11px; color:var(--blue);">${o.manager || 'Неизвестно'}</div>
+            </div>
+            ${photoHtml}
+          </div>
+          <div class="info-row">📞 ${o.phone}</div>
+          <div class="info-row">📅 ${o.date.split(',')[0]} <span class="status-badge">${o.status}</span></div>
+          ${o.tk ? `<div class="info-row">🚚 ТК: ${o.tk}</div>` : ''}
+          
+          <div class="money-row">
+             <span>💰 ${o.price} ₽</span>
+             <span class="${color}">${debtText}</span>
+          </div>
+          <button class="btn-action" style="padding:8px; margin-top:10px;" onclick="openEdit(${o.id})">Управление</button>
+        `;
 
-    document.querySelectorAll('input').forEach(i => i.addEventListener('input', calculate));
-
-    function openOrder() { document.getElementById('orderModal').classList.add('show'); }
-    function closeModal() { document.getElementById('orderModal').classList.remove('show'); }
-
-    const toBase64 = file => new Promise((resolve, reject) => {
-        if (!file) resolve(null);
-        else {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-        }
-    });
-
-    async function submitOrder() {
-      const title = document.getElementById('ord-title').value;
-      if(!title) return alert("Введите имя!");
-      const btn = document.getElementById('subBtn');
-      btn.innerText = "⏳ Отправка..."; btn.disabled = true;
-
-      const photo = await toBase64(document.getElementById('file-photo').files[0]);
-      const layout = await toBase64(document.getElementById('file-layout').files[0]);
-
-      const data = {
-        id: Math.floor(Math.random() * 9000) + 1000,
-        title: title,
-        contact: document.getElementById('ord-contact').value,
-        desc: document.getElementById('ord-desc').value,
-        price: currentPrice,
-        sheets: document.getElementById('c-sheets').value,
-        photoFile: photo,
-        layoutFile: layout
-      };
-
-      fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) })
-      .then(() => {
-        closeModal();
-        document.getElementById('toast').classList.add('show');
-        setTimeout(() => location.reload(), 3000);
+        if(isDone) h.appendChild(card); else q.appendChild(card);
       });
     }
+
+    // --- ЛОГИКА КАЛЬКУЛЯТОРА ---
+    function calc() {
+      const w = document.getElementById('c-w').value;
+      const h = document.getElementById('c-h').value;
+      const s = document.getElementById('c-s').value;
+      const p = Math.round((w * h / 10000 * 1133) + (s * 600) + 1500);
+      document.getElementById('price-display').innerText = p.toLocaleString() + " ₽";
+      return p;
+    }
+
+    // --- СОЗДАНИЕ ЗАКАЗА ---
+    function openOrderModal() { document.getElementById('modal-new').classList.add('show'); }
+    
+    async function submitOrder() {
+      const btn = document.getElementById('btn-submit');
+      btn.innerText = "⏳ Отправка..."; btn.disabled = true;
+
+      const p1 = await toBase64(document.getElementById('n-photo').files[0]);
+      const p2 = await toBase64(document.getElementById('n-layout').files[0]);
+
+      const data = {
+        id: Math.floor(Math.random()*9000)+1000,
+        title: document.getElementById('n-client').value,
+        contact: document.getElementById('n-phone').value,
+        price: calc(), // Берем цену из калькулятора
+        paid: document.getElementById('n-paid').value,
+        desc: document.getElementById('n-desc').value,
+        sheets: document.getElementById('c-s').value,
+        manager: currentUser,
+        photoFile: p1,
+        layoutFile: p2
+      };
+
+      await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+      closeModals();
+      loadData();
+      btn.innerText = "🚀 Отправить"; btn.disabled = false;
+    }
+
+    // --- РЕДАКТИРОВАНИЕ ---
+    function openEdit(id) {
+      const o = orders.find(x => x.id == id);
+      currentEditRow = o.rowIndex;
+      currentEditId = id;
+      document.getElementById('edit-info').innerText = `Заказ №${id} | ${o.client}`;
+      document.getElementById('e-status').value = o.status;
+      document.getElementById('modal-edit').classList.add('show');
+      checkStatusReq();
+    }
+
+    function checkStatusReq() {
+      const val = document.getElementById('e-status').value;
+      document.getElementById('finish-reqs').style.display = val === 'Отправлен' ? 'block' : 'none';
+    }
+
+    async function updateOrder() {
+      const st = document.getElementById('e-status').value;
+      const tk = document.getElementById('e-tk').value;
+      const photo = await toBase64(document.getElementById('e-photo').files[0]);
+      
+      // Считаем новую оплату (старая + добавка)
+      const addPaid = parseFloat(document.getElementById('e-paid-add').value) || 0;
+      const o = orders.find(x => x.id == currentEditId);
+      const newPaid = addPaid > 0 ? (parseFloat(o.paid || 0) + addPaid) : undefined;
+
+      // Проверка на отправку
+      if(st === 'Отправлен' && (!tk || !photo)) {
+        return alert("Для отправки нужно фото и номер ТК!");
+      }
+
+      const btn = document.getElementById('btn-update');
+      btn.innerText = "Сохранение..."; btn.disabled = true;
+
+      await fetch(WEB_APP_URL, { 
+        method: 'POST', mode: 'no-cors', 
+        body: JSON.stringify({ 
+          action: 'updateOrder', 
+          id: currentEditId, 
+          rowIndex: currentEditRow,
+          status: st, 
+          tk: tk,
+          paid: newPaid,
+          photo: photo
+        }) 
+      });
+
+      closeModals();
+      loadData();
+      btn.innerText = "💾 Сохранить"; btn.disabled = false;
+    }
+
+    // --- УТИЛИТЫ ---
+    function setTab(t) {
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
+      document.getElementById('tab-'+t).classList.add('active');
+      event.target.classList.add('active');
+      if(t === 'queue' || t === 'history') loadData();
+    }
+    
+    function closeModals() { document.querySelectorAll('.modal').forEach(x => {if(x.id!=='login-screen') x.classList.remove('show')}); }
+    
+    const toBase64 = f => !f ? null : new Promise((r,j)=>{const d=new FileReader();d.readAsDataURL(f);d.onload=()=>r(d.result);});
   </script>
 </body>
 </html>
