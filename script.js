@@ -21,7 +21,9 @@ function validateLoginInput() {
     const user = document.getElementById('user-select').value;
     const pass = document.getElementById('user-pass').value;
     const btn = document.getElementById('login-btn');
-    btn.disabled = !(user && pass.length > 0);
+    if (btn) {
+        btn.disabled = !(user && pass.length > 0);
+    }
 }
 
 function handleLogin() {
@@ -87,6 +89,23 @@ function lerp(a, b, t) {
     return a + (b - a) * t;
 }
 
+function formatMoscowDate(dateStr) {
+    try {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return dateStr;
+        return date.toLocaleString('ru-RU', {
+            timeZone: 'Europe/Moscow',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }).replace(',', '');
+    } catch (e) {
+        return dateStr;
+    }
+}
+
 function calc() {
     const rawW = parseFloat(document.getElementById('c-w').value) || 0;
     const rawH = parseFloat(document.getElementById('c-h').value) || 0;
@@ -94,39 +113,51 @@ function calc() {
     const film = document.getElementById('c-film').checked;
     const light = document.getElementById('c-light').checked;
     const complex = document.getElementById('c-complex').checked;
-    if (rawW <= 0 || rawH <= 0) {
+
+    if (rawW <= 0 && rawH <= 0 && sheets <= 0) {
         document.getElementById('price-display').innerText = "0 ₽";
         document.getElementById('order-btn-ui').style.display = "none";
         updatePreview(0, 0);
         return 0;
     }
+
     const widthInMeters = currentUnit === 'mm' ? rawW / 1000 : rawW / 100;
     const heightInMeters = currentUnit === 'mm' ? rawH / 1000 : rawH / 100;
     const area = widthInMeters * heightInMeters;
+
     const tArea = clamp01((area - 1.0) / (3.0 - 1.0));
     const margin = lerp(userSettings.marginSmall, userSettings.marginLarge, tArea);
+    
     const baseDiscount = clamp01((area - 1.0) / (3.0 - 1.0)) * (userSettings.baseDiscMaxPct / 100);
     const effectiveBasePrice = userSettings.baseMat * (1 - baseDiscount);
+
     const tSheets = clamp01((sheets - 2.0) / (5.0 - 2.0));
     const acrylicDiscount = tSheets * (userSettings.acrylicDiscMaxPct / 100);
     const effectiveAcrylicPrice = userSettings.acrylicSheet * (1 - acrylicDiscount);
+
     const baseCost = area * effectiveBasePrice;
     const acrylicCost = sheets * effectiveAcrylicPrice;
+    
     let filmCost = 0;
     if (film) {
         filmCost = acrylicCost * (userSettings.filmMult - 1);
     }
+
     const totalMaterialCost = baseCost + acrylicCost + filmCost;
     const productionCost = totalMaterialCost * userSettings.laborMult;
     const totalOverhead = (area * userSettings.overheadPerM2) + userSettings.setupFix;
     const costWithOverhead = productionCost + totalOverhead;
+
     let finalPrice = costWithOverhead * margin;
+    
     if (light) {
         finalPrice += userSettings.lightFix + (area * userSettings.lightM2);
     }
+    
     if (complex) {
         finalPrice *= userSettings.complexMult;
     }
+
     finalPrice = Math.round(finalPrice / 100) * 100;
     document.getElementById('price-display').innerText = finalPrice.toLocaleString() + " ₽";
     document.getElementById('order-btn-ui').style.display = "block";
@@ -157,14 +188,17 @@ function updatePreview(w, h) {
     box.style.height = previewHeight + "px";
     document.getElementById('dim-w-label').innerText = w;
     document.getElementById('dim-h-label').innerText = h;
+    
     const widthCm = currentUnit === 'mm' ? w / 10 : w;
     const heightCm = currentUnit === 'mm' ? h / 10 : h;
     const segmentsX = Math.max(1, Math.ceil(widthCm / 75));
     const segmentsY = Math.max(1, Math.ceil(heightCm / 75));
     const totalMounts = (segmentsX + 1) * 2 + (segmentsY - 1) * 2;
+    
     box.querySelectorAll('.mount-hole').forEach(function(element) {
         element.remove();
     });
+    
     for (let i = 0; i <= segmentsX; i++) {
         createHole(i / segmentsX * 100, 0, box);
         createHole(i / segmentsX * 100, 100, box);
@@ -185,7 +219,8 @@ function createHole(left, top, parent) {
 }
 
 function toggleSettingsPanel() {
-    document.getElementById('settings-panel').classList.toggle('show');
+    const panel = document.getElementById('settings-panel');
+    panel.classList.toggle('show');
 }
 
 function loadLocalSettings() {
@@ -227,7 +262,7 @@ function saveAdminSettings() {
 }
 
 function resetToDefaults() {
-    if (confirm("Сбросить?")) {
+    if (confirm("Сбросить все настройки к заводским значениям?")) {
         userSettings = { ...CONFIG.DEFAULTS };
         localStorage.removeItem('laser_settings');
         loadLocalSettings();
@@ -237,6 +272,11 @@ function resetToDefaults() {
 }
 
 async function loadData() {
+    const loaderQ = document.getElementById('loader-queue');
+    const loaderH = document.getElementById('loader-history');
+    if (loaderQ) loaderQ.style.display = 'block';
+    if (loaderH) loaderH.style.display = 'block';
+
     try {
         const response = await fetch(CONFIG.WEB_APP_URL);
         const result = await response.json();
@@ -248,12 +288,16 @@ async function loadData() {
         }
         renderOrders();
     } catch (error) {
-        showToast("Ошибка связи");
+        showToast("Ошибка связи с базой");
+    } finally {
+        if (loaderQ) loaderQ.style.display = 'none';
+        if (loaderH) loaderH.style.display = 'none';
     }
 }
 
 async function updateGlobalPriceSetting() {
-    const hide = document.getElementById('sett-price').checked;
+    const check = document.getElementById('sett-price');
+    const hide = check.checked;
     try {
         await fetch(CONFIG.WEB_APP_URL, {
             method: 'POST',
@@ -265,9 +309,9 @@ async function updateGlobalPriceSetting() {
         });
         globalHidePrice = hide;
         renderOrders();
-        showToast("Сохранено");
+        showToast("Настройка сохранена");
     } catch (error) {
-        showToast("Ошибка");
+        showToast("Ошибка сохранения");
     }
 }
 
@@ -277,6 +321,7 @@ function renderOrders() {
     if (!queueList || !historyList) return;
     queueList.innerHTML = '';
     historyList.innerHTML = '';
+    
     orders.forEach(function(order) {
         const isDone = order.status === 'Отправлен';
         const hide = (currentUser === 'Рома' || currentUser === 'Дима') && globalHidePrice;
@@ -284,18 +329,20 @@ function renderOrders() {
         const photoLink = getDriveDirectLink(order.photo);
         const card = document.createElement('div');
         card.className = 'order-card';
-        let html = '<div class="order-header"><div><b>№' + order.id + ' ' + order.client + '</b><div style="font-size:10px; color:var(--blue)">' + (order.manager || '') + '</div></div>';
+        
+        let cardHtml = '<div class="order-header"><div><b>№' + order.id + ' ' + order.client + '</b><div style="font-size:10px; color:var(--blue)">' + (order.manager || '') + '</div></div>';
         if (photoLink) {
-            html += '<img src="' + photoLink + '" class="thumb" onclick="window.open(\'' + order.photo + '\')">';
+            cardHtml += '<img src="' + photoLink + '" class="thumb" onclick="window.open(\'' + order.photo + '\')">';
         }
-        html += '</div>';
-        html += '<div style="font-size:12px; color:var(--hint)">' + order.phone + ' | ' + order.date.split(',')[0] + ' <span class="status-badge">' + order.status + '</span></div>';
-        html += '<div style="display:flex; justify-content:space-between; margin-top:10px; font-weight:700;">';
-        html += '<span>' + (hide ? '***' : order.price + ' ₽') + '</span>';
-        html += '<span style="color:' + (debt > 0 ? 'var(--red)' : 'var(--green)') + '">' + (hide ? '---' : (debt > 0 ? 'Долг: ' + debt : 'Оплачено')) + '</span>';
-        html += '</div>';
-        html += '<button class="btn-action" onclick="openEdit(' + order.id + ')">Управление</button>';
-        card.innerHTML = html;
+        cardHtml += '</div>';
+        cardHtml += '<div style="font-size:12px; color:var(--hint)">' + order.phone + ' | ' + formatMoscowDate(order.date) + ' <span class="status-badge">' + order.status + '</span></div>';
+        cardHtml += '<div style="display:flex; justify-content:space-between; margin-top:10px; font-weight:700;">';
+        cardHtml += '<span>' + (hide ? '***' : order.price + ' ₽') + '</span>';
+        cardHtml += '<span style="color:' + (debt > 0 ? 'var(--red)' : 'var(--green)') + '">' + (hide ? '---' : (debt > 0 ? 'Долг: ' + debt + ' ₽' : 'Оплачено')) + '</span>';
+        cardHtml += '</div>';
+        cardHtml += '<button class="btn-action" onclick="openEdit(' + order.id + ')">Управление</button>';
+        
+        card.innerHTML = cardHtml;
         if (isDone) {
             historyList.appendChild(card);
         } else {
@@ -318,50 +365,60 @@ function closeModals() {
 }
 
 async function submitOrder() {
-    const titleField = document.getElementById('n-client');
-    const phoneField = document.getElementById('n-phone');
-    const photoInput = document.getElementById('n-photo');
-    const layoutInput = document.getElementById('n-layout');
-    const descField = document.getElementById('n-desc');
+    const clientInp = document.getElementById('n-client');
+    const phoneInp = document.getElementById('n-phone');
+    const photoInp = document.getElementById('n-photo');
+    const layoutInp = document.getElementById('n-layout');
+    const descInp = document.getElementById('n-desc');
     const btn = document.getElementById('btn-submit');
-    if (!titleField.value) {
-        showToast("Введите название!");
+    
+    if (!clientInp.value) {
+        showToast("Введите название заказа!");
         return;
     }
+    
     btn.innerText = "⏳ Отправка...";
     btn.disabled = true;
+    
     try {
-        const p1 = await toBase64(photoInput.files[0]);
-        const p2 = await toBase64(layoutInput.files[0]);
-        const data = {
+        const photoB64 = await toBase64(photoInp.files[0]);
+        const layoutB64 = await toBase64(layoutInp.files[0]);
+        const orderData = {
             id: Math.floor(Math.random() * 9000) + 1000,
-            title: titleField.value,
-            contact: phoneField.value,
+            title: clientInp.value,
+            contact: phoneInp.value,
             price: calc(),
             sheets: parseFloat(document.getElementById('c-s').value || 1),
             paid: 0,
-            desc: descField.value,
+            desc: descInp.value,
             manager: currentUser,
-            photoFile: p1,
-            layoutFile: p2
+            photoFile: photoB64,
+            layoutFile: layoutB64
         };
+        
         await fetch(CONFIG.WEB_APP_URL, {
             method: 'POST',
             mode: 'no-cors',
-            body: JSON.stringify(data)
+            body: JSON.stringify(orderData)
         });
-        showToast("✅ Успешно!");
+        
+        showToast("✅ Заказ отправлен в производство");
         closeModals();
-        titleField.value = '';
-        phoneField.value = '';
-        photoInput.value = '';
-        layoutInput.value = '';
-        descField.value = '';
+        
+        clientInp.value = '';
+        phoneInp.value = '';
+        photoInp.value = '';
+        layoutInp.value = '';
+        descInp.value = '';
+        
         document.getElementById('lbl-photo').classList.remove('active');
         document.getElementById('lbl-layout').classList.remove('active');
+        document.getElementById('lbl-photo').querySelector('span').innerText = "📸 Фото";
+        document.getElementById('lbl-layout').querySelector('span').innerText = "📂 Макет";
+        
         loadData();
     } catch (error) {
-        showToast("❌ Ошибка");
+        showToast("❌ Ошибка при создании заказа");
     } finally {
         btn.innerText = "🚀 Отправить в работу";
         btn.disabled = false;
@@ -383,46 +440,56 @@ function openEdit(id) {
 }
 
 function checkStatusReq() {
-    const status = document.getElementById('e-status').value;
-    document.getElementById('finish-reqs').style.display = (status === 'Отправлен') ? 'block' : 'none';
+    const statusVal = document.getElementById('e-status').value;
+    const finishPanel = document.getElementById('finish-reqs');
+    if (statusVal === 'Отправлен') {
+        finishPanel.style.display = 'block';
+    } else {
+        finishPanel.style.display = 'none';
+    }
 }
 
 async function updateOrder() {
     const status = document.getElementById('e-status').value;
     const tk = document.getElementById('e-tk').value;
-    const file = document.getElementById('e-photo').files[0];
-    const add = parseFloat(document.getElementById('e-paid-add').value) || 0;
+    const fileInput = document.getElementById('e-photo');
+    const paymentAdd = parseFloat(document.getElementById('e-paid-add').value) || 0;
     const btn = document.getElementById('btn-update');
     const order = orders.find(function(item) {
         return item.id == currentEditId;
     });
-    if (status === 'Отправлен' && (!tk || !file)) {
-        showToast("Нужно фото и ТК!");
+    
+    if (status === 'Отправлен' && (!tk || !fileInput.files[0])) {
+        showToast("Нужно фото готового и ТК!");
         return;
     }
+    
     btn.innerText = "⏳ Сохранение...";
     btn.disabled = true;
+    
     try {
-        const photo = await toBase64(file);
-        const data = {
+        const photoB64 = await toBase64(fileInput.files[0]);
+        const updateData = {
             action: 'updateOrder',
             id: currentEditId,
             rowIndex: currentEditRow,
             status: status,
             tk: tk,
-            paid: (parseFloat(order.paid || 0) + add),
-            photo: photo
+            paid: (parseFloat(order.paid || 0) + paymentAdd),
+            photo: photoB64
         };
+        
         await fetch(CONFIG.WEB_APP_URL, {
             method: 'POST',
             mode: 'no-cors',
-            body: JSON.stringify(data)
+            body: JSON.stringify(updateData)
         });
-        showToast("Обновлено");
+        
+        showToast("Заказ обновлен");
         closeModals();
         setTimeout(loadData, 1500);
     } catch (error) {
-        showToast("Ошибка");
+        showToast("Ошибка при обновлении");
     } finally {
         btn.innerText = "💾 Сохранить";
         btn.disabled = false;
@@ -438,37 +505,37 @@ function setTab(id) {
     buttons.forEach(function(btn) {
         btn.classList.remove('active');
     });
-    const target = document.getElementById('tab-' + id);
-    if (target) {
-        target.style.display = 'block';
+    const targetTab = document.getElementById('tab-' + id);
+    if (targetTab) {
+        targetTab.style.display = 'block';
     }
-    const btnTarget = document.getElementById('nav-' + id);
-    if (btnTarget) {
-        btnTarget.classList.add('active');
+    const targetBtn = document.getElementById('nav-' + id);
+    if (targetBtn) {
+        targetBtn.classList.add('active');
     }
     if (id !== 'calc') {
         loadData();
     }
 }
 
-function updateFileLabel(input, id) {
+function updateFileLabel(input, labelId) {
     if (input.files && input.files[0]) {
-        const el = document.getElementById(id);
-        el.classList.add('active');
-        el.querySelector('span').innerText = "✅ " + input.files[0].name.substring(0, 10);
+        const label = document.getElementById(labelId);
+        label.classList.add('active');
+        label.querySelector('span').innerText = "✅ " + input.files[0].name.substring(0, 10);
     }
 }
 
 function getDriveDirectLink(url) {
     if (!url) return '';
-    const m = url.match(/id=([a-zA-Z0-9_-]{25,})/) || url.match(/\/d\/([a-zA-Z0-9_-]{25,})/);
-    if (m) {
-        return "https://drive.google.com/uc?export=view&id=" + m[1];
+    const match = url.match(/id=([a-zA-Z0-9_-]{25,})/) || url.match(/\/d\/([a-zA-Z0-9_-]{25,})/);
+    if (match) {
+        return "https://drive.google.com/uc?export=view&id=" + match[1];
     }
     return url;
 }
 
-const toBase64 = function(file) {
+function toBase64(file) {
     return new Promise(function(resolve, reject) {
         if (!file) {
             resolve(null);
@@ -483,7 +550,7 @@ const toBase64 = function(file) {
             reject(err);
         };
     });
-};
+}
 
 window.onload = function() {
     calc();
