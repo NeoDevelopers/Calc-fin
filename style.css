@@ -101,10 +101,6 @@ button.main-btn:active { transform: scale(0.97); }
 .card-st-send { border-left: 4px solid var(--orange); box-shadow: 0 8px 24px rgba(255, 159, 10, 0.15); }
 .card-st-done { border-left: 4px solid var(--green); box-shadow: 0 8px 24px rgba(48, 209, 88, 0.15); }
 
-.order-flex { display: flex; gap: 14px; }
-.order-left { flex: 1; min-width: 0; }
-.order-right { flex: 0 0 90px; width: 90px; display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: flex-start; }
-
 .order-header { font-weight: 800; font-size: 16px; margin-bottom: 6px; color: #fff; padding-right: 30px; letter-spacing: 0.3px; }
 .order-desc { font-size: 13px; color: #d1d1d6; margin-bottom: 10px; line-height: 1.4; background: rgba(255,255,255,0.06); padding: 8px; border-radius: 8px; white-space: pre-wrap; }
 .order-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
@@ -119,11 +115,6 @@ button.main-btn:active { transform: scale(0.97); }
 
 .btn-dl { display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.05); color: var(--blue); border: 1px solid rgba(10, 132, 255, 0.4); border-radius: 8px; padding: 4px 10px; font-size: 11px; font-weight: 700; text-decoration: none; transition: 0.2s; }
 .btn-dl:hover { background: rgba(10, 132, 255, 0.15); }
-
-.thumb-right { width: 90px; height: 90px; border-radius: 12px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); background: #000; cursor: pointer; transition: 0.2s; display: block; }
-.thumb-right:hover { transform: scale(1.03); border-color: var(--blue); }
-
-.thumb-placeholder { width: 90px; height: 90px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; color: var(--hint); }
 
 .gear-btn { position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--hint); cursor: pointer; padding: 6px; z-index: 5; transition: 0.2s; }
 .gear-btn:hover { color: #fff; background: rgba(255,255,255,0.1); border-radius: 50%; }

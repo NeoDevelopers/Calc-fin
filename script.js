@@ -46,13 +46,7 @@ function toBase64(file) {
 
 function getDriveDirectLink(url) {
     if (!url || typeof url !== 'string') return '';
-    const match = url.match(/id=([a-zA-Z0-9_-]{25,})/) || 
-                  url.match(/\/d\/([a-zA-Z0-9_-]{25,})/) || 
-                  url.match(/\/open\?id=([a-zA-Z0-9_-]{25,})/);
-    
-    if (match && match[1]) { 
-        return "https://drive.google.com/uc?export=view&id=" + match[1]; 
-    }
+    // Для кнопок оставляем ссылку как есть, чтобы открывалась в новой вкладке
     return url;
 }
 
@@ -65,6 +59,7 @@ function updateFileLabel(input, labelId) {
     }
 }
 
+// === АВТОРИЗАЦИЯ ===
 function validateLoginInput() {
     const user = document.getElementById('user-select').value;
     const pass = document.getElementById('user-pass').value;
@@ -114,6 +109,7 @@ function logout() {
     setTab('calc');
 }
 
+// === КАЛЬКУЛЯТОР ===
 function setUnit(unit) {
     currentUnit = unit;
     document.getElementById('unit-cm').classList.toggle('active', unit === 'cm');
@@ -303,6 +299,7 @@ function resetToDefaults() {
     }
 }
 
+// === БЭКЕНД И ОТРИСОВКА ===
 async function loadData() {
     const loaderQ = document.getElementById('loader-queue');
     const loaderH = document.getElementById('loader-history');
@@ -355,26 +352,18 @@ function renderOrders() {
         if (order.status === 'Отправить') { cardStatusClass = 'card-st-send'; statusClass = 'st-send'; }
         if (order.status === 'Готово') { cardStatusClass = 'card-st-done'; statusClass = 'st-done'; }
 
+        // Кнопки файлов
         const layoutLink = order.layout ? getDriveDirectLink(order.layout) : '';
-        const layoutBtn = layoutLink ? `<a href="${order.layout}" target="_blank" class="btn-dl">📂 Макет</a>` : '';
+        const layoutBtn = layoutLink ? `<a href="${layoutLink}" target="_blank" class="btn-dl">📂 Макет</a>` : '';
 
-        const photoLink = getDriveDirectLink(order.photo);
-        let photoHtml = '';
-        if (photoLink) {
-            photoHtml = `
-                <img src="${photoLink}" class="thumb-right" onclick="window.open('${order.photo}')" 
-                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                <div class="thumb-placeholder" style="display:none">📷</div>
-            `;
-        } else {
-            photoHtml = `<div class="thumb-placeholder">📷</div>`;
-        }
+        const photoLink = order.photo ? getDriveDirectLink(order.photo) : '';
+        const photoBtn = photoLink ? `<a href="${photoLink}" target="_blank" class="btn-dl">📷 Фото</a>` : '';
 
         const card = document.createElement('div');
         card.className = `order-card ${cardStatusClass}`;
 
         const gearIcon = `
-            <button class="gear-btn" onclick="openEdit(${order.id})">
+            <button class="gear-btn" onclick="openEdit('${order.id}')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="3"></circle>
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -391,15 +380,15 @@ function renderOrders() {
                     <div class="order-meta">
                         <span class="status-badge ${statusClass}" onclick="openStatusModal(${order.id})">${order.status}</span>
                         <span>${order.delivery || ''} ${order.track ? '('+order.track+')' : ''}</span>
+                    </div>
+                    <div class="order-meta" style="margin-top:5px;">
                         ${layoutBtn}
+                        ${photoBtn}
                     </div>
                     <div class="order-footer">
                         <div class="paid-tag">${payText}</div>
                         <div style="font-size:11px; color:var(--hint)">${formatMoscowDate(order.date)}</div>
                     </div>
-                </div>
-                <div class="order-right">
-                    ${photoHtml}
                 </div>
             </div>
         `;
@@ -418,12 +407,15 @@ async function saveStatus(newStatus) {
     if (isStatusSaving) return;
     isStatusSaving = true;
 
-    const modal = document.getElementById('modal-status');
-    const allButtons = modal.querySelectorAll('button');
-    const title = modal.querySelector('h3');
+    const btnBox = document.getElementById('modal-status').querySelector('.modal-content');
+    const originalContent = btnBox.innerHTML;
+    
+    // Блокируем кнопки
+    const btns = btnBox.querySelectorAll('button');
+    btns.forEach(b => b.disabled = true);
+    
+    const title = btnBox.querySelector('h3');
     const originalTitle = title.innerText;
-
-    allButtons.forEach(btn => btn.disabled = true);
     title.innerText = "⏳ Сохранение...";
 
     try {
@@ -448,8 +440,13 @@ async function saveStatus(newStatus) {
         title.innerText = originalTitle;
     } finally {
         isStatusSaving = false;
-        allButtons.forEach(btn => btn.disabled = false);
-        if(title.innerText === "⏳ Сохранение...") title.innerText = originalTitle;
+        btns.forEach(b => b.disabled = false);
+        setTimeout(() => {
+            if (!document.getElementById('modal-status').classList.contains('show')) {
+                // Если модалка закрыта (через closeModals или вручную), сбрасываем заголовок
+                title.innerText = "Изменить статус";
+            }
+        }, 500);
     }
 }
 
