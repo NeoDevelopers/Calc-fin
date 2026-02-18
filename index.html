@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CRM SoftMastera v3.0</title>
+  <title>CRM SamLaser v3.1</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -60,7 +60,7 @@
   <div id="toast">✅ Заказ и файлы отправлены!</div>
 
   <div class="login-screen" id="loginScreen">
-    <h1 style="margin-bottom: 30px;">🔐 CRM SoftMastera</h1>
+    <h1 style="margin-bottom: 30px;">🔐 SamLaser CRM</h1>
     <button class="role-btn" onclick="login('roma', 'Рома (Цех)')">Рома (Цех) <span>2222</span></button>
     <button class="role-btn" onclick="login('mikhail', 'Михаил (Мен.)')">Михаил (Менеджер) <span>1234</span></button>
     <button class="role-btn" onclick="login('owner', 'Владелец')">Владелец <span>9999</span></button>
@@ -99,7 +99,7 @@
 
     <div class="tab" id="tab-admin">
       <div class="card">
-        <h3>Настройки CRM</h3>
+        <h3>Настройки</h3>
         <div class="toggle-box">
           <span>Отображать цену менеджерам</span>
           <input type="checkbox" id="sett-price" style="width: 40px;" onchange="updateSettings()">
@@ -115,7 +115,7 @@
       <input type="text" id="ord-title" placeholder="Имя клиента или заказ">
       <input type="text" id="ord-contact" placeholder="Телефон / Контакт">
       
-      <label>📸 Фотография / Скриншот</label>
+      <label>📸 Фото / Скриншот</label>
       <input type="file" id="file-photo" accept="image/*">
       
       <label>📂 Файл макета</label>
@@ -146,7 +146,6 @@
           document.getElementById('btn-calc').style.display = 'none';
       }
 
-      // Подгружаем настройки цены
       const resp = await fetch(WEB_APP_URL);
       const settings = await resp.json();
       showPriceSetting = settings.showPrice;
@@ -158,11 +157,8 @@
 
     function applyPriceVisibility() {
         const wrapper = document.getElementById('price-wrapper');
-        if(currentUser === 'mikhail' && !showPriceSetting) {
-            wrapper.classList.add('hidden');
-        } else {
-            wrapper.classList.remove('hidden');
-        }
+        if(currentUser === 'mikhail' && !showPriceSetting) wrapper.classList.add('hidden');
+        else wrapper.classList.remove('hidden');
     }
 
     async function updateSettings() {
@@ -209,9 +205,8 @@
     async function submitOrder() {
       const title = document.getElementById('ord-title').value;
       if(!title) return alert("Введите имя!");
-      
       const btn = document.getElementById('subBtn');
-      btn.innerText = "⏳ Загрузка файлов..."; btn.disabled = true;
+      btn.innerText = "⏳ Отправка..."; btn.disabled = true;
 
       const photo = await toBase64(document.getElementById('file-photo').files[0]);
       const layout = await toBase64(document.getElementById('file-layout').files[0]);
