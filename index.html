@@ -3,74 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SamLaser CRM v6.0</title>
+  <title>SamLaser CRM v6.1</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root { 
-      --bg: #000000; 
-      --card: #1c1c1e; 
-      --input-bg: #2c2c2e;
-      --text: #ffffff; 
-      --hint: #8e8e93; 
-      --blue: #0a84ff; 
-      --green: #30d158; 
-      --red: #ff453a; 
+      --bg: #000000; --card: #1c1c1e; --input-bg: #2c2c2e; --text: #ffffff; 
+      --hint: #8e8e93; --blue: #0a84ff; --green: #30d158; --red: #ff453a; 
       --radius: 14px;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background: var(--bg); color: var(--text); padding: 12px; padding-bottom: 90px; }
     
-    /* НАВИГАЦИЯ */
     .nav { display: flex; gap: 8px; margin-bottom: 20px; background: rgba(28,28,30,0.8); backdrop-filter: blur(10px); padding: 6px; border-radius: 16px; position: sticky; top: 10px; z-index: 100; border: 1px solid #333; }
-    .nav-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: transparent; color: var(--hint); font-size: 13px; font-weight: 600; transition: 0.2s; }
-    .nav-btn.active { background: var(--blue); color: #fff; shadow: 0 4px 10px rgba(10, 132, 255, 0.3); }
+    .nav-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: transparent; color: var(--hint); font-size: 12px; font-weight: 600; transition: 0.2s; }
+    .nav-btn.active { background: var(--blue); color: #fff; box-shadow: 0 4px 10px rgba(10, 132, 255, 0.3); }
 
-    /* КАРТОЧКИ */
-    .card { background: var(--card); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; position: relative; border: 1px solid #333; }
+    .card { background: var(--card); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; border: 1px solid #333; position: relative; }
     
-    /* КАЛЬКУЛЯТОР UI */
+    /* КАЛЬКУЛЯТОР */
     .calc-display { text-align: center; margin-bottom: 20px; }
     .price-big { font-size: 42px; font-weight: 800; color: var(--blue); letter-spacing: -1px; transition: 0.2s; }
-    .price-details { font-size: 12px; color: var(--hint); margin-top: 5px; }
+    .price-details { font-size: 11px; color: var(--hint); margin-top: 5px; }
 
     .input-label { font-size: 13px; color: var(--hint); margin-bottom: 6px; margin-left: 4px; display: block; }
     .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
-    
-    .custom-input { 
-      width: 100%; background: var(--input-bg); border: 1px solid transparent; border-radius: 12px; 
-      color: #fff; padding: 14px; font-size: 18px; outline: none; transition: 0.2s; text-align: center; font-weight: 600;
-    }
+    .custom-input { width: 100%; background: var(--input-bg); border: 1px solid transparent; border-radius: 12px; color: #fff; padding: 14px; font-size: 16px; outline: none; transition: 0.2s; text-align: center; font-weight: 600; }
     .custom-input:focus { border-color: var(--blue); background: #3a3a3c; }
 
-    /* СТЕППЕР (КНОПКИ +/-) */
+    /* СТЕППЕР */
     .stepper { display: flex; align-items: center; background: var(--input-bg); border-radius: 12px; padding: 4px; }
     .step-btn { width: 50px; height: 44px; background: #3a3a3c; border: none; border-radius: 8px; color: var(--blue); font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    .step-btn:active { background: var(--blue); color: white; }
     .step-val { flex: 1; text-align: center; font-size: 18px; font-weight: 600; }
 
-    /* КНОПКИ */
-    button.main-btn { 
-      width: 100%; padding: 16px; border-radius: 14px; border: none; 
-      font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; 
-      background: var(--blue); color: white; box-shadow: 0 4px 15px rgba(10, 132, 255, 0.3);
-      transition: transform 0.1s;
-    }
+    /* КНОПКИ И ЭЛЕМЕНТЫ */
+    button.main-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; background: var(--blue); color: white; box-shadow: 0 4px 15px rgba(10, 132, 255, 0.3); }
     button.main-btn:active { transform: scale(0.98); }
-    
     .btn-action { background: #3a3a3c; color: var(--blue); width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: 600; margin-top: 8px; }
 
-    /* ОШИБКИ */
-    .error-box { background: rgba(255, 69, 58, 0.15); border: 1px solid var(--red); color: var(--red); padding: 15px; border-radius: 12px; margin: 10px 0; display: none; font-size: 13px; }
+    .error-box { background: rgba(255, 69, 58, 0.15); border: 1px solid var(--red); color: var(--red); padding: 15px; border-radius: 12px; margin: 10px 0; display: none; font-size: 12px; }
 
-    /* СПИСКИ */
     .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-    .status-badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,0.1); }
+    .status-badge { font-size: 10px; padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,0.1); text-transform: uppercase; letter-spacing: 0.5px; }
     .info-row { font-size: 13px; color: var(--hint); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
     .money-row { display: flex; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 14px; font-weight: 500; }
     .debt { color: var(--red); } .paid { color: var(--green); }
-    .thumb { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; background: #000; }
+    .thumb { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; background: #000; border: 1px solid #333; }
 
-    /* МОДАЛКИ */
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; padding: 20px; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
     .modal.show { display: flex; }
     .modal-content { background: var(--card); width: 100%; max-width: 400px; padding: 24px; border-radius: 20px; border: 1px solid #333; max-height: 90vh; overflow-y: auto; }
@@ -81,12 +59,15 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     
     input[type="file"] { padding: 10px; background: #2c2c2e; width: 100%; border-radius: 8px; margin-bottom: 10px; color: var(--hint); font-size: 12px; }
+    
+    /* СЕТКА ДЛЯ РОЛЕЙ */
+    .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
   </style>
 </head>
 <body>
 
   <div class="nav">
-    <button class="nav-btn active" onclick="setTab('calc')">Калькулятор</button>
+    <button class="nav-btn active" onclick="setTab('calc')" id="nav-calc">Калькулятор</button>
     <button class="nav-btn" onclick="setTab('queue')">Очередь</button>
     <button class="nav-btn" onclick="setTab('history')">Архив</button>
     <button class="nav-btn" onclick="setTab('admin')" id="admin-nav" style="display:none;">⚙️</button>
@@ -94,10 +75,18 @@
 
   <div id="login-screen" class="modal show" style="z-index: 2000;">
     <div class="modal-content" style="text-align: center;">
-      <h2 style="margin-bottom: 20px;">Вход в систему</h2>
-      <button class="btn-action" onclick="login('Рома')">🔨 Рома (Цех)</button>
+      <h2 style="margin-bottom: 20px;">Кто вы?</h2>
+      
+      <div class="input-label" style="margin-bottom:5px;">Производство</div>
+      <div class="role-grid">
+        <button class="btn-action" style="margin:0" onclick="login('Рома')">🔨 Рома</button>
+        <button class="btn-action" style="margin:0" onclick="login('Дима')">🔨 Дима</button>
+      </div>
+
+      <div class="input-label" style="margin-bottom:5px; margin-top:15px;">Управление</div>
       <button class="btn-action" onclick="login('Михаил')">👔 Михаил (Менеджер)</button>
-      <button class="main-btn" onclick="login('Владелец')">👑 Владелец</button>
+      <button class="btn-action" onclick="login('Екатерина')">🌹 Екатерина</button>
+      <button class="main-btn" style="margin-top:15px; background: #ff9f0a;" onclick="login('Владелец')">👑 Владелец</button>
     </div>
   </div>
 
@@ -145,8 +134,19 @@
 
   <div id="tab-admin" class="tab">
     <div class="card">
-      <h3>Настройки</h3>
-      <div style="display:flex; justify-content:space-between; margin-top:15px; align-items:center;">
+      <h3>Статистика (Сегодня)</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:15px 0;">
+         <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; text-align:center;">
+            <div style="font-size:12px; color:var(--hint);">Заказов</div>
+            <div id="stat-count" style="font-size:20px; font-weight:bold;">0</div>
+         </div>
+         <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; text-align:center;">
+            <div style="font-size:12px; color:var(--hint);">Выручка</div>
+            <div id="stat-sum" style="font-size:20px; font-weight:bold; color:var(--green);">0 ₽</div>
+         </div>
+      </div>
+      
+      <div style="display:flex; justify-content:space-between; margin-top:20px; align-items:center;">
         <span>Скрывать цены менеджерам</span>
         <input type="checkbox" id="sett-price" style="width:20px; height:20px;" onchange="saveSettings()">
       </div>
@@ -173,7 +173,7 @@
         <input type="file" id="n-layout">
       </div>
 
-      <textarea id="n-desc" class="custom-input" style="text-align:left; font-size:14px; min-height:80px;" placeholder="Комментарий..."></textarea>
+      <textarea id="n-desc" class="custom-input" style="text-align:left; font-size:14px; min-height:80px; margin-top:10px;" placeholder="Комментарий..."></textarea>
       
       <button class="main-btn" id="btn-submit" onclick="submitOrder()">🚀 Отправить</button>
       <button class="btn-action" onclick="closeModals()">Отмена</button>
@@ -199,7 +199,7 @@
         <input type="text" id="e-tk" class="custom-input" style="text-align:left;">
       </div>
 
-      <label class="input-label">Внести доплату (₽)</label>
+      <label class="input-label" style="margin-top:10px;">Внести доплату (₽)</label>
       <input type="number" id="e-paid-add" class="custom-input" placeholder="0">
 
       <button class="main-btn" id="btn-update" onclick="updateOrder()">💾 Сохранить</button>
@@ -227,39 +227,36 @@
       const w = parseFloat(document.getElementById('c-w').value) || 0;
       const h = parseFloat(document.getElementById('c-h').value) || 0;
       const s = sheetsValue;
-      
-      // Формула: Площадь*Коэф + Акрил + База
       const matPrice = Math.round(w * h / 10000 * 1133);
       const sheetPrice = Math.round(s * 600);
       const basePrice = 1500;
-      
       const total = matPrice + sheetPrice + basePrice;
       
-      // Анимация цены
       const display = document.getElementById('price-display');
       display.innerText = total.toLocaleString() + " ₽";
       display.style.transform = "scale(1.1)";
       setTimeout(() => display.style.transform = "scale(1)", 150);
-      
-      // Детализация
-      document.getElementById('price-desc').innerText = 
-        `Материал: ${matPrice} ₽ | Листы: ${sheetPrice} ₽ | База: ${basePrice} ₽`;
-
+      document.getElementById('price-desc').innerText = `Материал: ${matPrice} ₽ | Листы: ${sheetPrice} ₽ | База: ${basePrice} ₽`;
       return total;
     }
-
-    // Инициализация при запуске
-    window.onload = () => {
-      calc(); // Считаем сразу дефолтные значения
-    };
+    window.onload = () => { calc(); };
 
     // --- ЛОГИКА CRM ---
     function login(user) {
       currentUser = user;
       document.getElementById('login-screen').classList.remove('show');
-      if(user === 'Владелец') document.getElementById('admin-nav').style.display = 'block';
-      if(user === 'Рома') setTab('queue');
-      loadData();
+      
+      // Логика ролей
+      if(user === 'Владелец' || user === 'Екатерина') {
+        document.getElementById('admin-nav').style.display = 'block';
+      }
+      
+      if(user === 'Рома' || user === 'Дима') {
+        // Производство сразу видит очередь, им калькулятор не нужен особо
+        setTab('queue'); 
+      } else {
+        loadData(); // Остальные начинают с калькулятора (по умолчанию открыт)
+      }
     }
 
     async function loadData() {
@@ -275,6 +272,7 @@
           const data = JSON.parse(text);
           orders = data.orders;
           renderOrders();
+          renderStats();
         } catch (e) { throw new Error("Ошибка данных. Возможно, неверный формат таблицы."); }
       } catch(e) { 
         loader.style.display = 'none';
@@ -294,7 +292,6 @@
         const debt = (o.price - (o.paid || 0));
         const color = debt > 0 ? 'debt' : 'paid';
         const debtText = debt > 0 ? `Долг: ${debt} ₽` : '✅ Оплачено';
-        
         const photoHtml = o.photo ? `<img src="${o.photo}" class="thumb" onclick="window.open('${o.photo}')">` : '';
 
         const card = document.createElement('div');
@@ -319,6 +316,14 @@
         `;
         if(isDone) h.appendChild(card); else q.appendChild(card);
       });
+    }
+
+    function renderStats() {
+       const today = new Date().toLocaleDateString("ru-RU");
+       const todayOrders = orders.filter(o => o.date.includes(today));
+       document.getElementById('stat-count').innerText = todayOrders.length;
+       const sum = todayOrders.reduce((acc, o) => acc + (parseFloat(o.price) || 0), 0);
+       document.getElementById('stat-sum').innerText = sum.toLocaleString() + " ₽";
     }
 
     function openOrderModal() { document.getElementById('modal-new').classList.add('show'); }
@@ -383,8 +388,9 @@
       document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
       document.getElementById('tab-'+t).classList.add('active');
-      event.target.classList.add('active');
-      if(t === 'queue' || t === 'history') loadData();
+      if(t === 'calc') document.getElementById('nav-calc').classList.add('active'); 
+      else event.target.classList.add('active');
+      if(t === 'queue' || t === 'history' || t === 'admin') loadData();
     }
     
     function closeModals() { document.querySelectorAll('.modal').forEach(x => {if(x.id!=='login-screen') x.classList.remove('show')}); }
