@@ -6,49 +6,93 @@ let currentUnit = 'cm';
 let globalHidePrice = false;
 let userSettings = { ...CONFIG.DEFAULTS };
 
+let selectedDelivery = { type: '', track: '' };
+
 function showToast(message) {
     const container = document.getElementById('toast-container');
+    if (!container) return;
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.innerText = message;
     container.appendChild(toast);
-    setTimeout(function() {
-        toast.remove();
-    }, 3000);
+    setTimeout(() => { toast.remove(); }, 3000);
+}
+
+function clamp01(value) { return Math.max(0, Math.min(1, value)); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function formatMoscowDate(dateStr) {
+    try {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return dateStr;
+        return date.toLocaleString('ru-RU', {
+            timeZone: 'Europe/Moscow',
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        }).replace(',', '');
+    } catch (e) { return dateStr; }
+}
+
+function toBase64(file) {
+    return new Promise((resolve, reject) => {
+        if (!file) { resolve(null); return; }
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+}
+
+function getDriveDirectLink(url) {
+    if (!url) return '';
+    const match = url.match(/id=([a-zA-Z0-9_-]{25,})/) || url.match(/\/d\/([a-zA-Z0-9_-]{25,})/);
+    if (match) { return "https://drive.google.com/uc?export=view&id=" + match[1]; }
+    return url;
+}
+
+function updateFileLabel(input, labelId) {
+    if (input.files && input.files[0]) {
+        const label = document.getElementById(labelId);
+        label.classList.add('active');
+        const span = label.querySelector('span');
+        if (span) span.innerText = "✅ " + input.files[0].name.substring(0, 15) + "...";
+    }
 }
 
 function validateLoginInput() {
     const user = document.getElementById('user-select').value;
     const pass = document.getElementById('user-pass').value;
     const btn = document.getElementById('login-btn');
-    if (btn) {
-        btn.disabled = !(user && pass.length > 0);
-    }
+    if (btn) btn.disabled = !(user && pass.length > 0);
 }
 
 function handleLogin() {
     const user = document.getElementById('user-select').value;
     const pass = document.getElementById('user-pass').value;
     const inputField = document.getElementById('user-pass');
+
     if (CONFIG.PASSWORDS[user] === pass) {
         currentUser = user;
         document.getElementById('login-screen').classList.remove('show');
+        
         if (user === 'Владелец' || user === 'Екатерина') {
             document.getElementById('admin-settings-btn').style.display = 'block';
             loadLocalSettings();
+        } else {
+            document.getElementById('admin-settings-btn').style.display = 'none';
         }
+
         if (user === 'Рома' || user === 'Дима') {
             setTab('queue');
         } else {
             setTab('calc');
         }
+        
         loadData();
-        showToast("Добро пожаловать!");
+        showToast("Добро пожаловать, " + user + "!");
     } else {
         inputField.classList.add('shake');
-        setTimeout(function() {
-            inputField.classList.remove('shake');
-        }, 300);
+        setTimeout(() => inputField.classList.remove('shake'), 300);
         inputField.value = '';
         validateLoginInput();
         showToast("Неверный пароль");
@@ -71,65 +115,64 @@ function setUnit(unit) {
     document.getElementById('unit-mm').classList.toggle('active', unit === 'mm');
     document.getElementById('unit-label-width').innerText = "(" + unit + ")";
     document.getElementById('unit-label-height').innerText = "(" + unit + ")";
-    calc();
+    calc(); 
 }
 
 function stepSheets(value) {
     const input = document.getElementById('c-s');
-    const newValue = parseFloat(input.value || 0) + value;
-    input.value = Math.max(0.1, newValue).toFixed(1);
+    let newValue = parseFloat(input.value || 0) + value;
+    newValue = Math.max(0.1, newValue);
+    input.value = newValue.toFixed(1);
     calc();
-}
-
-function clamp01(value) {
-    return Math.max(0, Math.min(1, value));
-}
-
-function lerp(a, b, t) {
-    return a + (b - a) * t;
-}
-
-function formatMoscowDate(dateStr) {
-    try {
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return dateStr;
-        return date.toLocaleString('ru-RU', {
-            timeZone: 'Europe/Moscow',
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        }).replace(',', '');
-    } catch (e) {
-        return dateStr;
-    }
 }
 
 function calc() {
     const rawW = parseFloat(document.getElementById('c-w').value) || 0;
     const rawH = parseFloat(document.getElementById('c-h').value) || 0;
     const sheets = parseFloat(document.getElementById('c-s').value) || 0;
+    
     const film = document.getElementById('c-film').checked;
     const light = document.getElementById('c-light').checked;
     const complex = document.getElementById('c-complex').checked;
 
-    if (rawW <= 0 && rawH <= 0 && sheets <= 0) {
+    const previewCard = document.getElementById('preview-card');
+    const orderBtn = document.getElementById('order-btn-ui');
+    const breakdown = document.getElementById('cost-breakdown');
+
+    if ((rawW <= 0 && rawH <= 0) && sheets <= 0) {
         document.getElementById('price-display').innerText = "0 ₽";
-        document.getElementById('order-btn-ui').style.display = "none";
-        updatePreview(0, 0);
+        previewCard.classList.remove('show');
+        orderBtn.style.display = "none";
+        breakdown.style.display = "none";
         return 0;
     }
+
+    if (rawW > 0 && rawH > 0) {
+        previewCard.classList.add('show');
+        updatePreview(rawW, rawH);
+    } else {
+        previewCard.classList.remove('show');
+    }
+
+    orderBtn.style.display = "block";
+    breakdown.style.display = "block";
 
     const widthInMeters = currentUnit === 'mm' ? rawW / 1000 : rawW / 100;
     const heightInMeters = currentUnit === 'mm' ? rawH / 1000 : rawH / 100;
     const area = widthInMeters * heightInMeters;
 
-    const tArea = clamp01((area - 1.0) / (3.0 - 1.0));
-    const margin = lerp(userSettings.marginSmall, userSettings.marginLarge, tArea);
+    let margin = userSettings.marginSmall;
     
-    const baseDiscount = clamp01((area - 1.0) / (3.0 - 1.0)) * (userSettings.baseDiscMaxPct / 100);
-    const effectiveBasePrice = userSettings.baseMat * (1 - baseDiscount);
+    if (area > 0) {
+        const tArea = clamp01((area - 1.0) / (3.0 - 1.0));
+        margin = lerp(userSettings.marginSmall, userSettings.marginLarge, tArea);
+    }
+
+    let effectiveBasePrice = userSettings.baseMat;
+    if (area > 0) {
+        const baseDiscount = clamp01((area - 1.0) / (3.0 - 1.0)) * (userSettings.baseDiscMaxPct / 100);
+        effectiveBasePrice = userSettings.baseMat * (1 - baseDiscount);
+    }
 
     const tSheets = clamp01((sheets - 2.0) / (5.0 - 2.0));
     const acrylicDiscount = tSheets * (userSettings.acrylicDiscMaxPct / 100);
@@ -144,68 +187,88 @@ function calc() {
     }
 
     const totalMaterialCost = baseCost + acrylicCost + filmCost;
+    
     const productionCost = totalMaterialCost * userSettings.laborMult;
     const totalOverhead = (area * userSettings.overheadPerM2) + userSettings.setupFix;
     const costWithOverhead = productionCost + totalOverhead;
 
-    let finalPrice = costWithOverhead * margin;
-    
+    let priceBaseWithMargin = costWithOverhead * margin;
+
+    let priceLight = 0;
     if (light) {
-        finalPrice += userSettings.lightFix + (area * userSettings.lightM2);
+        priceLight = userSettings.lightFix + (area * userSettings.lightM2);
     }
-    
+
+    let finalPrice = priceBaseWithMargin + priceLight;
+
+    let priceComplex = 0;
     if (complex) {
+        let beforeComplex = finalPrice;
         finalPrice *= userSettings.complexMult;
+        priceComplex = finalPrice - beforeComplex;
     }
 
     finalPrice = Math.round(finalPrice / 100) * 100;
     document.getElementById('price-display').innerText = finalPrice.toLocaleString() + " ₽";
-    document.getElementById('order-btn-ui').style.display = "block";
-    updatePreview(rawW, rawH);
+
+    document.getElementById('price-base').innerText = Math.round(priceBaseWithMargin * 0.6).toLocaleString() + ' ₽';
+    document.getElementById('price-acrylic').innerText = Math.round(priceBaseWithMargin * 0.4).toLocaleString() + ' ₽';
+
+    const rowFilm = document.getElementById('row-film');
+    if (film) {
+        rowFilm.style.display = 'flex';
+        document.getElementById('price-film').innerText = Math.round(filmCost * userSettings.laborMult * margin).toLocaleString() + ' ₽';
+    } else { rowFilm.style.display = 'none'; }
+
+    const rowLight = document.getElementById('row-light');
+    if (light) {
+        rowLight.style.display = 'flex';
+        document.getElementById('price-light').innerText = Math.round(priceLight).toLocaleString() + ' ₽';
+    } else { rowLight.style.display = 'none'; }
+
+    const rowComplex = document.getElementById('row-complex');
+    if (complex) {
+        rowComplex.style.display = 'flex';
+        document.getElementById('price-complex').innerText = '+' + Math.round(priceComplex).toLocaleString() + ' ₽';
+    } else { rowComplex.style.display = 'none'; }
+
     return finalPrice;
 }
 
 function updatePreview(w, h) {
     const box = document.getElementById('preview-box');
     const info = document.getElementById('mount-info');
-    if (w <= 0 || h <= 0) {
-        box.style.width = "0px";
-        box.style.height = "0px";
-        info.innerHTML = "";
-        return;
-    }
-    const maxSize = 100;
+    
+    if (w <= 0 || h <= 0) return;
+
+    const maxSize = 100; 
     const ratio = w / h;
     let previewWidth, previewHeight;
-    if (ratio > 1) {
-        previewWidth = maxSize;
-        previewHeight = maxSize / ratio;
-    } else {
-        previewHeight = maxSize;
-        previewWidth = maxSize * ratio;
-    }
+
+    if (ratio > 1) { previewWidth = maxSize; previewHeight = maxSize / ratio; } 
+    else { previewHeight = maxSize; previewWidth = maxSize * ratio; }
+
     box.style.width = previewWidth + "px";
     box.style.height = previewHeight + "px";
+    
     document.getElementById('dim-w-label').innerText = w;
     document.getElementById('dim-h-label').innerText = h;
-    
+
     const widthCm = currentUnit === 'mm' ? w / 10 : w;
     const heightCm = currentUnit === 'mm' ? h / 10 : h;
     const segmentsX = Math.max(1, Math.ceil(widthCm / 75));
     const segmentsY = Math.max(1, Math.ceil(heightCm / 75));
     const totalMounts = (segmentsX + 1) * 2 + (segmentsY - 1) * 2;
-    
-    box.querySelectorAll('.mount-hole').forEach(function(element) {
-        element.remove();
-    });
-    
+
+    box.querySelectorAll('.mount-hole').forEach(el => el.remove());
+
     for (let i = 0; i <= segmentsX; i++) {
-        createHole(i / segmentsX * 100, 0, box);
-        createHole(i / segmentsX * 100, 100, box);
+        createHole(i / segmentsX * 100, 0, box);   
+        createHole(i / segmentsX * 100, 100, box); 
     }
     for (let i = 1; i < segmentsY; i++) {
-        createHole(0, i / segmentsY * 100, box);
-        createHole(100, i / segmentsY * 100, box);
+        createHole(0, i / segmentsY * 100, box);   
+        createHole(100, i / segmentsY * 100, box); 
     }
     info.innerHTML = "Держателей: <b>" + totalMounts + " шт</b>";
 }
@@ -213,8 +276,7 @@ function updatePreview(w, h) {
 function createHole(left, top, parent) {
     const hole = document.createElement('div');
     hole.className = 'mount-hole';
-    hole.style.left = left + '%';
-    hole.style.top = top + '%';
+    hole.style.left = left + '%'; hole.style.top = top + '%';
     parent.appendChild(hole);
 }
 
@@ -225,49 +287,36 @@ function toggleSettingsPanel() {
 
 function loadLocalSettings() {
     const saved = localStorage.getItem('laser_settings');
-    if (saved) {
-        userSettings = JSON.parse(saved);
-    }
+    if (saved) { userSettings = JSON.parse(saved); }
     document.getElementById('s-base').value = userSettings.baseMat;
     document.getElementById('s-acrylic').value = userSettings.acrylicSheet;
     document.getElementById('s-labor').value = userSettings.laborMult;
-    document.getElementById('s-overhead').value = userSettings.overheadPerM2;
-    document.getElementById('s-setup').value = userSettings.setupFix;
     document.getElementById('s-m-small').value = userSettings.marginSmall;
     document.getElementById('s-m-large').value = userSettings.marginLarge;
     document.getElementById('s-acrylic-disc').value = userSettings.acrylicDiscMaxPct;
     document.getElementById('s-base-disc').value = userSettings.baseDiscMaxPct;
-    document.getElementById('s-film').value = userSettings.filmMult;
-    document.getElementById('s-complex').value = userSettings.complexMult;
-    document.getElementById('s-light-fix').value = userSettings.lightFix;
-    document.getElementById('s-light-m2').value = userSettings.lightM2;
 }
 
 function saveAdminSettings() {
     userSettings.baseMat = parseFloat(document.getElementById('s-base').value || 0);
     userSettings.acrylicSheet = parseFloat(document.getElementById('s-acrylic').value || 0);
     userSettings.laborMult = parseFloat(document.getElementById('s-labor').value || 0);
-    userSettings.overheadPerM2 = parseFloat(document.getElementById('s-overhead').value || 0);
-    userSettings.setupFix = parseFloat(document.getElementById('s-setup').value || 0);
     userSettings.marginSmall = parseFloat(document.getElementById('s-m-small').value || 0);
     userSettings.marginLarge = parseFloat(document.getElementById('s-m-large').value || 0);
     userSettings.acrylicDiscMaxPct = parseFloat(document.getElementById('s-acrylic-disc').value || 0);
     userSettings.baseDiscMaxPct = parseFloat(document.getElementById('s-base-disc').value || 0);
-    userSettings.filmMult = parseFloat(document.getElementById('s-film').value || 0);
-    userSettings.complexMult = parseFloat(document.getElementById('s-complex').value || 0);
-    userSettings.lightFix = parseFloat(document.getElementById('s-light-fix').value || 0);
-    userSettings.lightM2 = parseFloat(document.getElementById('s-light-m2').value || 0);
+    
     localStorage.setItem('laser_settings', JSON.stringify(userSettings));
-    calc();
+    calc(); 
 }
 
 function resetToDefaults() {
-    if (confirm("Сбросить все настройки к заводским значениям?")) {
+    if (confirm("Сбросить настройки к заводским?")) {
         userSettings = { ...CONFIG.DEFAULTS };
         localStorage.removeItem('laser_settings');
         loadLocalSettings();
         calc();
-        showToast("Сброшено");
+        showToast("Настройки сброшены");
     }
 }
 
@@ -281,11 +330,8 @@ async function loadData() {
         const response = await fetch(CONFIG.WEB_APP_URL);
         const result = await response.json();
         orders = result.orders;
-        globalHidePrice = !result.settings.showPrice;
-        const check = document.getElementById('sett-price');
-        if (check) {
-            check.checked = globalHidePrice;
-        }
+        globalHidePrice = !result.settings.showPrice; 
+        
         renderOrders();
     } catch (error) {
         showToast("Ошибка связи с базой");
@@ -295,263 +341,292 @@ async function loadData() {
     }
 }
 
-async function updateGlobalPriceSetting() {
-    const check = document.getElementById('sett-price');
-    const hide = check.checked;
-    try {
-        await fetch(CONFIG.WEB_APP_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({
-                action: 'updateSettings',
-                showPrice: !hide
-            })
-        });
-        globalHidePrice = hide;
-        renderOrders();
-        showToast("Настройка сохранена");
-    } catch (error) {
-        showToast("Ошибка сохранения");
-    }
-}
-
 function renderOrders() {
     const queueList = document.getElementById('queue-list');
     const historyList = document.getElementById('history-list');
     if (!queueList || !historyList) return;
+    
     queueList.innerHTML = '';
     historyList.innerHTML = '';
-    
-    orders.forEach(function(order) {
-        const isDone = order.status === 'Отправлен';
-        const hide = (currentUser === 'Рома' || currentUser === 'Дима') && globalHidePrice;
-        const debt = (order.price - (order.paid || 0));
-        const photoLink = getDriveDirectLink(order.photo);
+
+    const isWorker = (currentUser === 'Рома' || currentUser === 'Дима');
+    const shouldHidePrice = isWorker && globalHidePrice;
+
+    orders.forEach(order => {
+        const isArchive = (order.status === 'Готово' || order.status === 'Отправлен'); 
+        
+        const price = parseFloat(order.price) || 0;
+        const paid = parseFloat(order.paid) || 0;
+        const percent = price > 0 ? Math.round((paid / price) * 100) : 0;
+        
+        let payClass = 'paid-none'; 
+        if (percent >= 100) payClass = 'paid-full'; 
+        else if (percent > 0) payClass = 'paid-part'; 
+        
+        const payText = shouldHidePrice 
+            ? '<span style="color:#555">*** ₽</span>' 
+            : `<span class="${payClass}">${paid} / ${price} ₽ (${percent}%)</span>`;
+
+        let statusClass = 'st-new'; 
+        if (order.status === 'В работе') statusClass = 'st-work'; 
+        if (order.status === 'Отправить') statusClass = 'st-send'; 
+        if (order.status === 'Готово') statusClass = 'st-done'; 
+
         const card = document.createElement('div');
         card.className = 'order-card';
-        
-        let cardHtml = '<div class="order-header"><div><b>№' + order.id + ' ' + order.client + '</b><div style="font-size:10px; color:var(--blue)">' + (order.manager || '') + '</div></div>';
-        if (photoLink) {
-            cardHtml += '<img src="' + photoLink + '" class="thumb" onclick="window.open(\'' + order.photo + '\')">';
-        }
-        cardHtml += '</div>';
-        cardHtml += '<div style="font-size:12px; color:var(--hint)">' + order.phone + ' | ' + formatMoscowDate(order.date) + ' <span class="status-badge">' + order.status + '</span></div>';
-        cardHtml += '<div style="display:flex; justify-content:space-between; margin-top:10px; font-weight:700;">';
-        cardHtml += '<span>' + (hide ? '***' : order.price + ' ₽') + '</span>';
-        cardHtml += '<span style="color:' + (debt > 0 ? 'var(--red)' : 'var(--green)') + '">' + (hide ? '---' : (debt > 0 ? 'Долг: ' + debt + ' ₽' : 'Оплачено')) + '</span>';
-        cardHtml += '</div>';
-        cardHtml += '<button class="btn-action" onclick="openEdit(' + order.id + ')">Управление</button>';
-        
-        card.innerHTML = cardHtml;
-        if (isDone) {
-            historyList.appendChild(card);
-        } else {
-            queueList.appendChild(card);
-        }
+
+        const gearIcon = `
+            <button class="gear-btn" onclick="openEdit(${order.id})">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </button>
+        `;
+
+        const photoLink = getDriveDirectLink(order.photo);
+        const photoHtml = photoLink 
+            ? `<img src="${photoLink}" class="thumb" onclick="window.open('${order.photo}')">` 
+            : '';
+
+        card.innerHTML = `
+            ${gearIcon}
+            <div class="order-header">#${order.id} ${order.client}</div>
+            <div class="order-desc">${order.desc || 'Нет описания'}</div>
+            ${photoHtml}
+            <div class="order-meta" style="margin-top:8px;">
+                <span class="status-badge ${statusClass}">${order.status}</span>
+                <span>${order.delivery || ''} ${order.track ? '('+order.track+')' : ''}</span>
+            </div>
+            <div class="order-footer">
+                <div class="paid-tag">${payText}</div>
+                <div style="font-size:11px; color:var(--hint)">${formatMoscowDate(order.date)}</div>
+            </div>
+        `;
+
+        if (isArchive) { historyList.appendChild(card); } 
+        else { queueList.appendChild(card); }
     });
+}
+
+function selectDelivery(prefix, type, btn) {
+    const container = document.getElementById(prefix + '-delivery-chips');
+    container.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    
+    const trackInput = document.getElementById(prefix + '-track');
+    if (type === 'cdek') {
+        trackInput.style.display = 'block';
+    } else {
+        trackInput.style.display = 'none';
+        trackInput.value = ''; 
+    }
+    if (prefix === 'n') selectedDelivery.type = type;
+}
+
+function quickPay(prefix, factor) {
+    const priceId = prefix === 'n' ? 'n-price-final' : 'e-price';
+    const paidId = prefix + '-paid';
+    const priceVal = parseFloat(document.getElementById(priceId).value) || 0;
+    document.getElementById(paidId).value = Math.round(priceVal * factor);
 }
 
 function openOrderModal() {
+    const calcPrice = calc(); 
+    document.getElementById('n-price-final').value = calcPrice;
+    
+    document.getElementById('n-client').value = '';
+    document.getElementById('n-phone').value = '';
+    document.getElementById('n-desc').value = '';
+    document.getElementById('n-track').value = '';
+    document.getElementById('n-paid').value = '';
+    document.getElementById('n-photo').value = '';
+    document.getElementById('n-layout').value = '';
+    
+    document.getElementById('lbl-n-photo').classList.remove('active');
+    document.getElementById('lbl-n-photo').querySelector('span').innerText = "📸 Фото";
+    document.getElementById('lbl-n-layout').classList.remove('active');
+    document.getElementById('lbl-n-layout').querySelector('span').innerText = "📂 Макет";
+
+    const chips = document.getElementById('n-delivery-chips').querySelectorAll('.chip');
+    chips.forEach(c => c.classList.remove('active'));
+    document.getElementById('n-track').style.display = 'none';
+    selectedDelivery = { type: '', track: '' };
+
     document.getElementById('modal-new').classList.add('show');
 }
 
-function closeModals() {
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(function(modal) {
-        if (modal.id !== 'login-screen') {
-            modal.classList.remove('show');
-        }
-    });
-}
-
 async function submitOrder() {
-    const clientInp = document.getElementById('n-client');
-    const phoneInp = document.getElementById('n-phone');
-    const photoInp = document.getElementById('n-photo');
-    const layoutInp = document.getElementById('n-layout');
-    const descInp = document.getElementById('n-desc');
-    const btn = document.getElementById('btn-submit');
-    
-    if (!clientInp.value) {
-        showToast("Введите название заказа!");
+    const clientName = document.getElementById('n-client').value;
+    const clientPhone = document.getElementById('n-phone').value;
+
+    if (!clientName) {
+        showToast("⚠️ Введите имя клиента!");
         return;
     }
-    
-    btn.innerText = "⏳ Отправка...";
-    btn.disabled = true;
-    
+
+    const btn = document.getElementById('btn-submit');
+    btn.innerText = "⏳ Отправка..."; btn.disabled = true;
+
+    let deliveryType = 'Не указано';
+    const chips = document.getElementById('n-delivery-chips').querySelectorAll('.chip');
+    if (chips[0].classList.contains('active')) deliveryType = 'Самовывоз';
+    if (chips[1].classList.contains('active')) deliveryType = 'Яндекс';
+    if (chips[2].classList.contains('active')) deliveryType = 'СДЭК';
+
     try {
-        const photoB64 = await toBase64(photoInp.files[0]);
-        const layoutB64 = await toBase64(layoutInp.files[0]);
-        const orderData = {
+        const photoFile = document.getElementById('n-photo').files[0];
+        const layoutFile = document.getElementById('n-layout').files[0];
+        const photoB64 = await toBase64(photoFile);
+        const layoutB64 = await toBase64(layoutFile);
+
+        const data = {
             id: Math.floor(Math.random() * 9000) + 1000,
-            title: clientInp.value,
-            contact: phoneInp.value,
-            price: calc(),
-            sheets: parseFloat(document.getElementById('c-s').value || 1),
-            paid: 0,
-            desc: descInp.value,
+            client: clientName,
+            phone: clientPhone,
+            desc: document.getElementById('n-desc').value,
+            price: parseFloat(document.getElementById('n-price-final').value) || 0,
+            paid: parseFloat(document.getElementById('n-paid').value) || 0,
+            delivery: deliveryType,
+            track: document.getElementById('n-track').value,
             manager: currentUser,
+            status: 'Изготовить',
             photoFile: photoB64,
             layoutFile: layoutB64
         };
-        
+
         await fetch(CONFIG.WEB_APP_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(orderData)
+            method: 'POST', mode: 'no-cors', body: JSON.stringify(data)
         });
-        
-        showToast("✅ Заказ отправлен в производство");
+
+        showToast("✅ Заказ добавлен!");
         closeModals();
-        
-        clientInp.value = '';
-        phoneInp.value = '';
-        photoInp.value = '';
-        layoutInp.value = '';
-        descInp.value = '';
-        
-        document.getElementById('lbl-photo').classList.remove('active');
-        document.getElementById('lbl-layout').classList.remove('active');
-        document.getElementById('lbl-photo').querySelector('span').innerText = "📸 Фото";
-        document.getElementById('lbl-layout').querySelector('span').innerText = "📂 Макет";
-        
-        loadData();
-    } catch (error) {
-        showToast("❌ Ошибка при создании заказа");
+        loadData(); 
+    } catch (e) {
+        showToast("❌ Ошибка отправки");
     } finally {
-        btn.innerText = "🚀 Отправить в работу";
-        btn.disabled = false;
+        btn.innerText = "🚀 Отправить в работу"; btn.disabled = false;
     }
 }
 
 function openEdit(id) {
-    const order = orders.find(function(item) {
-        return item.id == id;
-    });
+    const order = orders.find(o => o.id == id);
     if (!order) return;
+    
     currentEditId = id;
     currentEditRow = order.rowIndex;
-    document.getElementById('edit-id-title').innerText = "Заказ №" + id;
-    document.getElementById('e-status').value = order.status;
-    document.getElementById('e-paid-add').value = '';
+    
+    document.getElementById('edit-id-title').innerText = "Редактирование #" + id;
+    document.getElementById('e-client').value = order.client || '';
+    document.getElementById('e-phone').value = order.phone || '';
+    document.getElementById('e-desc').value = order.desc || '';
+    document.getElementById('e-price').value = order.price || 0;
+    document.getElementById('e-paid').value = order.paid || 0;
+    document.getElementById('e-status').value = order.status || 'Изготовить';
+    document.getElementById('e-track').value = order.track || '';
+    
+    const chips = document.getElementById('e-delivery-chips').querySelectorAll('.chip');
+    chips.forEach(c => c.classList.remove('active'));
+    const d = order.delivery || '';
+    if (d.includes('Самовывоз')) chips[0].classList.add('active');
+    else if (d.includes('Яндекс')) chips[1].classList.add('active');
+    else if (d.includes('СДЭК')) chips[2].classList.add('active');
+    
+    document.getElementById('e-track').style.display = d.includes('СДЭК') ? 'block' : 'none';
+
+    document.getElementById('e-photo-done').value = '';
+    const lbl = document.getElementById('lbl-e-photo-done');
+    lbl.classList.remove('active');
+    lbl.querySelector('span').innerText = "📸 Фото готового изделия";
+
     document.getElementById('modal-edit').classList.add('show');
-    checkStatusReq();
+    checkStatusReq(); 
 }
 
 function checkStatusReq() {
-    const statusVal = document.getElementById('e-status').value;
-    const finishPanel = document.getElementById('finish-reqs');
-    if (statusVal === 'Отправлен') {
-        finishPanel.style.display = 'block';
-    } else {
-        finishPanel.style.display = 'none';
-    }
+    const val = document.getElementById('e-status').value;
+    const block = document.getElementById('finish-reqs');
+    if (val === 'Готово') { block.style.display = 'block'; } 
+    else { block.style.display = 'none'; }
 }
 
 async function updateOrder() {
-    const status = document.getElementById('e-status').value;
-    const tk = document.getElementById('e-tk').value;
-    const fileInput = document.getElementById('e-photo');
-    const paymentAdd = parseFloat(document.getElementById('e-paid-add').value) || 0;
     const btn = document.getElementById('btn-update');
-    const order = orders.find(function(item) {
-        return item.id == currentEditId;
-    });
-    
-    if (status === 'Отправлен' && (!tk || !fileInput.files[0])) {
-        showToast("Нужно фото готового и ТК!");
-        return;
-    }
-    
-    btn.innerText = "⏳ Сохранение...";
-    btn.disabled = true;
-    
+    btn.innerText = "⏳..."; btn.disabled = true;
+
+    let delType = 'Не указано';
+    const chips = document.getElementById('e-delivery-chips').querySelectorAll('.chip');
+    if (chips[0].classList.contains('active')) delType = 'Самовывоз';
+    if (chips[1].classList.contains('active')) delType = 'Яндекс';
+    if (chips[2].classList.contains('active')) delType = 'СДЭК';
+
     try {
-        const photoB64 = await toBase64(fileInput.files[0]);
-        const updateData = {
-            action: 'updateOrder',
+        const photoDoneFile = document.getElementById('e-photo-done').files[0];
+        const photoDoneB64 = await toBase64(photoDoneFile);
+
+        const data = {
+            action: 'updateOrderFull',
             id: currentEditId,
             rowIndex: currentEditRow,
-            status: status,
-            tk: tk,
-            paid: (parseFloat(order.paid || 0) + paymentAdd),
-            photo: photoB64
+            client: document.getElementById('e-client').value,
+            phone: document.getElementById('e-phone').value,
+            desc: document.getElementById('e-desc').value,
+            price: parseFloat(document.getElementById('e-price').value) || 0,
+            paid: parseFloat(document.getElementById('e-paid').value) || 0,
+            status: document.getElementById('e-status').value,
+            delivery: delType,
+            track: document.getElementById('e-track').value,
+            photoDone: photoDoneB64
         };
-        
+
         await fetch(CONFIG.WEB_APP_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(updateData)
+            method: 'POST', mode: 'no-cors', body: JSON.stringify(data)
         });
         
-        showToast("Заказ обновлен");
+        showToast("💾 Изменения сохранены");
         closeModals();
-        setTimeout(loadData, 1500);
-    } catch (error) {
-        showToast("Ошибка при обновлении");
+        loadData();
+    } catch (e) {
+        showToast("❌ Ошибка сохранения");
     } finally {
-        btn.innerText = "💾 Сохранить";
-        btn.disabled = false;
+        btn.innerText = "💾 Сохранить"; btn.disabled = false;
     }
+}
+
+async function deleteOrder() {
+    if (!confirm("⚠️ Удалить заказ навсегда?")) return;
+    try {
+        await fetch(CONFIG.WEB_APP_URL, {
+            method: 'POST', mode: 'no-cors',
+            body: JSON.stringify({ action: 'deleteOrder', rowIndex: currentEditRow })
+        });
+        showToast("🗑 Заказ удален");
+        closeModals();
+        loadData();
+    } catch (e) { showToast("Ошибка удаления"); }
 }
 
 function setTab(id) {
     const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(function(tab) {
-        tab.style.display = 'none';
-    });
+    tabs.forEach(tab => tab.style.display = 'none');
+    
     const buttons = document.querySelectorAll('.nav-btn');
-    buttons.forEach(function(btn) {
-        btn.classList.remove('active');
-    });
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
     const targetTab = document.getElementById('tab-' + id);
-    if (targetTab) {
-        targetTab.style.display = 'block';
-    }
+    if (targetTab) targetTab.style.display = 'block';
+    
     const targetBtn = document.getElementById('nav-' + id);
-    if (targetBtn) {
-        targetBtn.classList.add('active');
-    }
-    if (id !== 'calc') {
-        loadData();
-    }
+    if (targetBtn) targetBtn.classList.add('active');
+    
+    if (id !== 'calc') { loadData(); }
 }
 
-function updateFileLabel(input, labelId) {
-    if (input.files && input.files[0]) {
-        const label = document.getElementById(labelId);
-        label.classList.add('active');
-        label.querySelector('span').innerText = "✅ " + input.files[0].name.substring(0, 10);
-    }
-}
-
-function getDriveDirectLink(url) {
-    if (!url) return '';
-    const match = url.match(/id=([a-zA-Z0-9_-]{25,})/) || url.match(/\/d\/([a-zA-Z0-9_-]{25,})/);
-    if (match) {
-        return "https://drive.google.com/uc?export=view&id=" + match[1];
-    }
-    return url;
-}
-
-function toBase64(file) {
-    return new Promise(function(resolve, reject) {
-        if (!file) {
-            resolve(null);
-            return;
-        }
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = function() {
-            resolve(reader.result);
-        };
-        reader.onerror = function(err) {
-            reject(err);
-        };
+function closeModals() {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        if (modal.id !== 'login-screen') { modal.classList.remove('show'); }
     });
 }
 
-window.onload = function() {
-    calc();
-};
+window.onload = function() { calc(); };
