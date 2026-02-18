@@ -5,8 +5,9 @@ let currentEditRow = null;
 let currentUnit = 'cm';
 let globalHidePrice = false;
 let userSettings = { ...CONFIG.DEFAULTS };
-
 let selectedDelivery = { type: '', track: '' };
+let currentStatusEditId = null;
+let isStatusSaving = false;
 
 function showToast(message) {
     const container = document.getElementById('toast-container');
@@ -44,9 +45,14 @@ function toBase64(file) {
 }
 
 function getDriveDirectLink(url) {
-    if (!url) return '';
-    const match = url.match(/id=([a-zA-Z0-9_-]{25,})/) || url.match(/\/d\/([a-zA-Z0-9_-]{25,})/);
-    if (match) { return "https://drive.google.com/uc?export=view&id=" + match[1]; }
+    if (!url || typeof url !== 'string') return '';
+    const match = url.match(/id=([a-zA-Z0-9_-]{25,})/) || 
+                  url.match(/\/d\/([a-zA-Z0-9_-]{25,})/) || 
+                  url.match(/\/open\?id=([a-zA-Z0-9_-]{25,})/);
+    
+    if (match && match[1]) { 
+        return "https://drive.google.com/uc?export=view&id=" + match[1]; 
+    }
     return url;
 }
 
@@ -87,7 +93,6 @@ function handleLogin() {
         } else {
             setTab('calc');
         }
-        
         loadData();
         showToast("Добро пожаловать, " + user + "!");
     } else {
@@ -162,7 +167,6 @@ function calc() {
     const area = widthInMeters * heightInMeters;
 
     let margin = userSettings.marginSmall;
-    
     if (area > 0) {
         const tArea = clamp01((area - 1.0) / (3.0 - 1.0));
         margin = lerp(userSettings.marginSmall, userSettings.marginLarge, tArea);
@@ -180,28 +184,18 @@ function calc() {
 
     const baseCost = area * effectiveBasePrice;
     const acrylicCost = sheets * effectiveAcrylicPrice;
+    let filmCost = film ? acrylicCost * (userSettings.filmMult - 1) : 0;
     
-    let filmCost = 0;
-    if (film) {
-        filmCost = acrylicCost * (userSettings.filmMult - 1);
-    }
-
     const totalMaterialCost = baseCost + acrylicCost + filmCost;
-    
     const productionCost = totalMaterialCost * userSettings.laborMult;
     const totalOverhead = (area * userSettings.overheadPerM2) + userSettings.setupFix;
     const costWithOverhead = productionCost + totalOverhead;
 
     let priceBaseWithMargin = costWithOverhead * margin;
-
-    let priceLight = 0;
-    if (light) {
-        priceLight = userSettings.lightFix + (area * userSettings.lightM2);
-    }
-
+    let priceLight = light ? userSettings.lightFix + (area * userSettings.lightM2) : 0;
     let finalPrice = priceBaseWithMargin + priceLight;
-
     let priceComplex = 0;
+
     if (complex) {
         let beforeComplex = finalPrice;
         finalPrice *= userSettings.complexMult;
@@ -238,7 +232,6 @@ function calc() {
 function updatePreview(w, h) {
     const box = document.getElementById('preview-box');
     const info = document.getElementById('mount-info');
-    
     if (w <= 0 || h <= 0) return;
 
     const maxSize = 100; 
@@ -250,7 +243,6 @@ function updatePreview(w, h) {
 
     box.style.width = previewWidth + "px";
     box.style.height = previewHeight + "px";
-    
     document.getElementById('dim-w-label').innerText = w;
     document.getElementById('dim-h-label').innerText = h;
 
@@ -261,15 +253,8 @@ function updatePreview(w, h) {
     const totalMounts = (segmentsX + 1) * 2 + (segmentsY - 1) * 2;
 
     box.querySelectorAll('.mount-hole').forEach(el => el.remove());
-
-    for (let i = 0; i <= segmentsX; i++) {
-        createHole(i / segmentsX * 100, 0, box);   
-        createHole(i / segmentsX * 100, 100, box); 
-    }
-    for (let i = 1; i < segmentsY; i++) {
-        createHole(0, i / segmentsY * 100, box);   
-        createHole(100, i / segmentsY * 100, box); 
-    }
+    for (let i = 0; i <= segmentsX; i++) { createHole(i/segmentsX*100, 0, box); createHole(i/segmentsX*100, 100, box); }
+    for (let i = 1; i < segmentsY; i++) { createHole(0, i/segmentsY*100, box); createHole(100, i/segmentsY*100, box); }
     info.innerHTML = "Держателей: <b>" + totalMounts + " шт</b>";
 }
 
@@ -281,8 +266,7 @@ function createHole(left, top, parent) {
 }
 
 function toggleSettingsPanel() {
-    const panel = document.getElementById('settings-panel');
-    panel.classList.toggle('show');
+    document.getElementById('settings-panel').classList.toggle('show');
 }
 
 function loadLocalSettings() {
@@ -305,7 +289,6 @@ function saveAdminSettings() {
     userSettings.marginLarge = parseFloat(document.getElementById('s-m-large').value || 0);
     userSettings.acrylicDiscMaxPct = parseFloat(document.getElementById('s-acrylic-disc').value || 0);
     userSettings.baseDiscMaxPct = parseFloat(document.getElementById('s-base-disc').value || 0);
-    
     localStorage.setItem('laser_settings', JSON.stringify(userSettings));
     calc(); 
 }
@@ -331,7 +314,6 @@ async function loadData() {
         const result = await response.json();
         orders = result.orders;
         globalHidePrice = !result.settings.showPrice; 
-        
         renderOrders();
     } catch (error) {
         showToast("Ошибка связи с базой");
@@ -367,13 +349,29 @@ function renderOrders() {
             ? '<span style="color:#555">*** ₽</span>' 
             : `<span class="${payClass}">${paid} / ${price} ₽ (${percent}%)</span>`;
 
-        let statusClass = 'st-new'; 
-        if (order.status === 'В работе') statusClass = 'st-work'; 
-        if (order.status === 'Отправить') statusClass = 'st-send'; 
-        if (order.status === 'Готово') statusClass = 'st-done'; 
+        let cardStatusClass = 'card-st-new';
+        let statusClass = 'st-new';
+        if (order.status === 'В работе') { cardStatusClass = 'card-st-work'; statusClass = 'st-work'; }
+        if (order.status === 'Отправить') { cardStatusClass = 'card-st-send'; statusClass = 'st-send'; }
+        if (order.status === 'Готово') { cardStatusClass = 'card-st-done'; statusClass = 'st-done'; }
+
+        const layoutLink = order.layout ? getDriveDirectLink(order.layout) : '';
+        const layoutBtn = layoutLink ? `<a href="${order.layout}" target="_blank" class="btn-dl">📂 Макет</a>` : '';
+
+        const photoLink = getDriveDirectLink(order.photo);
+        let photoHtml = '';
+        if (photoLink) {
+            photoHtml = `
+                <img src="${photoLink}" class="thumb-right" onclick="window.open('${order.photo}')" 
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                <div class="thumb-placeholder" style="display:none">📷</div>
+            `;
+        } else {
+            photoHtml = `<div class="thumb-placeholder">📷</div>`;
+        }
 
         const card = document.createElement('div');
-        card.className = 'order-card';
+        card.className = `order-card ${cardStatusClass}`;
 
         const gearIcon = `
             <button class="gear-btn" onclick="openEdit(${order.id})">
@@ -384,29 +382,75 @@ function renderOrders() {
             </button>
         `;
 
-        const photoLink = getDriveDirectLink(order.photo);
-        const photoHtml = photoLink 
-            ? `<img src="${photoLink}" class="thumb" onclick="window.open('${order.photo}')">` 
-            : '';
-
         card.innerHTML = `
             ${gearIcon}
-            <div class="order-header">#${order.id} ${order.client}</div>
-            <div class="order-desc">${order.desc || 'Нет описания'}</div>
-            ${photoHtml}
-            <div class="order-meta" style="margin-top:8px;">
-                <span class="status-badge ${statusClass}">${order.status}</span>
-                <span>${order.delivery || ''} ${order.track ? '('+order.track+')' : ''}</span>
-            </div>
-            <div class="order-footer">
-                <div class="paid-tag">${payText}</div>
-                <div style="font-size:11px; color:var(--hint)">${formatMoscowDate(order.date)}</div>
+            <div class="order-flex">
+                <div class="order-left">
+                    <div class="order-header">#${order.id} ${order.client}</div>
+                    <div class="order-desc">${order.desc || 'Нет описания'}</div>
+                    <div class="order-meta">
+                        <span class="status-badge ${statusClass}" onclick="openStatusModal(${order.id})">${order.status}</span>
+                        <span>${order.delivery || ''} ${order.track ? '('+order.track+')' : ''}</span>
+                        ${layoutBtn}
+                    </div>
+                    <div class="order-footer">
+                        <div class="paid-tag">${payText}</div>
+                        <div style="font-size:11px; color:var(--hint)">${formatMoscowDate(order.date)}</div>
+                    </div>
+                </div>
+                <div class="order-right">
+                    ${photoHtml}
+                </div>
             </div>
         `;
 
         if (isArchive) { historyList.appendChild(card); } 
         else { queueList.appendChild(card); }
     });
+}
+
+function openStatusModal(id) {
+    currentStatusEditId = id;
+    document.getElementById('modal-status').classList.add('show');
+}
+
+async function saveStatus(newStatus) {
+    if (isStatusSaving) return;
+    isStatusSaving = true;
+
+    const modal = document.getElementById('modal-status');
+    const allButtons = modal.querySelectorAll('button');
+    const title = modal.querySelector('h3');
+    const originalTitle = title.innerText;
+
+    allButtons.forEach(btn => btn.disabled = true);
+    title.innerText = "⏳ Сохранение...";
+
+    try {
+        const order = orders.find(o => o.id == currentStatusEditId);
+        if(!order) throw new Error("Order not found");
+
+        await fetch(CONFIG.WEB_APP_URL, {
+            method: 'POST', mode: 'no-cors',
+            body: JSON.stringify({
+                action: 'updateOrderFull',
+                id: order.id,
+                rowIndex: order.rowIndex,
+                status: newStatus
+            })
+        });
+        showToast("Статус обновлен: " + newStatus);
+        
+        closeModals();
+        loadData();
+    } catch(e) {
+        showToast("Ошибка смены статуса");
+        title.innerText = originalTitle;
+    } finally {
+        isStatusSaving = false;
+        allButtons.forEach(btn => btn.disabled = false);
+        if(title.innerText === "⏳ Сохранение...") title.innerText = originalTitle;
+    }
 }
 
 function selectDelivery(prefix, type, btn) {
@@ -539,6 +583,11 @@ function openEdit(id) {
     lbl.classList.remove('active');
     lbl.querySelector('span').innerText = "📸 Фото готового изделия";
 
+    document.getElementById('e-layout').value = '';
+    const lblL = document.getElementById('lbl-e-layout');
+    lblL.classList.remove('active');
+    lblL.querySelector('span').innerText = "📂 Заменить макет";
+
     document.getElementById('modal-edit').classList.add('show');
     checkStatusReq(); 
 }
@@ -562,7 +611,10 @@ async function updateOrder() {
 
     try {
         const photoDoneFile = document.getElementById('e-photo-done').files[0];
+        const layoutFile = document.getElementById('e-layout').files[0];
+        
         const photoDoneB64 = await toBase64(photoDoneFile);
+        const layoutB64 = await toBase64(layoutFile);
 
         const data = {
             action: 'updateOrderFull',
@@ -576,7 +628,8 @@ async function updateOrder() {
             status: document.getElementById('e-status').value,
             delivery: delType,
             track: document.getElementById('e-track').value,
-            photoDone: photoDoneB64
+            photoDone: photoDoneB64,
+            layoutNew: layoutB64
         };
 
         await fetch(CONFIG.WEB_APP_URL, {

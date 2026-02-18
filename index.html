@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CRM v2.2</title>
+  <title>CRM v2.3</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -41,7 +41,6 @@
   </div>
 
   <div id="tab-calc" class="tab active">
-    
     <div class="card preview-card" id="preview-card">
       <div class="preview-container">
         <div class="preview-box" id="preview-box">
@@ -86,7 +85,6 @@
     <div class="result-box">
       <div class="result-title">ИТОГО</div>
       <div id="price-display" class="price-big">0 ₽</div>
-
       <div class="cost-breakdown" id="cost-breakdown" style="display:none;">
         <div class="cost-row"><span>Основа + Работа:</span><span class="cost-val" id="price-base">0 ₽</span></div>
         <div class="cost-row"><span>Акрил:</span><span class="cost-val" id="price-acrylic">0 ₽</span></div>
@@ -130,13 +128,11 @@
   <div class="modal" id="modal-new">
     <div class="modal-content">
       <h3>Новый заказ</h3>
-      
       <label class="input-label">Данные клиента</label>
       <div class="input-row">
         <input type="text" id="n-client" class="custom-input compact-input" placeholder="👤 Имя клиента">
         <input type="tel" id="n-phone" class="custom-input compact-input" placeholder="📞 Телефон">
       </div>
-      
       <label class="input-label">Способ доставки</label>
       <div class="delivery-chips" id="n-delivery-chips">
         <button class="chip" onclick="selectDelivery('n', 'pickup', this)">Самовывоз</button>
@@ -144,26 +140,20 @@
         <button class="chip" onclick="selectDelivery('n', 'cdek', this)">СДЭК</button>
       </div>
       <input type="text" id="n-track" class="custom-input compact-input" placeholder="Номер накладной СДЭК" style="display:none; margin-top:8px;">
-
       <div class="file-row" style="margin-top:12px;">
         <label class="file-custom" id="lbl-n-photo"><span>📸 Фото</span><input type="file" id="n-photo" onchange="updateFileLabel(this, 'lbl-n-photo')"></label>
         <label class="file-custom" id="lbl-n-layout"><span>📂 Макет</span><input type="file" id="n-layout" onchange="updateFileLabel(this, 'lbl-n-layout')"></label>
       </div>
-      
       <textarea id="n-desc" class="custom-input compact-input" style="min-height:60px;" placeholder="Описание и нюансы заказа..."></textarea>
-      
       <hr style="border:0; border-top:1px solid #444; margin:10px 0;">
-      
       <label class="input-label">Итоговая стоимость (можно менять)</label>
       <input type="number" id="n-price-final" class="custom-input" style="font-weight:bold; color:var(--green);">
-      
       <label class="input-label">Оплачено</label>
       <div style="display:flex; gap:8px;">
         <input type="number" id="n-paid" class="custom-input compact-input" placeholder="0" style="margin-bottom:0;">
         <button class="chip" onclick="quickPay('n', 0.5)">50%</button>
         <button class="chip" onclick="quickPay('n', 1)">100%</button>
       </div>
-
       <button class="main-btn" id="btn-submit" onclick="submitOrder()" style="margin-top:15px;">🚀 Отправить в работу</button>
       <button class="btn-action" onclick="closeModals()">Отмена</button>
     </div>
@@ -173,14 +163,6 @@
     <div class="modal-content">
       <h3 id="edit-id-title">Редактирование</h3>
       
-      <label class="input-label">Статус</label>
-      <select id="e-status" class="custom-input compact-input" onchange="checkStatusReq()">
-        <option value="Изготовить">🔴 Изготовить</option>
-        <option value="В работе">🔵 В работе</option>
-        <option value="Отправить">🟠 Отправить</option>
-        <option value="Готово">🟢 Готово</option>
-      </select>
-
       <div id="finish-reqs" style="display:none; background:rgba(48, 209, 88, 0.1); padding:10px; border-radius:12px; margin-bottom:10px;">
         <label class="file-custom" id="lbl-e-photo-done"><span>📸 Фото готового изделия</span><input type="file" id="e-photo-done" onchange="updateFileLabel(this, 'lbl-e-photo-done')"></label>
       </div>
@@ -190,7 +172,6 @@
         <input type="text" id="e-client" class="custom-input compact-input" placeholder="Имя">
         <input type="text" id="e-phone" class="custom-input compact-input" placeholder="Телефон">
       </div>
-      
       <textarea id="e-desc" class="custom-input compact-input" style="min-height:60px;" placeholder="Описание заказа"></textarea>
 
       <label class="input-label">Доставка</label>
@@ -201,16 +182,13 @@
       </div>
       <input type="text" id="e-track" class="custom-input compact-input" placeholder="Накладная" style="margin-top:8px;">
 
+      <label class="input-label" style="margin-top:10px;">Файлы (если нужно обновить)</label>
+      <label class="file-custom" id="lbl-e-layout" style="margin-bottom:10px;"><span>📂 Заменить макет</span><input type="file" id="e-layout" onchange="updateFileLabel(this, 'lbl-e-layout')"></label>
+
       <label class="input-label" style="margin-top:10px;">Финансы</label>
       <div style="display:flex; gap:5px;">
-        <div style="flex:1">
-          <label class="input-label">Цена</label>
-          <input type="number" id="e-price" class="custom-input compact-input">
-        </div>
-        <div style="flex:1">
-           <label class="input-label">Оплачено</label>
-           <input type="number" id="e-paid" class="custom-input compact-input">
-        </div>
+        <div style="flex:1"><label class="input-label">Цена</label><input type="number" id="e-price" class="custom-input compact-input"></div>
+        <div style="flex:1"><label class="input-label">Оплачено</label><input type="number" id="e-paid" class="custom-input compact-input"></div>
       </div>
       <div style="display:flex; gap:8px; margin-bottom:10px;">
         <button class="chip" style="width:100%" onclick="quickPay('e', 0.5)">50%</button>
@@ -218,11 +196,23 @@
       </div>
 
       <button class="main-btn" id="btn-update" onclick="updateOrder()">💾 Сохранить</button>
-      
       <div style="display:flex; gap:10px; margin-top:10px;">
          <button class="btn-action" onclick="closeModals()">Закрыть</button>
          <button class="btn-action" onclick="deleteOrder()" style="color:var(--red); border-color:var(--red);">🗑 Удалить</button>
       </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-status">
+    <div class="modal-content" style="max-width:300px;">
+      <h3 style="text-align:center; margin-bottom:20px;">Изменить статус</h3>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <button class="status-btn-big st-new" onclick="saveStatus('Изготовить')">🔴 Изготовить</button>
+        <button class="status-btn-big st-work" onclick="saveStatus('В работе')">🔵 В работе</button>
+        <button class="status-btn-big st-send" onclick="saveStatus('Отправить')">🟠 Отправить</button>
+        <button class="status-btn-big st-done" onclick="saveStatus('Готово')">🟢 Готово</button>
+      </div>
+      <button class="btn-action" onclick="closeModals()" style="margin-top:15px;">Отмена</button>
     </div>
   </div>
 
