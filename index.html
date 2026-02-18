@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SamLaser CRM v6.1</title>
+  <title>SamLaser CRM v6.3</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root { 
@@ -14,13 +14,14 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background: var(--bg); color: var(--text); padding: 12px; padding-bottom: 90px; }
     
+    /* НАВИГАЦИЯ */
     .nav { display: flex; gap: 8px; margin-bottom: 20px; background: rgba(28,28,30,0.8); backdrop-filter: blur(10px); padding: 6px; border-radius: 16px; position: sticky; top: 10px; z-index: 100; border: 1px solid #333; }
-    .nav-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: transparent; color: var(--hint); font-size: 12px; font-weight: 600; transition: 0.2s; }
+    .nav-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: transparent; color: var(--hint); font-size: 12px; font-weight: 600; transition: 0.2s; white-space: nowrap; }
     .nav-btn.active { background: var(--blue); color: #fff; box-shadow: 0 4px 10px rgba(10, 132, 255, 0.3); }
+    .nav-icon-btn { flex: 0 0 40px; font-size: 18px; padding: 0; display: flex; align-items: center; justify-content: center; }
 
     .card { background: var(--card); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; border: 1px solid #333; position: relative; }
     
-    /* КАЛЬКУЛЯТОР */
     .calc-display { text-align: center; margin-bottom: 20px; }
     .price-big { font-size: 42px; font-weight: 800; color: var(--blue); letter-spacing: -1px; transition: 0.2s; }
     .price-details { font-size: 11px; color: var(--hint); margin-top: 5px; }
@@ -30,12 +31,10 @@
     .custom-input { width: 100%; background: var(--input-bg); border: 1px solid transparent; border-radius: 12px; color: #fff; padding: 14px; font-size: 16px; outline: none; transition: 0.2s; text-align: center; font-weight: 600; }
     .custom-input:focus { border-color: var(--blue); background: #3a3a3c; }
 
-    /* СТЕППЕР */
     .stepper { display: flex; align-items: center; background: var(--input-bg); border-radius: 12px; padding: 4px; }
     .step-btn { width: 50px; height: 44px; background: #3a3a3c; border: none; border-radius: 8px; color: var(--blue); font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .step-val { flex: 1; text-align: center; font-size: 18px; font-weight: 600; }
 
-    /* КНОПКИ И ЭЛЕМЕНТЫ */
     button.main-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; background: var(--blue); color: white; box-shadow: 0 4px 15px rgba(10, 132, 255, 0.3); }
     button.main-btn:active { transform: scale(0.98); }
     .btn-action { background: #3a3a3c; color: var(--blue); width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: 600; margin-top: 8px; }
@@ -60,7 +59,6 @@
     
     input[type="file"] { padding: 10px; background: #2c2c2e; width: 100%; border-radius: 8px; margin-bottom: 10px; color: var(--hint); font-size: 12px; }
     
-    /* СЕТКА ДЛЯ РОЛЕЙ */
     .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
   </style>
 </head>
@@ -70,7 +68,8 @@
     <button class="nav-btn active" onclick="setTab('calc')" id="nav-calc">Калькулятор</button>
     <button class="nav-btn" onclick="setTab('queue')">Очередь</button>
     <button class="nav-btn" onclick="setTab('history')">Архив</button>
-    <button class="nav-btn" onclick="setTab('admin')" id="admin-nav" style="display:none;">⚙️</button>
+    <button class="nav-btn nav-icon-btn" onclick="setTab('admin')" id="admin-nav" style="display:none;">⚙️</button>
+    <button class="nav-btn nav-icon-btn" onclick="logout()" style="background:rgba(255, 69, 58, 0.2); color:var(--red);">🚪</button>
   </div>
 
   <div id="login-screen" class="modal show" style="z-index: 2000;">
@@ -214,8 +213,8 @@
     let currentEditId = null;
     let currentEditRow = null;
     let sheetsValue = 1.5;
+    let globalShowPrice = true;
 
-    // --- ЛОГИКА КАЛЬКУЛЯТОРА ---
     function stepSheets(val) {
       sheetsValue = parseFloat((sheetsValue + val).toFixed(1));
       if (sheetsValue < 0) sheetsValue = 0;
@@ -241,22 +240,24 @@
     }
     window.onload = () => { calc(); };
 
-    // --- ЛОГИКА CRM ---
     function login(user) {
       currentUser = user;
       document.getElementById('login-screen').classList.remove('show');
-      
-      // Логика ролей
       if(user === 'Владелец' || user === 'Екатерина') {
-        document.getElementById('admin-nav').style.display = 'block';
+        document.getElementById('admin-nav').style.display = 'flex';
       }
-      
       if(user === 'Рома' || user === 'Дима') {
-        // Производство сразу видит очередь, им калькулятор не нужен особо
         setTab('queue'); 
       } else {
-        loadData(); // Остальные начинают с калькулятора (по умолчанию открыт)
+        loadData(); 
       }
+    }
+
+    function logout() {
+      currentUser = '';
+      document.getElementById('login-screen').classList.add('show');
+      document.getElementById('admin-nav').style.display = 'none';
+      setTab('calc'); // Сброс на вкладку по умолчанию
     }
 
     async function loadData() {
@@ -271,14 +272,26 @@
         try {
           const data = JSON.parse(text);
           orders = data.orders;
+          globalShowPrice = data.settings.showPrice;
+          document.getElementById('sett-price').checked = !globalShowPrice; 
           renderOrders();
           renderStats();
-        } catch (e) { throw new Error("Ошибка данных. Возможно, неверный формат таблицы."); }
+        } catch (e) { throw new Error("Ошибка данных."); }
       } catch(e) { 
         loader.style.display = 'none';
         errDiv.style.display = 'block';
         errDiv.innerHTML = `⚠️ Ошибка: ${e.message}`;
       }
+    }
+
+    async function saveSettings() {
+      const hide = document.getElementById('sett-price').checked;
+      await fetch(WEB_APP_URL, { 
+        method: 'POST', mode: 'no-cors', 
+        body: JSON.stringify({ action: 'updateSettings', showPrice: !hide }) 
+      });
+      globalShowPrice = !hide;
+      renderOrders();
     }
 
     function renderOrders() {
@@ -289,9 +302,11 @@
 
       orders.forEach(o => {
         const isDone = o.status === 'Отправлен';
+        const hidePrice = (currentUser === 'Михаил' || currentUser === 'Рома' || currentUser === 'Дима') && !globalShowPrice;
+        const priceDisplay = hidePrice ? '***' : o.price;
         const debt = (o.price - (o.paid || 0));
+        let debtText = hidePrice ? '---' : (debt > 0 ? `Долг: ${debt} ₽` : '✅ Оплачено');
         const color = debt > 0 ? 'debt' : 'paid';
-        const debtText = debt > 0 ? `Долг: ${debt} ₽` : '✅ Оплачено';
         const photoHtml = o.photo ? `<img src="${o.photo}" class="thumb" onclick="window.open('${o.photo}')">` : '';
 
         const card = document.createElement('div');
@@ -307,9 +322,8 @@
           <div class="info-row">📞 ${o.phone}</div>
           <div class="info-row">📅 ${o.date.split(',')[0]} <span class="status-badge">${o.status}</span></div>
           ${o.tk ? `<div class="info-row" style="color:var(--green)">🚚 ТК: ${o.tk}</div>` : ''}
-          
           <div class="money-row">
-             <span style="color:white; font-size:16px;">${o.price} ₽</span>
+             <span style="color:white; font-size:16px;">${priceDisplay} ₽</span>
              <span class="${color}">${debtText}</span>
           </div>
           <button class="btn-action" onclick="openEdit(${o.id})">Управление</button>
