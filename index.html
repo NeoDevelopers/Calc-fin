@@ -3,80 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SamLaser CRM v6.9</title>
+  <title>CRM v8.0</title>
+  <link rel="stylesheet" href="style.css">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    :root { 
-      --bg: #000000; --card: #1c1c1e; --input-bg: #2c2c2e; --text: #ffffff; 
-      --hint: #8e8e93; --blue: #0a84ff; --green: #30d158; --red: #ff453a; 
-      --radius: 14px;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background: var(--bg); color: var(--text); padding: 12px; padding-bottom: 90px; }
-    
-    .nav { display: flex; gap: 8px; margin-bottom: 20px; background: rgba(28,28,30,0.8); backdrop-filter: blur(10px); padding: 6px; border-radius: 16px; position: sticky; top: 10px; z-index: 100; border: 1px solid #333; }
-    .nav-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: transparent; color: var(--hint); font-size: 12px; font-weight: 600; transition: 0.2s; white-space: nowrap; }
-    .nav-btn.active { background: var(--blue); color: #fff; box-shadow: 0 4px 10px rgba(10, 132, 255, 0.3); }
-    .nav-icon-btn { flex: 0 0 44px; padding: 0; display: flex; align-items: center; justify-content: center; }
-
-    .card { background: var(--card); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; border: 1px solid #333; position: relative; }
-    
-    .calc-display { text-align: center; margin-bottom: 20px; }
-    .price-big { font-size: 42px; font-weight: 800; color: var(--blue); letter-spacing: -1px; transition: 0.2s; }
-    .price-details { font-size: 11px; color: var(--hint); margin-top: 5px; }
-
-    .input-label { font-size: 13px; color: var(--hint); margin-bottom: 6px; margin-left: 4px; display: block; }
-    .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
-    
-    .custom-input { width: 100%; background: var(--input-bg); border: 1px solid transparent; border-radius: 12px; color: #fff; padding: 14px; font-size: 16px; outline: none; transition: 0.2s; text-align: center; font-weight: 600; margin-bottom: 10px; }
-    .custom-input:focus { border-color: var(--blue); background: #3a3a3c; }
-    .custom-input::placeholder { color: #5c5c5e; }
-
-    .compact-input { padding: 12px; font-size: 14px; margin-bottom: 8px; }
-
-    .stepper { display: flex; align-items: center; background: var(--input-bg); border-radius: 12px; padding: 4px; }
-    .step-btn { width: 50px; height: 44px; background: #3a3a3c; border: none; border-radius: 8px; color: var(--blue); font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    .step-val { flex: 1; text-align: center; font-size: 18px; font-weight: 600; }
-
-    button.main-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; background: var(--blue); color: white; box-shadow: 0 4px 15px rgba(10, 132, 255, 0.3); }
-    button.main-btn:active { transform: scale(0.98); }
-    .btn-action { background: #3a3a3c; color: var(--blue); width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: 600; margin-top: 8px; }
-
-    .error-box { background: rgba(255, 69, 58, 0.15); border: 1px solid var(--red); color: var(--red); padding: 15px; border-radius: 12px; margin: 10px 0; display: none; font-size: 12px; }
-
-    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-    .status-badge { font-size: 10px; padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,0.1); text-transform: uppercase; letter-spacing: 0.5px; }
-    .info-row { font-size: 13px; color: var(--hint); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-    .money-row { display: flex; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 14px; font-weight: 500; }
-    .debt { color: var(--red); } .paid { color: var(--green); }
-    .thumb { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; background: #000; border: 1px solid #333; }
-
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; padding: 20px; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-    .modal.show { display: flex; }
-    .modal-content { background: var(--card); width: 100%; max-width: 400px; padding: 20px; border-radius: 20px; border: 1px solid #333; max-height: 95vh; overflow-y: auto; }
-    .modal h3 { text-align: center; margin-bottom: 15px; color: var(--blue); font-size: 18px; }
-
-    .tab { display: none; animation: fadeIn 0.3s ease; }
-    .tab.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    
-    .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    
-    .file-row { display: flex; gap: 8px; margin-bottom: 8px; }
-    .file-custom { flex: 1; background: #2c2c2e; padding: 10px; border-radius: 10px; text-align: center; color: var(--hint); font-size: 12px; border: 1px dashed #444; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; }
-    .file-custom.active { border-color: var(--blue); color: #fff; background: rgba(10, 132, 255, 0.1); border-style: solid; }
-    .file-custom span { font-weight: 600; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-
-    input[type="file"] { display: none; }
-  </style>
 </head>
 <body>
 
+  <div id="toast-container"></div>
+
   <div class="nav">
-    <button class="nav-btn active" onclick="setTab('calc')" id="nav-calc">Калькулятор</button>
-    <button class="nav-btn" onclick="setTab('queue')">Очередь</button>
-    <button class="nav-btn" onclick="setTab('history')">Архив</button>
-    <button class="nav-btn nav-icon-btn" onclick="setTab('admin')" id="admin-nav" style="display:none;">⚙️</button>
+    <button class="nav-btn active" onclick="setTab('calc')" id="nav-calc">🧮 Калькулятор</button>
+    <button class="nav-btn" onclick="setTab('queue')" id="nav-queue">📋 Очередь</button>
+    <button class="nav-btn" onclick="setTab('history')" id="nav-history">📂 Архив</button>
     <button class="nav-btn nav-icon-btn" onclick="logout()" style="color:var(--red); margin-left:5px;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -87,395 +25,136 @@
   </div>
 
   <div id="login-screen" class="modal show" style="z-index: 2000;">
-    <div class="modal-content" style="text-align: center;">
-      <h2 style="margin-bottom: 20px;">Кто вы?</h2>
-      
-      <div class="input-label" style="margin-bottom:5px;">Производство</div>
-      <div class="role-grid">
-        <button class="btn-action" style="margin:0" onclick="login('Рома')">🔨 Рома</button>
-        <button class="btn-action" style="margin:0" onclick="login('Дима')">🔨 Дима</button>
-      </div>
-
-      <div class="input-label" style="margin-bottom:5px; margin-top:15px;">Управление</div>
-      <button class="btn-action" onclick="login('Михаил')">👔 Михаил (Менеджер)</button>
-      <button class="btn-action" onclick="login('Екатерина')">🌹 Екатерина</button>
-      <button class="main-btn" style="margin-top:15px; background: #ff9f0a;" onclick="login('Владелец')">👑 Владелец</button>
+    <div class="modal-content login-card" style="text-align: center;">
+      <div class="logo">CRM</div>
+      <select id="user-select" class="custom-input compact-input" onchange="validateLoginInput()">
+        <option value="" disabled selected>Кто вы?</option>
+        <option value="Владелец">👑 Владелец</option>
+        <option value="Екатерина">🌹 Екатерина</option>
+        <option value="Михаил">👔 Михаил</option>
+        <option value="Рома">🔨 Рома</option>
+        <option value="Дима">🔨 Дима</option>
+      </select>
+      <input type="password" id="user-pass" class="custom-input compact-input" placeholder="Пароль" inputmode="numeric" oninput="validateLoginInput()">
+      <button class="main-btn" id="login-btn" onclick="handleLogin()" disabled>Войти</button>
     </div>
   </div>
 
   <div id="tab-calc" class="tab active">
     <div class="card">
-      <div class="calc-display">
-        <div class="input-label">Итоговая стоимость</div>
-        <div id="price-display" class="price-big">0 ₽</div>
-        <div id="price-desc" class="price-details">Материал + Резка + Обработка</div>
+      <div class="preview-container">
+        <div class="preview-box" id="preview-box">
+          <span class="dim-label dim-w" id="dim-w-label">—</span>
+          <span class="dim-label dim-h" id="dim-h-label">—</span>
+        </div>
       </div>
+      <div id="mount-info" class="mount-info"></div>
+    </div>
 
+    <div class="card">
+      <div class="unit-toggle-container">
+        <div class="unit-toggle">
+          <button id="unit-cm" class="active" onclick="setUnit('cm')">см</button>
+          <button id="unit-mm" onclick="setUnit('mm')">мм</button>
+        </div>
+      </div>
       <div class="input-row">
         <div>
-          <label class="input-label">Ширина (см)</label>
-          <input type="number" id="c-w" class="custom-input" placeholder="100" value="100" inputmode="numeric" oninput="calc()" style="margin-bottom:0">
+          <label class="input-label">Ширина <span id="unit-label-width">(см)</span></label>
+          <input type="number" id="c-w" class="custom-input" placeholder="100" oninput="calc()" style="margin-bottom:0">
         </div>
         <div>
-          <label class="input-label">Высота (см)</label>
-          <input type="number" id="c-h" class="custom-input" placeholder="50" value="50" inputmode="numeric" oninput="calc()" style="margin-bottom:0">
+          <label class="input-label">Высота <span id="unit-label-height">(см)</span></label>
+          <input type="number" id="c-h" class="custom-input" placeholder="50" oninput="calc()" style="margin-bottom:0">
         </div>
       </div>
-
-      <div style="margin-bottom: 20px;">
-        <label class="input-label">Листов акрила (шт)</label>
-        <div class="stepper">
-          <button class="step-btn" onclick="stepSheets(-0.5)">−</button>
-          <input type="number" id="c-s" class="custom-input" style="border:none; background:transparent; margin-bottom:0" value="1.5" readonly>
-          <button class="step-btn" onclick="stepSheets(0.5)">+</button>
-        </div>
+      <label class="input-label" style="margin-top:10px;">Листов акрила по нестингу</label>
+      <div class="stepper">
+        <button class="step-btn" onclick="stepSheets(-0.1)">−</button>
+        <input type="number" id="c-s" class="custom-input" style="border:none; background:transparent; margin-bottom:0" value="1.0" step="0.1" oninput="calc()">
+        <button class="step-btn" onclick="stepSheets(0.1)">+</button>
       </div>
+    </div>
 
-      <button class="main-btn" onclick="openOrderModal()">✨ Оформить заказ</button>
+    <div class="card">
+      <div class="toggle-container"><span class="toggle-label">🌈 Пленка (+30%)</span><label class="switch"><input type="checkbox" id="c-film" onchange="calc()"><span class="slider"></span></label></div>
+      <div class="toggle-container"><span class="toggle-label">💡 Подсветка</span><label class="switch"><input type="checkbox" id="c-light" onchange="calc()"><span class="slider"></span></label></div>
+      <div class="toggle-container"><span class="toggle-label">🤯 Сложный макет (х1.4)</span><label class="switch"><input type="checkbox" id="c-complex" onchange="calc()"><span class="slider"></span></label></div>
+    </div>
+
+    <div class="result-box">
+      <div class="result-title">ИТОГО К ОПЛАТЕ</div>
+      <div id="price-display" class="price-big">0 ₽</div>
+    </div>
+
+    <button class="main-btn" id="order-btn-ui" onclick="openOrderModal()" style="display:none; margin-bottom:12px;">📋 Оформить заказ</button>
+    <button class="settings-btn" id="admin-settings-btn" onclick="toggleSettingsPanel()" style="display:none;">⚙️ Настройки калькулятора</button>
+
+    <div class="settings-panel" id="settings-panel">
+      <div class="settings-row"><label>Основа (₽/м²)</label><input type="number" id="s-base" oninput="saveAdminSettings()"></div>
+      <div class="settings-row"><label>Акрил (₽/лист)</label><input type="number" id="s-acrylic" oninput="saveAdminSettings()"></div>
+      <div class="settings-row"><label>Работа (множитель)</label><input type="number" id="s-labor" step="0.1" oninput="saveAdminSettings()"></div>
+      <div class="settings-row"><label>Расходы (₽/м²)</label><input type="number" id="s-overhead" oninput="saveAdminSettings()"></div>
+      <div class="settings-row"><label>Фикс расход (₽)</label><input type="number" id="s-setup" oninput="saveAdminSettings()"></div>
+      <div class="settings-row"><label>Маржа макс</label><input type="number" id="s-m-small" step="0.1" oninput="saveAdminSettings()"></div>
+      <div class="settings-row"><label>Маржа мин</label><input type="number" id="s-m-large" step="0.1" oninput="saveAdminSettings()"></div>
+      <div class="settings-row"><label>Скидка акрил max (%)</label><input type="number" id="s-acrylic-disc" oninput="saveAdminSettings()"></div>
+      <div class="settings-row"><label>Скидка основа max (%)</label><input type="number" id="s-base-disc" oninput="saveAdminSettings()"></div>
+      <div class="settings-row"><label>Пленка (коэфф.)</label><input type="number" id="s-film" step="0.1" oninput="saveAdminSettings()"></div>
+      <div class="settings-row"><label>Сложность (коэфф.)</label><input type="number" id="s-complex" step="0.1" oninput="saveAdminSettings()"></div>
+      <div class="settings-row"><label>Подсветка (фикс, ₽)</label><input type="number" id="s-light-fix" oninput="saveAdminSettings()"></div>
+      <div class="settings-row"><label>Подсветка (₽/м²)</label><input type="number" id="s-light-m2" oninput="saveAdminSettings()"></div>
+      <hr style="margin:10px 0; opacity:0.1;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span style="font-size:12px; color:var(--hint);">Скрывать цены цеху</span>
+        <input type="checkbox" id="sett-price" style="width:18px; height:18px;" onchange="updateGlobalPriceSetting()">
+      </div>
+      <button class="reset-btn" onclick="resetToDefaults()">🔄 Сбросить всё</button>
     </div>
   </div>
 
-  <div id="tab-queue" class="tab">
-    <div id="loader" style="text-align:center; padding:20px; color:var(--hint);">Загрузка...</div>
-    <div id="error-log" class="error-box"></div>
+  <div id="tab-queue" class="tab" style="display:none;">
+    <div id="loader-queue" style="text-align:center; padding:20px; color:var(--hint);">Загрузка очереди...</div>
     <div id="queue-list"></div>
   </div>
 
-  <div id="tab-history" class="tab">
-    <div id="history-list" style="opacity: 0.7;"></div>
-  </div>
-
-  <div id="tab-admin" class="tab">
-    <div class="card">
-      <h3>Статистика (Сегодня)</h3>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:15px 0;">
-         <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; text-align:center;">
-            <div style="font-size:12px; color:var(--hint);">Заказов</div>
-            <div id="stat-count" style="font-size:20px; font-weight:bold;">0</div>
-         </div>
-         <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; text-align:center;">
-            <div style="font-size:12px; color:var(--hint);">Выручка</div>
-            <div id="stat-sum" style="font-size:20px; font-weight:bold; color:var(--green);">0 ₽</div>
-         </div>
-      </div>
-      
-      <div style="display:flex; justify-content:space-between; margin-top:20px; align-items:center;">
-        <span>Скрывать цены менеджерам</span>
-        <input type="checkbox" id="sett-price" style="width:20px; height:20px;" onchange="saveSettings()">
-      </div>
-    </div>
+  <div id="tab-history" class="tab" style="display:none;">
+    <div id="loader-history" style="text-align:center; padding:20px; color:var(--hint);">Загрузка архива...</div>
+    <div id="history-list"></div>
   </div>
 
   <div class="modal" id="modal-new">
     <div class="modal-content">
       <h3>Новый заказ</h3>
-      
-      <input type="text" id="n-client" class="custom-input compact-input" placeholder="👤 Имя клиента" style="text-align:left;">
-      <input type="tel" id="n-phone" class="custom-input compact-input" placeholder="📞 Телефон" style="text-align:left;">
-      <input type="number" id="n-paid" class="custom-input compact-input" placeholder="💰 Предоплата (если есть)" inputmode="numeric" style="text-align:left;">
-      
+      <input type="text" id="n-client" class="custom-input compact-input" placeholder="👤 Название заказа">
+      <input type="tel" id="n-phone" class="custom-input compact-input" placeholder="📞 Телефон / Контакт">
       <div class="file-row">
-        <label class="file-custom" id="lbl-photo">
-          <span style="font-size:16px;">📸</span>
-          <span>Фото</span>
-          <input type="file" id="n-photo" accept="image/*" onchange="updateFileLabel(this, 'lbl-photo')">
-        </label>
-        
-        <label class="file-custom" id="lbl-layout">
-          <span style="font-size:16px;">📂</span>
-          <span>Макет</span>
-          <input type="file" id="n-layout" onchange="updateFileLabel(this, 'lbl-layout')">
-        </label>
+        <label class="file-custom" id="lbl-photo"><span>📸 Фото</span><input type="file" id="n-photo" onchange="updateFileLabel(this, 'lbl-photo')"></label>
+        <label class="file-custom" id="lbl-layout"><span>📂 Макет</span><input type="file" id="n-layout" onchange="updateFileLabel(this, 'lbl-layout')"></label>
       </div>
-
-      <textarea id="n-desc" class="custom-input compact-input" style="text-align:left; min-height:60px; margin-bottom:0;" placeholder="💬 Комментарий..."></textarea>
-      
-      <button class="main-btn" id="btn-submit" onclick="submitOrder()" style="padding:14px; margin-top:10px;">🚀 Отправить</button>
-      <button class="btn-action" onclick="closeModals()" style="padding:10px;">Отмена</button>
+      <textarea id="n-desc" class="custom-input compact-input" style="min-height:60px;" placeholder="💬 Комментарий..."></textarea>
+      <button class="main-btn" onclick="submitOrder()">🚀 Отправить в работу</button>
+      <button class="btn-action" onclick="closeModals()">Отмена</button>
     </div>
   </div>
 
   <div class="modal" id="modal-edit">
     <div class="modal-content">
-      <h3>Управление</h3>
-      <div id="edit-info" style="margin-bottom:10px; font-size:13px; color:var(--hint); text-align:center;"></div>
-      
-      <label class="input-label">Статус заказа</label>
-      <select id="e-status" class="custom-input compact-input" style="text-align:left;" onchange="checkStatusReq()">
-        <option>Новый</option>
-        <option>В работе</option>
-        <option>Отправлен</option>
+      <h3 id="edit-id-title">Заказ</h3>
+      <select id="e-status" class="custom-input compact-input" onchange="checkStatusReq()">
+        <option>Новый</option><option>В работе</option><option>Готов</option><option>Отправлен</option>
       </select>
-
-      <div id="finish-reqs" style="display:none; background:rgba(48, 209, 88, 0.1); padding:10px; border-radius:12px; margin: 8px 0; border: 1px solid var(--green);">
-        <label class="input-label" style="color:var(--green);">Фото изделия (Обязательно)</label>
-        <label class="file-custom" id="lbl-e-photo" style="margin-bottom:8px; background:#1c1c1e;">
-           <span>📸 Прикрепить фото</span>
-           <input type="file" id="e-photo" accept="image/*" onchange="updateFileLabel(this, 'lbl-e-photo')">
-        </label>
-        
-        <label class="input-label" style="color:var(--green);">Номер накладной ТК</label>
-        <input type="text" id="e-tk" class="custom-input compact-input" style="text-align:left; margin-bottom:0;" placeholder="№ Накладной">
+      <div id="finish-reqs" style="display:none; background:rgba(48, 209, 88, 0.1); padding:10px; border-radius:12px; margin-bottom:10px;">
+        <label class="file-custom" id="lbl-e-photo"><span>📸 Фото готового</span><input type="file" id="e-photo" onchange="updateFileLabel(this, 'lbl-e-photo')"></label>
+        <input type="text" id="e-tk" class="custom-input compact-input" placeholder="🚚 № Накладной ТК">
       </div>
-
-      <label class="input-label" style="margin-top:8px;">Внести доплату (₽)</label>
-      <input type="number" id="e-paid-add" class="custom-input compact-input" placeholder="0" style="margin-bottom:0;">
-
-      <button class="main-btn" id="btn-update" onclick="updateOrder()" style="padding:14px; margin-top:10px;">💾 Сохранить</button>
-      <button class="btn-action" onclick="closeModals()" style="padding:10px;">Закрыть</button>
+      <input type="number" id="e-paid-add" class="custom-input compact-input" placeholder="💰 Внести доплату (₽)">
+      <button class="main-btn" id="btn-update" onclick="updateOrder()">💾 Сохранить</button>
+      <button class="btn-action" onclick="closeModals()">Закрыть</button>
     </div>
   </div>
 
-  <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxyfKEG2iVZBcc9ZTx0bLud8uQ2kUAADyJEAJrpODfC9wSRCnSAqNgHuP-F1CcQzpZXrw/exec";
-    let currentUser = '';
-    let orders = [];
-    let currentEditId = null;
-    let currentEditRow = null;
-    let sheetsValue = 1.5;
-    let globalShowPrice = true;
-
-    function updateFileLabel(input, labelId) {
-      if(input.files && input.files[0]) {
-        const lbl = document.getElementById(labelId);
-        lbl.classList.add('active');
-        lbl.querySelectorAll('span')[1].innerText = "✅ " + input.files[0].name;
-      }
-    }
-
-    // --- НОВАЯ ФУНКЦИЯ: ЛЕЧИМ ССЫЛКИ ГУГЛ ДИСКА ---
-    function getDriveDirectLink(url) {
-      if (!url) return '';
-      // Пытаемся достать ID из ссылки вида /file/d/ID/view
-      let id = '';
-      const parts = url.split('/d/');
-      if (parts[1]) {
-         id = parts[1].split('/')[0];
-      }
-      // Если формат другой, ищем id=...
-      if (!id) {
-         const match = url.match(/id=([a-zA-Z0-9_-]{25,})/);
-         if (match) id = match[1];
-      }
-      // Если ID найден, делаем ссылку на скачивание/просмотр картинки
-      if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
-      return url; // Если не получилось, возвращаем как было
-    }
-
-    function stepSheets(val) {
-      sheetsValue = parseFloat((sheetsValue + val).toFixed(1));
-      if (sheetsValue < 0) sheetsValue = 0;
-      document.getElementById('c-s').value = sheetsValue;
-      calc();
-    }
-
-    function calc() {
-      const w = parseFloat(document.getElementById('c-w').value) || 0;
-      const h = parseFloat(document.getElementById('c-h').value) || 0;
-      const s = sheetsValue;
-      const matPrice = Math.round(w * h / 10000 * 1133);
-      const sheetPrice = Math.round(s * 600);
-      const basePrice = 1500;
-      const total = matPrice + sheetPrice + basePrice;
-      
-      // Екатерина видит цены (не скрываем для нее)
-      const hidePrice = (currentUser === 'Михаил' || currentUser === 'Рома' || currentUser === 'Дима') && !globalShowPrice;
-      
-      const display = document.getElementById('price-display');
-      const desc = document.getElementById('price-desc');
-      
-      if (hidePrice) {
-          display.innerText = "*** ₽";
-          desc.innerText = "Расчет скрыт настройками";
-      } else {
-          display.innerText = total.toLocaleString() + " ₽";
-          desc.innerText = `Материал: ${matPrice} ₽ | Листы: ${sheetPrice} ₽ | База: ${basePrice} ₽`;
-      }
-      
-      display.style.transform = "scale(1.1)";
-      setTimeout(() => display.style.transform = "scale(1)", 150);
-      
-      return total;
-    }
-    window.onload = () => { calc(); };
-
-    function login(user) {
-      currentUser = user;
-      document.getElementById('login-screen').classList.remove('show');
-      if(user === 'Владелец' || user === 'Екатерина') {
-        document.getElementById('admin-nav').style.display = 'flex';
-      }
-      if(user === 'Рома' || user === 'Дима') {
-        setTab('queue'); 
-      } else {
-        loadData(); 
-      }
-      setTimeout(calc, 100);
-    }
-
-    function logout() {
-      currentUser = '';
-      document.getElementById('login-screen').classList.add('show');
-      document.getElementById('admin-nav').style.display = 'none';
-      setTab('calc'); 
-    }
-
-    async function loadData() {
-      const loader = document.getElementById('loader');
-      const errDiv = document.getElementById('error-log');
-      loader.style.display = 'block'; errDiv.style.display = 'none';
-      
-      try {
-        const res = await fetch(WEB_APP_URL);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const text = await res.text();
-        try {
-          const data = JSON.parse(text);
-          orders = data.orders;
-          globalShowPrice = data.settings.showPrice;
-          document.getElementById('sett-price').checked = !globalShowPrice; 
-          
-          renderOrders();
-          renderStats();
-          calc(); 
-        } catch (e) { throw new Error("Ошибка данных."); }
-      } catch(e) { 
-        loader.style.display = 'none';
-        errDiv.style.display = 'block';
-        errDiv.innerHTML = `⚠️ Ошибка: ${e.message}`;
-      }
-    }
-
-    async function saveSettings() {
-      const hide = document.getElementById('sett-price').checked;
-      await fetch(WEB_APP_URL, { 
-        method: 'POST', mode: 'no-cors', 
-        body: JSON.stringify({ action: 'updateSettings', showPrice: !hide }) 
-      });
-      globalShowPrice = !hide;
-      renderOrders();
-      calc();
-    }
-
-    function renderOrders() {
-      const q = document.getElementById('queue-list');
-      const h = document.getElementById('history-list');
-      q.innerHTML = ''; h.innerHTML = '';
-      document.getElementById('loader').style.display = 'none';
-
-      orders.forEach(o => {
-        const isDone = o.status === 'Отправлен';
-        const hidePrice = (currentUser === 'Михаил' || currentUser === 'Рома' || currentUser === 'Дима') && !globalShowPrice;
-        
-        const priceDisplay = hidePrice ? '***' : o.price;
-        const debt = (o.price - (o.paid || 0));
-        let debtText = hidePrice ? '---' : (debt > 0 ? `Долг: ${debt} ₽` : '✅ Оплачено');
-        const color = debt > 0 ? 'debt' : 'paid';
-        
-        // ВОТ ЗДЕСЬ ИСПОЛЬЗУЕМ НОВУЮ ФУНКЦИЮ ДЛЯ КАРТИНКИ
-        const photoUrl = getDriveDirectLink(o.photo);
-        const photoHtml = photoUrl ? `<img src="${photoUrl}" class="thumb" onclick="window.open('${o.photo}')">` : '';
-
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-          <div class="card-header">
-            <div>
-               <b>№${o.id} ${o.client}</b>
-               <div style="font-size:11px; color:var(--blue); margin-top:2px;">${o.manager || ''}</div>
-            </div>
-            ${photoHtml}
-          </div>
-          <div class="info-row">📞 ${o.phone}</div>
-          <div class="info-row">📅 ${o.date.split(',')[0]} <span class="status-badge">${o.status}</span></div>
-          ${o.tk ? `<div class="info-row" style="color:var(--green)">🚚 ТК: ${o.tk}</div>` : ''}
-          <div class="money-row">
-             <span style="color:white; font-size:16px;">${priceDisplay} ₽</span>
-             <span class="${color}">${debtText}</span>
-          </div>
-          <button class="btn-action" onclick="openEdit(${o.id})">Управление</button>
-        `;
-        if(isDone) h.appendChild(card); else q.appendChild(card);
-      });
-    }
-
-    function renderStats() {
-       const today = new Date().toLocaleDateString("ru-RU");
-       const todayOrders = orders.filter(o => o.date.includes(today));
-       document.getElementById('stat-count').innerText = todayOrders.length;
-       const sum = todayOrders.reduce((acc, o) => acc + (parseFloat(o.price) || 0), 0);
-       document.getElementById('stat-sum').innerText = sum.toLocaleString() + " ₽";
-    }
-
-    function openOrderModal() { document.getElementById('modal-new').classList.add('show'); }
-    
-    async function submitOrder() {
-      const btn = document.getElementById('btn-submit');
-      btn.innerText = "⏳ Отправка..."; btn.disabled = true;
-      const p1 = await toBase64(document.getElementById('n-photo').files[0]);
-      const p2 = await toBase64(document.getElementById('n-layout').files[0]);
-      const data = {
-        id: Math.floor(Math.random()*9000)+1000,
-        title: document.getElementById('n-client').value,
-        contact: document.getElementById('n-phone').value,
-        price: calc(),
-        paid: document.getElementById('n-paid').value,
-        desc: document.getElementById('n-desc').value,
-        sheets: sheetsValue,
-        manager: currentUser,
-        photoFile: p1, layoutFile: p2
-      };
-      await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-      closeModals(); loadData();
-      btn.innerText = "🚀 Отправить"; btn.disabled = false;
-    }
-
-    function openEdit(id) {
-      const o = orders.find(x => x.id == id);
-      currentEditRow = o.rowIndex; currentEditId = id;
-      document.getElementById('edit-info').innerText = `Заказ №${id} | ${o.client}`;
-      document.getElementById('e-status').value = o.status;
-      document.getElementById('modal-edit').classList.add('show');
-      checkStatusReq();
-    }
-
-    function checkStatusReq() {
-      const val = document.getElementById('e-status').value;
-      document.getElementById('finish-reqs').style.display = val === 'Отправлен' ? 'block' : 'none';
-    }
-
-    async function updateOrder() {
-      const st = document.getElementById('e-status').value;
-      const tk = document.getElementById('e-tk').value;
-      const photo = await toBase64(document.getElementById('e-photo').files[0]);
-      const addPaid = parseFloat(document.getElementById('e-paid-add').value) || 0;
-      const o = orders.find(x => x.id == currentEditId);
-      const newPaid = addPaid > 0 ? (parseFloat(o.paid || 0) + addPaid) : undefined;
-
-      if(st === 'Отправлен' && (!tk || !photo)) return alert("📸 Для завершения нужно фото и номер ТК!");
-
-      const btn = document.getElementById('btn-update');
-      btn.innerText = "Сохранение..."; btn.disabled = true;
-
-      await fetch(WEB_APP_URL, { 
-        method: 'POST', mode: 'no-cors', 
-        body: JSON.stringify({ action: 'updateOrder', id: currentEditId, rowIndex: currentEditRow, status: st, tk: tk, paid: newPaid, photo: photo }) 
-      });
-      closeModals(); setTimeout(loadData, 2000);
-      btn.innerText = "💾 Сохранить"; btn.disabled = false;
-    }
-
-    function setTab(t) {
-      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
-      document.getElementById('tab-'+t).classList.add('active');
-      if(t === 'calc') document.getElementById('nav-calc').classList.add('active'); 
-      else event.target.classList.add('active');
-      if(t === 'queue' || t === 'history' || t === 'admin') loadData();
-    }
-    
-    function closeModals() { document.querySelectorAll('.modal').forEach(x => {if(x.id!=='login-screen') x.classList.remove('show')}); }
-    const toBase64 = f => !f ? null : new Promise((r,j)=>{const d=new FileReader();d.readAsDataURL(f);d.onload=()=>r(d.result);});
-  </script>
+  <script src="config.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
