@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SamLaser CRM v5.0</title>
+  <title>SamLaser CRM v5.1</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root { --bg: #1c1c1e; --card: #2c2c2e; --text: #fff; --hint: #8e8e93; --blue: #0a84ff; --green: #30d158; --orange: #ff9f0a; --red: #ff453a; }
@@ -24,6 +24,20 @@
     .paid { color: var(--green); }
 
     .thumb { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; background: #000; }
+
+    /* НОВЫЙ БЛОК ОШИБКИ */
+    .error-box { 
+      background: rgba(255, 69, 58, 0.15); 
+      border: 1px solid var(--red); 
+      color: var(--red); 
+      padding: 15px; 
+      border-radius: 12px; 
+      margin: 10px 0; 
+      display: none; 
+      font-size: 13px;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
     
     input, textarea, select { width: 100%; background: #3a3a3c; border: none; border-radius: 8px; color: #fff; padding: 12px; margin-bottom: 10px; outline: none; }
     button { width: 100%; padding: 14px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
@@ -71,7 +85,7 @@
 
   <div id="tab-queue" class="tab">
     <div id="loader">Загрузка...</div>
-    <div id="queue-list"></div>
+    <div id="error-log" class="error-box"></div> <div id="queue-list"></div>
   </div>
 
   <div id="tab-history" class="tab">
@@ -108,24 +122,20 @@
     <div class="modal-content">
       <h3>Управление заказом</h3>
       <div id="edit-info" style="margin-bottom:15px; font-size:13px; color:var(--hint);"></div>
-      
       <label>Статус</label>
       <select id="e-status" onchange="checkStatusReq()">
         <option>Новый</option>
         <option>В работе</option>
         <option>Отправлен</option>
       </select>
-
       <div id="finish-reqs" style="display:none; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px;">
         <label style="color:var(--green);">Для отправки обязательно:</label>
         <input type="text" id="e-tk" placeholder="№ Накладной ТК">
         <label>Фото готового изделия</label>
         <input type="file" id="e-photo" accept="image/*">
       </div>
-
       <label>Внести оплату (Добавить к сумме)</label>
       <input type="number" id="e-paid-add" placeholder="Сумма (например 5000)">
-
       <button class="btn-main" id="btn-update" onclick="updateOrder()">💾 Сохранить</button>
       <button class="btn-action" onclick="closeModals()">Закрыть</button>
     </div>
@@ -147,13 +157,34 @@
     }
 
     async function loadData() {
-      document.getElementById('loader').style.display = 'block';
+      const loader = document.getElementById('loader');
+      const errDiv = document.getElementById('error-log');
+      
+      loader.style.display = 'block';
+      errDiv.style.display = 'none'; // Скрываем прошлые ошибки
+      
       try {
         const res = await fetch(WEB_APP_URL);
-        const data = await res.json();
-        orders = data.orders;
-        renderOrders();
-      } catch(e) { alert("Ошибка загрузки"); }
+        
+        // Проверяем статус ответа (200 OK)
+        if (!res.ok) throw new Error(`Ошибка сети: ${res.status}`);
+        
+        const text = await res.text(); // Читаем как текст, чтобы проверить, пришел ли JSON
+
+        try {
+          const data = JSON.parse(text);
+          orders = data.orders;
+          renderOrders();
+        } catch (jsonErr) {
+          // Если это не JSON, показываем, что пришло (часто там HTML ошибки от Google)
+          throw new Error("Сервер вернул не данные. Возможно, ошибка доступа. Ответ: " + text.substring(0, 100) + "...");
+        }
+
+      } catch(e) { 
+        loader.style.display = 'none';
+        errDiv.style.display = 'block';
+        errDiv.innerHTML = `⚠️ <b>Не удалось загрузить данные:</b><br>${e.message}`;
+      }
     }
 
     function renderOrders() {
@@ -195,7 +226,6 @@
       });
     }
 
-    // --- ЛОГИКА КАЛЬКУЛЯТОРА ---
     function calc() {
       const w = document.getElementById('c-w').value;
       const h = document.getElementById('c-h').value;
@@ -205,21 +235,18 @@
       return p;
     }
 
-    // --- СОЗДАНИЕ ЗАКАЗА ---
     function openOrderModal() { document.getElementById('modal-new').classList.add('show'); }
     
     async function submitOrder() {
       const btn = document.getElementById('btn-submit');
       btn.innerText = "⏳ Отправка..."; btn.disabled = true;
-
       const p1 = await toBase64(document.getElementById('n-photo').files[0]);
       const p2 = await toBase64(document.getElementById('n-layout').files[0]);
-
       const data = {
         id: Math.floor(Math.random()*9000)+1000,
         title: document.getElementById('n-client').value,
         contact: document.getElementById('n-phone').value,
-        price: calc(), // Берем цену из калькулятора
+        price: calc(),
         paid: document.getElementById('n-paid').value,
         desc: document.getElementById('n-desc').value,
         sheets: document.getElementById('c-s').value,
@@ -227,14 +254,12 @@
         photoFile: p1,
         layoutFile: p2
       };
-
       await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
       closeModals();
       loadData();
       btn.innerText = "🚀 Отправить"; btn.disabled = false;
     }
 
-    // --- РЕДАКТИРОВАНИЕ ---
     function openEdit(id) {
       const o = orders.find(x => x.id == id);
       currentEditRow = o.rowIndex;
@@ -254,39 +279,24 @@
       const st = document.getElementById('e-status').value;
       const tk = document.getElementById('e-tk').value;
       const photo = await toBase64(document.getElementById('e-photo').files[0]);
-      
-      // Считаем новую оплату (старая + добавка)
       const addPaid = parseFloat(document.getElementById('e-paid-add').value) || 0;
       const o = orders.find(x => x.id == currentEditId);
       const newPaid = addPaid > 0 ? (parseFloat(o.paid || 0) + addPaid) : undefined;
 
-      // Проверка на отправку
-      if(st === 'Отправлен' && (!tk || !photo)) {
-        return alert("Для отправки нужно фото и номер ТК!");
-      }
+      if(st === 'Отправлен' && (!tk || !photo)) return alert("Для отправки нужно фото и номер ТК!");
 
       const btn = document.getElementById('btn-update');
       btn.innerText = "Сохранение..."; btn.disabled = true;
 
       await fetch(WEB_APP_URL, { 
         method: 'POST', mode: 'no-cors', 
-        body: JSON.stringify({ 
-          action: 'updateOrder', 
-          id: currentEditId, 
-          rowIndex: currentEditRow,
-          status: st, 
-          tk: tk,
-          paid: newPaid,
-          photo: photo
-        }) 
+        body: JSON.stringify({ action: 'updateOrder', id: currentEditId, rowIndex: currentEditRow, status: st, tk: tk, paid: newPaid, photo: photo }) 
       });
-
       closeModals();
-      loadData();
+      setTimeout(loadData, 2000); // Даем время Google обновить данные
       btn.innerText = "💾 Сохранить"; btn.disabled = false;
     }
 
-    // --- УТИЛИТЫ ---
     function setTab(t) {
       document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
@@ -296,7 +306,6 @@
     }
     
     function closeModals() { document.querySelectorAll('.modal').forEach(x => {if(x.id!=='login-screen') x.classList.remove('show')}); }
-    
     const toBase64 = f => !f ? null : new Promise((r,j)=>{const d=new FileReader();d.readAsDataURL(f);d.onload=()=>r(d.result);});
   </script>
 </body>
