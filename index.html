@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SamLaser CRM v6.8</title>
+  <title>SamLaser CRM v6.9</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root { 
@@ -28,12 +28,10 @@
     .input-label { font-size: 13px; color: var(--hint); margin-bottom: 6px; margin-left: 4px; display: block; }
     .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
     
-    /* СТАНДАРТНЫЙ INPUT */
     .custom-input { width: 100%; background: var(--input-bg); border: 1px solid transparent; border-radius: 12px; color: #fff; padding: 14px; font-size: 16px; outline: none; transition: 0.2s; text-align: center; font-weight: 600; margin-bottom: 10px; }
     .custom-input:focus { border-color: var(--blue); background: #3a3a3c; }
     .custom-input::placeholder { color: #5c5c5e; }
 
-    /* КОМПАКТНЫЙ INPUT (ДЛЯ МОДАЛОК) */
     .compact-input { padding: 12px; font-size: 14px; margin-bottom: 8px; }
 
     .stepper { display: flex; align-items: center; background: var(--input-bg); border-radius: 12px; padding: 4px; }
@@ -55,7 +53,6 @@
 
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; padding: 20px; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
     .modal.show { display: flex; }
-    /* УМЕНЬШИЛ ОТСТУПЫ В МОДАЛКЕ */
     .modal-content { background: var(--card); width: 100%; max-width: 400px; padding: 20px; border-radius: 20px; border: 1px solid #333; max-height: 95vh; overflow-y: auto; }
     .modal h3 { text-align: center; margin-bottom: 15px; color: var(--blue); font-size: 18px; }
 
@@ -246,6 +243,25 @@
       }
     }
 
+    // --- НОВАЯ ФУНКЦИЯ: ЛЕЧИМ ССЫЛКИ ГУГЛ ДИСКА ---
+    function getDriveDirectLink(url) {
+      if (!url) return '';
+      // Пытаемся достать ID из ссылки вида /file/d/ID/view
+      let id = '';
+      const parts = url.split('/d/');
+      if (parts[1]) {
+         id = parts[1].split('/')[0];
+      }
+      // Если формат другой, ищем id=...
+      if (!id) {
+         const match = url.match(/id=([a-zA-Z0-9_-]{25,})/);
+         if (match) id = match[1];
+      }
+      // Если ID найден, делаем ссылку на скачивание/просмотр картинки
+      if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
+      return url; // Если не получилось, возвращаем как было
+    }
+
     function stepSheets(val) {
       sheetsValue = parseFloat((sheetsValue + val).toFixed(1));
       if (sheetsValue < 0) sheetsValue = 0;
@@ -262,7 +278,7 @@
       const basePrice = 1500;
       const total = matPrice + sheetPrice + basePrice;
       
-      // ИСПРАВЛЕНИЕ: Екатерина теперь видит цены!
+      // Екатерина видит цены (не скрываем для нее)
       const hidePrice = (currentUser === 'Михаил' || currentUser === 'Рома' || currentUser === 'Дима') && !globalShowPrice;
       
       const display = document.getElementById('price-display');
@@ -349,14 +365,16 @@
 
       orders.forEach(o => {
         const isDone = o.status === 'Отправлен';
-        // ИСПРАВЛЕНИЕ: Екатерина видит цены
         const hidePrice = (currentUser === 'Михаил' || currentUser === 'Рома' || currentUser === 'Дима') && !globalShowPrice;
         
         const priceDisplay = hidePrice ? '***' : o.price;
         const debt = (o.price - (o.paid || 0));
         let debtText = hidePrice ? '---' : (debt > 0 ? `Долг: ${debt} ₽` : '✅ Оплачено');
         const color = debt > 0 ? 'debt' : 'paid';
-        const photoHtml = o.photo ? `<img src="${o.photo}" class="thumb" onclick="window.open('${o.photo}')">` : '';
+        
+        // ВОТ ЗДЕСЬ ИСПОЛЬЗУЕМ НОВУЮ ФУНКЦИЮ ДЛЯ КАРТИНКИ
+        const photoUrl = getDriveDirectLink(o.photo);
+        const photoHtml = photoUrl ? `<img src="${photoUrl}" class="thumb" onclick="window.open('${o.photo}')">` : '';
 
         const card = document.createElement('div');
         card.className = 'card';
