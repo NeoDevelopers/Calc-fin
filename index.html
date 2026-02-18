@@ -3,89 +3,140 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SamLaser CRM v5.1</title>
+  <title>SamLaser CRM v6.0</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    :root { --bg: #1c1c1e; --card: #2c2c2e; --text: #fff; --hint: #8e8e93; --blue: #0a84ff; --green: #30d158; --orange: #ff9f0a; --red: #ff453a; }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 10px; padding-bottom: 90px; }
+    :root { 
+      --bg: #000000; 
+      --card: #1c1c1e; 
+      --input-bg: #2c2c2e;
+      --text: #ffffff; 
+      --hint: #8e8e93; 
+      --blue: #0a84ff; 
+      --green: #30d158; 
+      --red: #ff453a; 
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg); color: var(--text); padding: 12px; padding-bottom: 90px; }
     
-    .nav { display: flex; gap: 5px; margin-bottom: 15px; position: sticky; top: 0; background: var(--bg); z-index: 100; padding: 5px 0; }
-    .nav-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: #3a3a3c; color: var(--hint); font-size: 12px; font-weight: 600; }
-    .nav-btn.active { background: var(--blue); color: #fff; }
+    /* НАВИГАЦИЯ */
+    .nav { display: flex; gap: 8px; margin-bottom: 20px; background: rgba(28,28,30,0.8); backdrop-filter: blur(10px); padding: 6px; border-radius: 16px; position: sticky; top: 10px; z-index: 100; border: 1px solid #333; }
+    .nav-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: transparent; color: var(--hint); font-size: 13px; font-weight: 600; transition: 0.2s; }
+    .nav-btn.active { background: var(--blue); color: #fff; shadow: 0 4px 10px rgba(10, 132, 255, 0.3); }
 
-    .card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 12px; position: relative; }
+    /* КАРТОЧКИ */
+    .card { background: var(--card); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; position: relative; border: 1px solid #333; }
+    
+    /* КАЛЬКУЛЯТОР UI */
+    .calc-display { text-align: center; margin-bottom: 20px; }
+    .price-big { font-size: 42px; font-weight: 800; color: var(--blue); letter-spacing: -1px; transition: 0.2s; }
+    .price-details { font-size: 12px; color: var(--hint); margin-top: 5px; }
+
+    .input-label { font-size: 13px; color: var(--hint); margin-bottom: 6px; margin-left: 4px; display: block; }
+    .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+    
+    .custom-input { 
+      width: 100%; background: var(--input-bg); border: 1px solid transparent; border-radius: 12px; 
+      color: #fff; padding: 14px; font-size: 18px; outline: none; transition: 0.2s; text-align: center; font-weight: 600;
+    }
+    .custom-input:focus { border-color: var(--blue); background: #3a3a3c; }
+
+    /* СТЕППЕР (КНОПКИ +/-) */
+    .stepper { display: flex; align-items: center; background: var(--input-bg); border-radius: 12px; padding: 4px; }
+    .step-btn { width: 50px; height: 44px; background: #3a3a3c; border: none; border-radius: 8px; color: var(--blue); font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .step-btn:active { background: var(--blue); color: white; }
+    .step-val { flex: 1; text-align: center; font-size: 18px; font-weight: 600; }
+
+    /* КНОПКИ */
+    button.main-btn { 
+      width: 100%; padding: 16px; border-radius: 14px; border: none; 
+      font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; 
+      background: var(--blue); color: white; box-shadow: 0 4px 15px rgba(10, 132, 255, 0.3);
+      transition: transform 0.1s;
+    }
+    button.main-btn:active { transform: scale(0.98); }
+    
+    .btn-action { background: #3a3a3c; color: var(--blue); width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: 600; margin-top: 8px; }
+
+    /* ОШИБКИ */
+    .error-box { background: rgba(255, 69, 58, 0.15); border: 1px solid var(--red); color: var(--red); padding: 15px; border-radius: 12px; margin: 10px 0; display: none; font-size: 13px; }
+
+    /* СПИСКИ */
     .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
     .status-badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,0.1); }
-    
     .info-row { font-size: 13px; color: var(--hint); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-    .money-row { display: flex; justify-content: space-between; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; margin-top: 8px; font-size: 13px; }
-    .debt { color: var(--red); }
-    .paid { color: var(--green); }
-
+    .money-row { display: flex; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 14px; font-weight: 500; }
+    .debt { color: var(--red); } .paid { color: var(--green); }
     .thumb { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; background: #000; }
 
-    /* НОВЫЙ БЛОК ОШИБКИ */
-    .error-box { 
-      background: rgba(255, 69, 58, 0.15); 
-      border: 1px solid var(--red); 
-      color: var(--red); 
-      padding: 15px; 
-      border-radius: 12px; 
-      margin: 10px 0; 
-      display: none; 
-      font-size: 13px;
-      line-height: 1.4;
-      word-wrap: break-word;
-    }
-    
-    input, textarea, select { width: 100%; background: #3a3a3c; border: none; border-radius: 8px; color: #fff; padding: 12px; margin-bottom: 10px; outline: none; }
-    button { width: 100%; padding: 14px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
-    .btn-main { background: var(--blue); color: #fff; }
-    .btn-action { background: #3a3a3c; color: var(--blue); margin-top: 10px; }
-    
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; padding: 20px; align-items: center; justify-content: center; }
+    /* МОДАЛКИ */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; padding: 20px; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
     .modal.show { display: flex; }
-    .modal-content { background: var(--card); width: 100%; max-width: 400px; padding: 20px; border-radius: 15px; max-height: 90vh; overflow-y: auto; }
-    
-    .tab { display: none; }
+    .modal-content { background: var(--card); width: 100%; max-width: 400px; padding: 24px; border-radius: 20px; border: 1px solid #333; max-height: 90vh; overflow-y: auto; }
+    .modal h3 { text-align: center; margin-bottom: 20px; color: var(--blue); }
+
+    .tab { display: none; animation: fadeIn 0.3s ease; }
     .tab.active { display: block; }
-    #loader { text-align: center; padding: 20px; color: var(--hint); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    
+    input[type="file"] { padding: 10px; background: #2c2c2e; width: 100%; border-radius: 8px; margin-bottom: 10px; color: var(--hint); font-size: 12px; }
   </style>
 </head>
 <body>
 
   <div class="nav">
-    <button class="nav-btn active" onclick="setTab('calc')">🧮 Кальк</button>
-    <button class="nav-btn" onclick="setTab('queue')">📋 Очередь</button>
-    <button class="nav-btn" onclick="setTab('history')">🗄 Архив</button>
+    <button class="nav-btn active" onclick="setTab('calc')">Калькулятор</button>
+    <button class="nav-btn" onclick="setTab('queue')">Очередь</button>
+    <button class="nav-btn" onclick="setTab('history')">Архив</button>
     <button class="nav-btn" onclick="setTab('admin')" id="admin-nav" style="display:none;">⚙️</button>
   </div>
 
   <div id="login-screen" class="modal show" style="z-index: 2000;">
     <div class="modal-content" style="text-align: center;">
-      <h2>Кто вы?</h2>
-      <button class="btn-action" onclick="login('Рома')">Рома (Цех)</button>
-      <button class="btn-action" onclick="login('Михаил')">Михаил (Менеджер)</button>
-      <button class="btn-main" onclick="login('Владелец')">Владелец</button>
+      <h2 style="margin-bottom: 20px;">Вход в систему</h2>
+      <button class="btn-action" onclick="login('Рома')">🔨 Рома (Цех)</button>
+      <button class="btn-action" onclick="login('Михаил')">👔 Михаил (Менеджер)</button>
+      <button class="main-btn" onclick="login('Владелец')">👑 Владелец</button>
     </div>
   </div>
 
   <div id="tab-calc" class="tab active">
-    <div class="card" style="text-align: center;">
-      <h1 id="price-display" style="color:var(--blue); margin: 20px 0;">0 ₽</h1>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <input type="number" id="c-w" placeholder="Ширина" oninput="calc()">
-        <input type="number" id="c-h" placeholder="Высота" oninput="calc()">
+    <div class="card">
+      <div class="calc-display">
+        <div class="input-label">Итоговая стоимость</div>
+        <div id="price-display" class="price-big">0 ₽</div>
+        <div id="price-desc" class="price-details">Материал + Резка + Обработка</div>
       </div>
-      <input type="number" id="c-s" placeholder="Листов" value="1.5" oninput="calc()">
-      <button class="btn-main" onclick="openOrderModal()">📝 Оформить заказ</button>
+
+      <div class="input-row">
+        <div>
+          <label class="input-label">Ширина (см)</label>
+          <input type="number" id="c-w" class="custom-input" placeholder="100" value="100" inputmode="numeric" oninput="calc()">
+        </div>
+        <div>
+          <label class="input-label">Высота (см)</label>
+          <input type="number" id="c-h" class="custom-input" placeholder="50" value="50" inputmode="numeric" oninput="calc()">
+        </div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label class="input-label">Листов акрила (шт)</label>
+        <div class="stepper">
+          <button class="step-btn" onclick="stepSheets(-0.5)">−</button>
+          <input type="number" id="c-s" class="custom-input" style="border:none; background:transparent;" value="1.5" readonly>
+          <button class="step-btn" onclick="stepSheets(0.5)">+</button>
+        </div>
+      </div>
+
+      <button class="main-btn" onclick="openOrderModal()">✨ Оформить заказ</button>
     </div>
   </div>
 
   <div id="tab-queue" class="tab">
-    <div id="loader">Загрузка...</div>
-    <div id="error-log" class="error-box"></div> <div id="queue-list"></div>
+    <div id="loader" style="text-align:center; padding:20px; color:var(--hint);">Загрузка...</div>
+    <div id="error-log" class="error-box"></div>
+    <div id="queue-list"></div>
   </div>
 
   <div id="tab-history" class="tab">
@@ -95,9 +146,9 @@
   <div id="tab-admin" class="tab">
     <div class="card">
       <h3>Настройки</h3>
-      <div style="display:flex; justify-content:space-between; margin-top:15px;">
+      <div style="display:flex; justify-content:space-between; margin-top:15px; align-items:center;">
         <span>Скрывать цены менеджерам</span>
-        <input type="checkbox" id="sett-price" style="width:20px;" onchange="saveSettings()">
+        <input type="checkbox" id="sett-price" style="width:20px; height:20px;" onchange="saveSettings()">
       </div>
     </div>
   </div>
@@ -105,38 +156,53 @@
   <div class="modal" id="modal-new">
     <div class="modal-content">
       <h3>Новый заказ</h3>
-      <input type="text" id="n-client" placeholder="Имя клиента">
-      <input type="text" id="n-phone" placeholder="Телефон">
-      <input type="number" id="n-paid" placeholder="Предоплата (если есть)">
-      <label style="font-size:12px; color:var(--hint);">Фото макета / скриншот</label>
-      <input type="file" id="n-photo" accept="image/*">
-      <label style="font-size:12px; color:var(--hint);">Файл макета</label>
-      <input type="file" id="n-layout">
-      <textarea id="n-desc" placeholder="Комментарий..."></textarea>
-      <button class="btn-main" id="btn-submit" onclick="submitOrder()">🚀 Отправить</button>
+      <label class="input-label">Имя клиента</label>
+      <input type="text" id="n-client" class="custom-input" style="text-align:left; font-size:16px;">
+      
+      <label class="input-label">Телефон</label>
+      <input type="text" id="n-phone" class="custom-input" style="text-align:left; font-size:16px;">
+      
+      <label class="input-label">Предоплата (₽)</label>
+      <input type="number" id="n-paid" class="custom-input" inputmode="numeric">
+      
+      <div style="margin-top:15px;">
+        <label class="input-label">Фото / Скриншот</label>
+        <input type="file" id="n-photo" accept="image/*">
+        
+        <label class="input-label">Файл макета</label>
+        <input type="file" id="n-layout">
+      </div>
+
+      <textarea id="n-desc" class="custom-input" style="text-align:left; font-size:14px; min-height:80px;" placeholder="Комментарий..."></textarea>
+      
+      <button class="main-btn" id="btn-submit" onclick="submitOrder()">🚀 Отправить</button>
       <button class="btn-action" onclick="closeModals()">Отмена</button>
     </div>
   </div>
 
   <div class="modal" id="modal-edit">
     <div class="modal-content">
-      <h3>Управление заказом</h3>
-      <div id="edit-info" style="margin-bottom:15px; font-size:13px; color:var(--hint);"></div>
-      <label>Статус</label>
-      <select id="e-status" onchange="checkStatusReq()">
+      <h3>Управление</h3>
+      <div id="edit-info" style="margin-bottom:15px; font-size:13px; color:var(--hint); text-align:center;"></div>
+      
+      <label class="input-label">Статус заказа</label>
+      <select id="e-status" class="custom-input" style="text-align:left;" onchange="checkStatusReq()">
         <option>Новый</option>
         <option>В работе</option>
         <option>Отправлен</option>
       </select>
-      <div id="finish-reqs" style="display:none; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px;">
-        <label style="color:var(--green);">Для отправки обязательно:</label>
-        <input type="text" id="e-tk" placeholder="№ Накладной ТК">
-        <label>Фото готового изделия</label>
+
+      <div id="finish-reqs" style="display:none; background:rgba(48, 209, 88, 0.1); padding:15px; border-radius:12px; margin: 10px 0; border: 1px solid var(--green);">
+        <label class="input-label" style="color:var(--green);">Фото готового изделия (Обязательно)</label>
         <input type="file" id="e-photo" accept="image/*">
+        <label class="input-label" style="color:var(--green);">Номер накладной ТК</label>
+        <input type="text" id="e-tk" class="custom-input" style="text-align:left;">
       </div>
-      <label>Внести оплату (Добавить к сумме)</label>
-      <input type="number" id="e-paid-add" placeholder="Сумма (например 5000)">
-      <button class="btn-main" id="btn-update" onclick="updateOrder()">💾 Сохранить</button>
+
+      <label class="input-label">Внести доплату (₽)</label>
+      <input type="number" id="e-paid-add" class="custom-input" placeholder="0">
+
+      <button class="main-btn" id="btn-update" onclick="updateOrder()">💾 Сохранить</button>
       <button class="btn-action" onclick="closeModals()">Закрыть</button>
     </div>
   </div>
@@ -147,7 +213,47 @@
     let orders = [];
     let currentEditId = null;
     let currentEditRow = null;
+    let sheetsValue = 1.5;
 
+    // --- ЛОГИКА КАЛЬКУЛЯТОРА ---
+    function stepSheets(val) {
+      sheetsValue = parseFloat((sheetsValue + val).toFixed(1));
+      if (sheetsValue < 0) sheetsValue = 0;
+      document.getElementById('c-s').value = sheetsValue;
+      calc();
+    }
+
+    function calc() {
+      const w = parseFloat(document.getElementById('c-w').value) || 0;
+      const h = parseFloat(document.getElementById('c-h').value) || 0;
+      const s = sheetsValue;
+      
+      // Формула: Площадь*Коэф + Акрил + База
+      const matPrice = Math.round(w * h / 10000 * 1133);
+      const sheetPrice = Math.round(s * 600);
+      const basePrice = 1500;
+      
+      const total = matPrice + sheetPrice + basePrice;
+      
+      // Анимация цены
+      const display = document.getElementById('price-display');
+      display.innerText = total.toLocaleString() + " ₽";
+      display.style.transform = "scale(1.1)";
+      setTimeout(() => display.style.transform = "scale(1)", 150);
+      
+      // Детализация
+      document.getElementById('price-desc').innerText = 
+        `Материал: ${matPrice} ₽ | Листы: ${sheetPrice} ₽ | База: ${basePrice} ₽`;
+
+      return total;
+    }
+
+    // Инициализация при запуске
+    window.onload = () => {
+      calc(); // Считаем сразу дефолтные значения
+    };
+
+    // --- ЛОГИКА CRM ---
     function login(user) {
       currentUser = user;
       document.getElementById('login-screen').classList.remove('show');
@@ -159,31 +265,21 @@
     async function loadData() {
       const loader = document.getElementById('loader');
       const errDiv = document.getElementById('error-log');
-      
-      loader.style.display = 'block';
-      errDiv.style.display = 'none'; // Скрываем прошлые ошибки
+      loader.style.display = 'block'; errDiv.style.display = 'none';
       
       try {
         const res = await fetch(WEB_APP_URL);
-        
-        // Проверяем статус ответа (200 OK)
-        if (!res.ok) throw new Error(`Ошибка сети: ${res.status}`);
-        
-        const text = await res.text(); // Читаем как текст, чтобы проверить, пришел ли JSON
-
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
         try {
           const data = JSON.parse(text);
           orders = data.orders;
           renderOrders();
-        } catch (jsonErr) {
-          // Если это не JSON, показываем, что пришло (часто там HTML ошибки от Google)
-          throw new Error("Сервер вернул не данные. Возможно, ошибка доступа. Ответ: " + text.substring(0, 100) + "...");
-        }
-
+        } catch (e) { throw new Error("Ошибка данных. Возможно, неверный формат таблицы."); }
       } catch(e) { 
         loader.style.display = 'none';
         errDiv.style.display = 'block';
-        errDiv.innerHTML = `⚠️ <b>Не удалось загрузить данные:</b><br>${e.message}`;
+        errDiv.innerHTML = `⚠️ Ошибка: ${e.message}`;
       }
     }
 
@@ -197,7 +293,7 @@
         const isDone = o.status === 'Отправлен';
         const debt = (o.price - (o.paid || 0));
         const color = debt > 0 ? 'debt' : 'paid';
-        const debtText = debt > 0 ? `Долг: ${debt}` : 'Оплачено';
+        const debtText = debt > 0 ? `Долг: ${debt} ₽` : '✅ Оплачено';
         
         const photoHtml = o.photo ? `<img src="${o.photo}" class="thumb" onclick="window.open('${o.photo}')">` : '';
 
@@ -207,32 +303,22 @@
           <div class="card-header">
             <div>
                <b>№${o.id} ${o.client}</b>
-               <div style="font-size:11px; color:var(--blue);">${o.manager || 'Неизвестно'}</div>
+               <div style="font-size:11px; color:var(--blue); margin-top:2px;">${o.manager || ''}</div>
             </div>
             ${photoHtml}
           </div>
           <div class="info-row">📞 ${o.phone}</div>
           <div class="info-row">📅 ${o.date.split(',')[0]} <span class="status-badge">${o.status}</span></div>
-          ${o.tk ? `<div class="info-row">🚚 ТК: ${o.tk}</div>` : ''}
+          ${o.tk ? `<div class="info-row" style="color:var(--green)">🚚 ТК: ${o.tk}</div>` : ''}
           
           <div class="money-row">
-             <span>💰 ${o.price} ₽</span>
+             <span style="color:white; font-size:16px;">${o.price} ₽</span>
              <span class="${color}">${debtText}</span>
           </div>
-          <button class="btn-action" style="padding:8px; margin-top:10px;" onclick="openEdit(${o.id})">Управление</button>
+          <button class="btn-action" onclick="openEdit(${o.id})">Управление</button>
         `;
-
         if(isDone) h.appendChild(card); else q.appendChild(card);
       });
-    }
-
-    function calc() {
-      const w = document.getElementById('c-w').value;
-      const h = document.getElementById('c-h').value;
-      const s = document.getElementById('c-s').value;
-      const p = Math.round((w * h / 10000 * 1133) + (s * 600) + 1500);
-      document.getElementById('price-display').innerText = p.toLocaleString() + " ₽";
-      return p;
     }
 
     function openOrderModal() { document.getElementById('modal-new').classList.add('show'); }
@@ -249,21 +335,18 @@
         price: calc(),
         paid: document.getElementById('n-paid').value,
         desc: document.getElementById('n-desc').value,
-        sheets: document.getElementById('c-s').value,
+        sheets: sheetsValue,
         manager: currentUser,
-        photoFile: p1,
-        layoutFile: p2
+        photoFile: p1, layoutFile: p2
       };
       await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-      closeModals();
-      loadData();
+      closeModals(); loadData();
       btn.innerText = "🚀 Отправить"; btn.disabled = false;
     }
 
     function openEdit(id) {
       const o = orders.find(x => x.id == id);
-      currentEditRow = o.rowIndex;
-      currentEditId = id;
+      currentEditRow = o.rowIndex; currentEditId = id;
       document.getElementById('edit-info').innerText = `Заказ №${id} | ${o.client}`;
       document.getElementById('e-status').value = o.status;
       document.getElementById('modal-edit').classList.add('show');
@@ -283,7 +366,7 @@
       const o = orders.find(x => x.id == currentEditId);
       const newPaid = addPaid > 0 ? (parseFloat(o.paid || 0) + addPaid) : undefined;
 
-      if(st === 'Отправлен' && (!tk || !photo)) return alert("Для отправки нужно фото и номер ТК!");
+      if(st === 'Отправлен' && (!tk || !photo)) return alert("📸 Для завершения нужно фото и номер ТК!");
 
       const btn = document.getElementById('btn-update');
       btn.innerText = "Сохранение..."; btn.disabled = true;
@@ -292,8 +375,7 @@
         method: 'POST', mode: 'no-cors', 
         body: JSON.stringify({ action: 'updateOrder', id: currentEditId, rowIndex: currentEditRow, status: st, tk: tk, paid: newPaid, photo: photo }) 
       });
-      closeModals();
-      setTimeout(loadData, 2000); // Даем время Google обновить данные
+      closeModals(); setTimeout(loadData, 2000);
       btn.innerText = "💾 Сохранить"; btn.disabled = false;
     }
 
