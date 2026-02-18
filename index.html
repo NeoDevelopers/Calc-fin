@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SamLaser CRM v6.5</title>
+  <title>SamLaser CRM v6.6</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root { 
@@ -59,7 +59,6 @@
     
     .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
     
-    /* СТИЛИ ДЛЯ ФАЙЛОВ */
     .file-row { display: flex; gap: 10px; margin-bottom: 10px; }
     .file-custom { flex: 1; background: #2c2c2e; padding: 15px; border-radius: 12px; text-align: center; color: var(--hint); font-size: 13px; border: 1px dashed #444; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 5px; }
     .file-custom.active { border-color: var(--blue); color: #fff; background: rgba(10, 132, 255, 0.1); border-style: solid; }
@@ -248,6 +247,7 @@
       calc();
     }
 
+    // ОБНОВЛЕННАЯ ЛОГИКА КАЛЬКУЛЯТОРА С ПРОВЕРКОЙ ПРАВ
     function calc() {
       const w = parseFloat(document.getElementById('c-w').value) || 0;
       const h = parseFloat(document.getElementById('c-h').value) || 0;
@@ -257,13 +257,27 @@
       const basePrice = 1500;
       const total = matPrice + sheetPrice + basePrice;
       
+      // ПРОВЕРКА: Скрывать ли цену?
+      const hidePrice = (currentUser === 'Михаил' || currentUser === 'Рома' || currentUser === 'Дима') && !globalShowPrice;
+      
       const display = document.getElementById('price-display');
-      display.innerText = total.toLocaleString() + " ₽";
+      const desc = document.getElementById('price-desc');
+      
+      if (hidePrice) {
+          display.innerText = "*** ₽";
+          desc.innerText = "Расчет скрыт настройками";
+      } else {
+          display.innerText = total.toLocaleString() + " ₽";
+          desc.innerText = `Материал: ${matPrice} ₽ | Листы: ${sheetPrice} ₽ | База: ${basePrice} ₽`;
+      }
+      
       display.style.transform = "scale(1.1)";
       setTimeout(() => display.style.transform = "scale(1)", 150);
-      document.getElementById('price-desc').innerText = `Материал: ${matPrice} ₽ | Листы: ${sheetPrice} ₽ | База: ${basePrice} ₽`;
+      
       return total;
     }
+    
+    // Запуск при загрузке
     window.onload = () => { calc(); };
 
     function login(user) {
@@ -277,6 +291,8 @@
       } else {
         loadData(); 
       }
+      // Пересчитываем калькулятор сразу после входа, чтобы применились права
+      setTimeout(calc, 100);
     }
 
     function logout() {
@@ -300,8 +316,10 @@
           orders = data.orders;
           globalShowPrice = data.settings.showPrice;
           document.getElementById('sett-price').checked = !globalShowPrice; 
+          
           renderOrders();
           renderStats();
+          calc(); // Обновляем калькулятор с учетом загруженных настроек
         } catch (e) { throw new Error("Ошибка данных."); }
       } catch(e) { 
         loader.style.display = 'none';
@@ -318,6 +336,7 @@
       });
       globalShowPrice = !hide;
       renderOrders();
+      calc(); // Сразу скрываем/показываем в калькуляторе
     }
 
     function renderOrders() {
