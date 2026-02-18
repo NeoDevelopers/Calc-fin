@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CRM SoftMastera v2.2</title>
+  <title>CRM SoftMastera v3.0</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -11,35 +11,36 @@
       --blue: #0a84ff; --green: #30d158; --red: #ff453a;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 15px; padding-bottom: 90px; overflow-x: hidden; }
+    body { background: var(--bg); color: var(--text); padding: 15px; padding-bottom: 90px; }
     
-    .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px; }
-    .user-tag { font-size: 13px; color: var(--hint); }
-    .logout-btn { background: rgba(255, 255, 255, 0.1); color: var(--text); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; border: none; }
+    .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .logout-btn { background: rgba(255, 255, 255, 0.1); color: var(--text); padding: 6px 12px; border-radius: 8px; font-size: 12px; border: none; }
 
     .card { background: var(--card); border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-    h1, h3 { text-align: center; color: var(--blue); margin-bottom: 15px; font-weight: bold; }
+    h3 { text-align: center; color: var(--blue); margin-bottom: 15px; }
     
     input, textarea { 
       width: 100%; background: #3a3a3c; border: 1px solid transparent; border-radius: 10px; 
       color: #fff; padding: 12px; margin-bottom: 12px; font-size: 16px; outline: none;
     }
+    input[type="file"] { padding: 8px; font-size: 13px; background: #2c2c2e; border: 1px dashed var(--hint); }
     label { color: var(--hint); font-size: 13px; margin-bottom: 6px; display: block; }
     
     button { border: none; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 600; padding: 14px; transition: 0.2s; }
-    button:active { transform: scale(0.98); opacity: 0.8; }
+    button:active { transform: scale(0.98); }
 
     #toast {
       position: fixed; bottom: -100px; left: 20px; right: 20px;
       background: var(--green); color: white; padding: 16px;
-      border-radius: 12px; text-align: center; font-weight: 600;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 9999;
-      transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border-radius: 12px; text-align: center; z-index: 9999; transition: 0.5s;
     }
     #toast.show { bottom: 30px; }
 
+    .price-big { font-size: 32px; font-weight: 800; text-align: center; margin: 20px 0; transition: 0.3s; }
+    .price-big.hidden { filter: blur(8px); opacity: 0.3; pointer-events: none; }
+
     .login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-    .role-btn { width: 280px; background: #3a3a3c; color: var(--blue); margin-bottom: 12px; text-align: left; display: flex; justify-content: space-between; align-items: center; padding: 18px; border-radius: 12px; }
+    .role-btn { width: 280px; background: #3a3a3c; color: var(--blue); margin-bottom: 12px; padding: 18px; border-radius: 12px; text-align: left; display: flex; justify-content: space-between; }
 
     .nav { display: flex; gap: 6px; margin-bottom: 20px; background: #3a3a3c; padding: 4px; border-radius: 12px; }
     .nav-btn { flex: 1; padding: 10px; background: transparent; color: var(--hint); border-radius: 8px; font-size: 13px; }
@@ -47,19 +48,19 @@
     .tab { display: none; }
     .tab.active { display: block; }
 
-    .price-big { font-size: 32px; font-weight: 800; color: #fff; text-align: center; margin: 20px 0; }
-    
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
     .modal.show { display: flex; }
-    .modal-content { background: var(--card); width: 100%; max-width: 450px; padding: 24px; border-radius: 18px; position: relative; }
+    .modal-content { background: var(--card); width: 100%; max-width: 450px; padding: 24px; border-radius: 18px; }
+
+    .toggle-box { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #3a3a3c; }
   </style>
 </head>
 <body>
 
-  <div id="toast">✅ Заказ успешно отправлен!</div>
+  <div id="toast">✅ Заказ и файлы отправлены!</div>
 
   <div class="login-screen" id="loginScreen">
-    <h1 style="margin-bottom: 30px;">🔐 CRM Вход</h1>
+    <h1 style="margin-bottom: 30px;">🔐 CRM SoftMastera</h1>
     <button class="role-btn" onclick="login('roma', 'Рома (Цех)')">Рома (Цех) <span>2222</span></button>
     <button class="role-btn" onclick="login('mikhail', 'Михаил (Мен.)')">Михаил (Менеджер) <span>1234</span></button>
     <button class="role-btn" onclick="login('owner', 'Владелец')">Владелец <span>9999</span></button>
@@ -68,12 +69,13 @@
   <div id="app" style="display:none;">
     <div class="app-header">
       <span class="user-tag" id="userDisplay">Вы: —</span>
-      <button class="logout-btn" onclick="logout()">🚪 Выйти</button>
+      <button class="logout-btn" onclick="location.reload()">🚪 Выйти</button>
     </div>
 
-    <div class="nav" id="navBar">
+    <div class="nav">
       <button class="nav-btn active" onclick="setTab('calc')" id="btn-calc">🧮 Калькулятор</button>
       <button class="nav-btn" onclick="setTab('queue')" id="btn-queue">📋 Очередь</button>
+      <button class="nav-btn" onclick="setTab('admin')" id="btn-admin" style="display:none;">⚙️ Админ</button>
     </div>
 
     <div class="tab active" id="tab-calc">
@@ -82,65 +84,103 @@
         <label>Ширина (см)</label><input type="number" id="c-width" value="100">
         <label>Высота (см)</label><input type="number" id="c-height" value="50">
         <label>Листов акрила</label><input type="number" id="c-sheets" value="1.5" step="0.1">
-        <div class="price-big" id="c-result">0 ₽</div>
+        
+        <div class="price-big" id="price-wrapper">
+          <span id="c-result">0 ₽</span>
+        </div>
+        
         <button onclick="openOrder()" style="width:100%; background:var(--green); color:white;">📝 Оформить заказ</button>
       </div>
     </div>
 
     <div class="tab" id="tab-queue">
-      <div class="card" style="text-align:center; padding:40px; color:var(--hint);">
-        <div style="font-size: 40px; margin-bottom: 10px;">📋</div>
-        Список заказов пуст.
+      <div class="card" style="text-align:center; padding:30px; color:var(--hint);">Список заказов пуст.</div>
+    </div>
+
+    <div class="tab" id="tab-admin">
+      <div class="card">
+        <h3>Настройки CRM</h3>
+        <div class="toggle-box">
+          <span>Отображать цену менеджерам</span>
+          <input type="checkbox" id="sett-price" style="width: 40px;" onchange="updateSettings()">
+        </div>
       </div>
     </div>
   </div>
 
   <div class="modal" id="orderModal">
     <div class="modal-content">
-      <h2 style="color: var(--blue); margin-bottom: 20px;">Новый заказ</h2>
-      <input type="text" id="ord-title" placeholder="Название заказа (обязательно)">
-      <input type="text" id="ord-contact" placeholder="Телефон клиента">
-      <textarea id="ord-desc" rows="3" placeholder="Комментарий..."></textarea>
-      <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: bold;">
-        <span>Итого:</span><span id="modal-price" style="color: var(--green);">0 ₽</span>
-      </div>
-      <button onclick="submitOrder()" id="subBtn" style="width:100%; background:var(--green); color:white;">🚀 Отправить</button>
+      <h2 style="color: var(--blue); margin-bottom: 20px;">Оформление</h2>
+      
+      <input type="text" id="ord-title" placeholder="Имя клиента или заказ">
+      <input type="text" id="ord-contact" placeholder="Телефон / Контакт">
+      
+      <label>📸 Фотография / Скриншот</label>
+      <input type="file" id="file-photo" accept="image/*">
+      
+      <label>📂 Файл макета</label>
+      <input type="file" id="file-layout">
+
+      <textarea id="ord-desc" rows="2" placeholder="Комментарий..."></textarea>
+      
+      <button onclick="submitOrder()" id="subBtn" style="width:100%; background:var(--green); color:white;">🚀 В производство</button>
       <button onclick="closeModal()" style="width:100%; background:transparent; color:var(--hint); margin-top:10px;">Отмена</button>
     </div>
   </div>
 
   <script>
-    // ПЁТР, ТУТ ТВОЯ НОВАЯ ПРАВИЛЬНАЯ ССЫЛКА:
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxyfKEG2iVZBcc9ZTx0bLud8uQ2kUAADyJEAJrpODfC9wSRCnSAqNgHuP-F1CcQzpZXrw/exec";
     let currentPrice = 0;
+    let currentUser = '';
+    let showPriceSetting = true;
 
-    function showToast() {
-      const t = document.getElementById('toast');
-      t.classList.add('show');
-      setTimeout(() => { t.classList.remove('show'); location.reload(); }, 2500);
-    }
-
-    function login(role, name) {
+    async function login(role, name) {
+      currentUser = role;
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('app').style.display = 'block';
       document.getElementById('userDisplay').innerText = "Вы: " + name;
+
+      if(role === 'owner') document.getElementById('btn-admin').style.display = 'block';
       if(role === 'roma') {
           setTab('queue');
           document.getElementById('btn-calc').style.display = 'none';
-      } else {
-          document.getElementById('btn-calc').style.display = 'block';
-          setTab('calc');
       }
+
+      // Подгружаем настройки цены
+      const resp = await fetch(WEB_APP_URL);
+      const settings = await resp.json();
+      showPriceSetting = settings.showPrice;
+      document.getElementById('sett-price').checked = showPriceSetting;
+      
+      applyPriceVisibility();
       calculate();
     }
 
-    function logout() { location.reload(); }
+    function applyPriceVisibility() {
+        const wrapper = document.getElementById('price-wrapper');
+        if(currentUser === 'mikhail' && !showPriceSetting) {
+            wrapper.classList.add('hidden');
+        } else {
+            wrapper.classList.remove('hidden');
+        }
+    }
+
+    async function updateSettings() {
+        const val = document.getElementById('sett-price').checked;
+        fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({ action: 'updateSettings', showPrice: val })
+        });
+        showPriceSetting = val;
+        applyPriceVisibility();
+    }
 
     function setTab(t) {
       document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
       document.getElementById('tab-'+t).classList.add('active');
-      document.getElementById('btn-'+t).classList.add('active');
+      event.target.classList.add('active');
     }
 
     function calculate() {
@@ -149,7 +189,6 @@
       const s = parseFloat(document.getElementById('c-sheets').value) || 0;
       currentPrice = Math.round((w * h / 10000 * 1133) + (s * 600) + 1500);
       document.getElementById('c-result').innerText = currentPrice.toLocaleString() + " ₽";
-      document.getElementById('modal-price').innerText = currentPrice.toLocaleString() + " ₽";
     }
 
     document.querySelectorAll('input').forEach(i => i.addEventListener('input', calculate));
@@ -157,11 +196,25 @@
     function openOrder() { document.getElementById('orderModal').classList.add('show'); }
     function closeModal() { document.getElementById('orderModal').classList.remove('show'); }
 
-    function submitOrder() {
+    const toBase64 = file => new Promise((resolve, reject) => {
+        if (!file) resolve(null);
+        else {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        }
+    });
+
+    async function submitOrder() {
       const title = document.getElementById('ord-title').value;
-      if(!title) return alert("Введите название!");
+      if(!title) return alert("Введите имя!");
+      
       const btn = document.getElementById('subBtn');
-      btn.innerText = "⏳ Отправка..."; btn.disabled = true;
+      btn.innerText = "⏳ Загрузка файлов..."; btn.disabled = true;
+
+      const photo = await toBase64(document.getElementById('file-photo').files[0]);
+      const layout = await toBase64(document.getElementById('file-layout').files[0]);
 
       const data = {
         id: Math.floor(Math.random() * 9000) + 1000,
@@ -169,14 +222,16 @@
         contact: document.getElementById('ord-contact').value,
         desc: document.getElementById('ord-desc').value,
         price: currentPrice,
-        size: document.getElementById('c-width').value + "x" + document.getElementById('c-height').value,
-        sheets: document.getElementById('c-sheets').value
+        sheets: document.getElementById('c-sheets').value,
+        photoFile: photo,
+        layoutFile: layout
       };
 
       fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) })
       .then(() => {
         closeModal();
-        showToast();
+        document.getElementById('toast').classList.add('show');
+        setTimeout(() => location.reload(), 3000);
       });
     }
   </script>
