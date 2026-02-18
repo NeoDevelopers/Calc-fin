@@ -29,7 +29,6 @@
     button { border: none; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 600; padding: 14px; transition: 0.2s; }
     button:active { transform: scale(0.98); opacity: 0.8; }
 
-    /* КРАСИВОЕ УВЕДОМЛЕНИЕ */
     #toast {
       position: fixed; bottom: -100px; left: 20px; right: 20px;
       background: var(--green); color: white; padding: 16px;
@@ -40,10 +39,7 @@
     #toast.show { bottom: 30px; }
 
     .login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-    .role-btn { 
-      width: 280px; background: #3a3a3c; color: var(--blue); margin-bottom: 12px; 
-      text-align: left; display: flex; justify-content: space-between; align-items: center; padding: 18px; border-radius: 12px;
-    }
+    .role-btn { width: 280px; background: #3a3a3c; color: var(--blue); margin-bottom: 12px; text-align: left; display: flex; justify-content: space-between; align-items: center; padding: 18px; border-radius: 12px; }
 
     .nav { display: flex; gap: 6px; margin-bottom: 20px; background: #3a3a3c; padding: 4px; border-radius: 12px; }
     .nav-btn { flex: 1; padding: 10px; background: transparent; color: var(--hint); border-radius: 8px; font-size: 13px; }
@@ -114,7 +110,8 @@
   </div>
 
   <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxyfKEG2iVZBcc9ZTx0bLud8uQ2kUAADyJEAJrpODfC9wSRCnSAqNghuP-F1CcQzpZXRw/exec";
+    // ПЁТР, ТУТ ТВОЯ НОВАЯ ПРАВИЛЬНАЯ ССЫЛКА:
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxyfKEG2iVZBcc9ZTx0bLud8uQ2kUAADyJEAJrpODfC9wSRCnSAqNgHuP-F1CcQzpZXrw/exec";
     let currentPrice = 0;
 
     function showToast() {
@@ -179,7 +176,7 @@
       fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) })
       .then(() => {
         closeModal();
-        showToast(); // ВМЕСТО ALERT
+        showToast();
       });
     }
   </script>
