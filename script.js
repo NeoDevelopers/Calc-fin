@@ -460,10 +460,12 @@ function renderOrders() {
             return div.innerHTML;
         };
 
+        // Макет всегда папкой
         const layoutBtn = order.layout ? `<a href="${order.layout}" target="_blank" class="btn-dl btn-file" title="Макет">📂</a>` : '';
         
         let photosHtml = '';
         
+        // Фото образца
         if (order.photo) {
             const thumbPhoto = getThumb(order.photo);
             if (thumbPhoto) {
@@ -473,6 +475,7 @@ function renderOrders() {
             }
         }
         
+        // Фото готового изделия
         if (order.photoDone) {
             const thumbDone = getThumb(order.photoDone);
             if (thumbDone) {
@@ -531,6 +534,10 @@ function saveStatus(newStatus) {
     const order = orders.find(o => o.id == currentStatusEditId);
     if(!order) return;
 
+    // Локальное обновление для мгновенной реакции интерфейса
+    order.status = newStatus;
+    renderOrders();
+
     closeModals();
     showToast("⏳ Обновление статуса...");
 
@@ -544,7 +551,8 @@ function saveStatus(newStatus) {
         })
     }).then(() => {
         showToast("✅ Статус обновлен: " + newStatus);
-        loadData();
+        // Задержка перед стягиванием свежей базы, чтобы Google успел сохранить
+        setTimeout(loadData, 2000);
     }).catch(() => {
         showToast("❌ Ошибка связи");
     });
@@ -639,7 +647,7 @@ async function submitOrder() {
         method: 'POST', mode: 'no-cors', body: JSON.stringify(data)
     }).then(() => {
         showToast("✅ Заказ добавлен!");
-        loadData();
+        setTimeout(loadData, 2000);
     }).catch(() => {
         showToast("❌ Ошибка отправки");
     });
@@ -703,18 +711,34 @@ async function updateOrder() {
     if (chips[1].classList.contains('active')) delType = 'Яндекс';
     if (chips[2].classList.contains('active')) delType = 'СДЭК';
 
+    const statusValue = document.getElementById('e-status').value;
+
+    // Оптимистичное локальное обновление
+    const order = orders.find(o => o.id == currentEditId);
+    if (order) {
+        order.client = document.getElementById('e-client').value;
+        order.phone = document.getElementById('e-phone').value;
+        order.desc = document.getElementById('e-desc').value;
+        order.price = parseFloat(document.getElementById('e-price').value) || 0;
+        order.paid = parseFloat(document.getElementById('e-paid').value) || 0;
+        order.status = statusValue;
+        order.delivery = delType;
+        order.track = document.getElementById('e-track').value;
+        renderOrders();
+    }
+
     const data = {
         action: 'updateOrderFull',
         id: currentEditId,
         rowIndex: currentEditRow,
-        client: document.getElementById('e-client').value,
-        phone: document.getElementById('e-phone').value,
-        desc: document.getElementById('e-desc').value,
-        price: parseFloat(document.getElementById('e-price').value) || 0,
-        paid: parseFloat(document.getElementById('e-paid').value) || 0,
-        status: document.getElementById('e-status').value,
+        client: order ? order.client : document.getElementById('e-client').value,
+        phone: order ? order.phone : document.getElementById('e-phone').value,
+        desc: order ? order.desc : document.getElementById('e-desc').value,
+        price: order ? order.price : (parseFloat(document.getElementById('e-price').value) || 0),
+        paid: order ? order.paid : (parseFloat(document.getElementById('e-paid').value) || 0),
+        status: statusValue,
         delivery: delType,
-        track: document.getElementById('e-track').value,
+        track: order ? order.track : document.getElementById('e-track').value,
         photoDone: photoDoneB64,
         layoutNew: layoutB64
     };
@@ -726,7 +750,7 @@ async function updateOrder() {
         method: 'POST', mode: 'no-cors', body: JSON.stringify(data)
     }).then(() => {
         showToast("💾 Изменения сохранены");
-        loadData();
+        setTimeout(loadData, 2000);
     }).catch(() => {
         showToast("❌ Ошибка сохранения");
     });
@@ -735,6 +759,10 @@ async function updateOrder() {
 function deleteOrder() {
     if (!confirm("⚠️ Удалить заказ навсегда?")) return;
     
+    // Локальное удаление
+    orders = orders.filter(o => o.rowIndex !== currentEditRow);
+    renderOrders();
+
     closeModals();
     showToast("⏳ Удаление...");
 
@@ -743,7 +771,7 @@ function deleteOrder() {
         body: JSON.stringify({ action: 'deleteOrder', rowIndex: currentEditRow })
     }).then(() => {
         showToast("🗑 Заказ удален");
-        loadData();
+        setTimeout(loadData, 2000);
     }).catch(() => {
         showToast("❌ Ошибка удаления");
     });
