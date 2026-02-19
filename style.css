@@ -609,6 +609,14 @@ button.main-btn:active {
   color: var(--blue); 
 }
 
+.filter-row::-webkit-scrollbar {
+  display: none;
+}
+.filter-row .chip {
+  flex: 0 0 auto;
+  min-width: 80px;
+}
+
 .settings-btn { 
   background: transparent; 
   border: 1px solid #3a3a3c; 
@@ -822,6 +830,33 @@ button.main-btn:active {
   flex-wrap: wrap;
   gap: var(--gap);
   align-items: center;
+}
+
+.thumb-link {
+  display: block;
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+  flex-shrink: 0;
+  transition: 0.2s;
+}
+
+.thumb-link:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
+.thumb-link img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.done-thumb {
+  border: 2px solid var(--green);
 }
 
 .btn-dl {

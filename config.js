@@ -1,7 +1,7 @@
 const CONFIG = {
   WEB_APP_URL: "https://script.google.com/macros/s/AKfycbxyfKEG2iVZBcc9ZTx0bLud8uQ2kUAADyJEAJrpODfC9wSRCnSAqNgHuP-F1CcQzpZXrw/exec",
   PASSWORDS: {
-    'Владелец': '9999',
+    'Михаил С.': '9999',
     'Екатерина': '3333',
     'Михаил': '1234',
     'Рома': '2222',

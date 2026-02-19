@@ -7,7 +7,7 @@ let globalHidePrice = false;
 let userSettings = { ...CONFIG.DEFAULTS };
 let selectedDelivery = { type: '', track: '' };
 let currentStatusEditId = null;
-let isStatusSaving = false;
+let activeFilter = 'Все';
 
 function showToast(message) {
     const container = document.getElementById('toast-container');
@@ -71,6 +71,12 @@ function getDriveDirectLink(url) {
     return url;
 }
 
+function getThumb(url) {
+    if (!url || typeof url !== 'string') return null;
+    const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w400` : null;
+}
+
 function updateFileLabel(input, labelId) {
     if (input.files && input.files[0]) {
         const label = document.getElementById(labelId);
@@ -96,7 +102,7 @@ function handleLogin() {
         currentUser = user;
         document.getElementById('login-screen').classList.remove('show');
         
-        if (user === 'Владелец' || user === 'Екатерина') {
+        if (user === 'Михаил С.' || user === 'Екатерина') {
             document.getElementById('admin-settings-btn').style.display = 'block';
             loadLocalSettings();
         } else {
@@ -343,6 +349,64 @@ async function loadData() {
     }
 }
 
+function renderStats() {
+    const statsPanel = document.getElementById('stats-panel');
+    const statsContent = document.getElementById('stats-content');
+    if (currentUser !== 'Михаил С.') {
+        statsPanel.style.display = 'none';
+        return;
+    }
+    statsPanel.style.display = 'block';
+
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startOfWeek = now.getTime() - (7 * 24 * 60 * 60 * 1000);
+    const startOfMonth = now.getTime() - (30 * 24 * 60 * 60 * 1000);
+
+    let stats = {
+        newWeek: 0,
+        newMonth: 0,
+        readyTotal: 0,
+        payDay: 0,
+        payWeek: 0,
+        payMonth: 0
+    };
+
+    orders.forEach(o => {
+        const orderDate = new Date(o.date).getTime();
+        const paid = parseFloat(o.paid) || 0;
+
+        if (orderDate >= startOfWeek) stats.newWeek++;
+        if (orderDate >= startOfMonth) stats.newMonth++;
+        if (o.status === 'Готово') stats.readyTotal++;
+
+        if (orderDate >= startOfDay) stats.payDay += paid;
+        if (orderDate >= startOfWeek) stats.payWeek += paid;
+        if (orderDate >= startOfMonth) stats.payMonth += paid;
+    });
+
+    statsContent.innerHTML = `
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+            <div class="badge">Новых нед: <b>${stats.newWeek}</b></div>
+            <div class="badge">Новых мес: <b>${stats.newMonth}</b></div>
+            <div class="badge" style="grid-column: span 2; border-color: var(--green);">Готовых всего: <b>${stats.readyTotal}</b></div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:4px; background: rgba(0,0,0,0.2); padding:8px; border-radius:10px;">
+            <div style="display:flex; justify-content:between;"><span>За день:</span><b style="margin-left:auto">${stats.payDay.toLocaleString()} ₽</b></div>
+            <div style="display:flex; justify-content:between;"><span>За неделю:</span><b style="margin-left:auto">${stats.payWeek.toLocaleString()} ₽</b></div>
+            <div style="display:flex; justify-content:between;"><span>За месяц:</span><b style="margin-left:auto">${stats.payMonth.toLocaleString()} ₽</b></div>
+        </div>
+    `;
+}
+
+function setFilter(status, btn) {
+    activeFilter = status;
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    renderOrders();
+}
+
 function renderOrders() {
     const queueList = document.getElementById('queue-list');
     const historyList = document.getElementById('history-list');
@@ -363,6 +427,10 @@ function renderOrders() {
     sortedOrders.forEach(order => {
         const isArchive = (order.status === 'Готово' || order.status === 'Отправлен'); 
         
+        if (!isArchive) {
+            if (activeFilter !== 'Все' && order.status !== activeFilter) return;
+        }
+
         const price = parseFloat(order.price) || 0;
         const paid = parseFloat(order.paid) || 0;
         const percent = price > 0 ? Math.round((paid / price) * 100) : 0;
@@ -381,12 +449,6 @@ function renderOrders() {
         if (order.status === 'Отправить') { cardStatusClass = 'card-st-send'; statusClass = 'st-send'; }
         if (order.status === 'Готово') { cardStatusClass = 'card-st-done'; statusClass = 'st-done'; }
 
-        const layoutLink = order.layout ? getDriveDirectLink(order.layout) : '';
-        const layoutBtn = layoutLink ? `<a href="${layoutLink}" target="_blank" class="btn-dl btn-file" title="Макет">📂</a>` : '';
-
-        const photoLink = order.photo ? getDriveDirectLink(order.photo) : '';
-        const photoBtn = photoLink ? `<a href="${photoLink}" target="_blank" class="btn-dl btn-file" title="Фото">📷</a>` : '';
-
         const deliveryBadge = (order.delivery || order.track) 
             ? `<span class="badge badge-delivery">${(order.delivery || '').trim()}${order.track ? ' (' + order.track + ')' : ''}</span>` 
             : '';
@@ -397,6 +459,38 @@ function renderOrders() {
             div.textContent = str;
             return div.innerHTML;
         };
+
+        let photosHtml = '';
+        
+        // Превью для макета
+        if (order.layout) {
+            const thumbLayout = getThumb(order.layout);
+            if (thumbLayout) {
+                photosHtml += `<a href="${order.layout}" target="_blank" class="thumb-link" title="Макет"><img src="${thumbLayout}" alt="Макет"></a>`;
+            } else {
+                photosHtml += `<a href="${order.layout}" target="_blank" class="btn-dl btn-file" title="Макет">📂</a>`;
+            }
+        }
+
+        // Превью для фото образца
+        if (order.photo) {
+            const thumbPhoto = getThumb(order.photo);
+            if (thumbPhoto) {
+                photosHtml += `<a href="${order.photo}" target="_blank" class="thumb-link" title="Фото"><img src="${thumbPhoto}" alt="Фото"></a>`;
+            } else {
+                photosHtml += `<a href="${order.photo}" target="_blank" class="btn-dl btn-file" title="Фото">📷</a>`;
+            }
+        }
+        
+        // Превью для фото готового изделия
+        if (order.photoDone) {
+            const thumbDone = getThumb(order.photoDone);
+            if (thumbDone) {
+                photosHtml += `<a href="${order.photoDone}" target="_blank" class="thumb-link done-thumb" title="Фото готового"><img src="${thumbDone}" alt="Готово"></a>`;
+            } else {
+                photosHtml += `<a href="${order.photoDone}" target="_blank" class="btn-dl btn-file" style="color:var(--green); border-color:var(--green);" title="Фото готового">✅</a>`;
+            }
+        }
 
         const card = document.createElement('div');
         card.className = `order-card ${cardStatusClass}`;
@@ -421,8 +515,7 @@ function renderOrders() {
                     ${deliveryBadge}
                 </div>
                 <div class="card-files">
-                    ${layoutBtn}
-                    ${photoBtn}
+                    ${photosHtml}
                 </div>
             </div>
             <div class="card-footer">
@@ -434,6 +527,8 @@ function renderOrders() {
         if (isArchive) { historyList.appendChild(card); } 
         else { queueList.appendChild(card); }
     });
+
+    renderStats();
 }
 
 function openStatusModal(id) {
@@ -441,47 +536,27 @@ function openStatusModal(id) {
     document.getElementById('modal-status').classList.add('show');
 }
 
-async function saveStatus(newStatus) {
-    if (isStatusSaving) return;
-    isStatusSaving = true;
+function saveStatus(newStatus) {
+    const order = orders.find(o => o.id == currentStatusEditId);
+    if(!order) return;
 
-    const btnBox = document.getElementById('modal-status').querySelector('.modal-content');
-    const btns = btnBox.querySelectorAll('button');
-    btns.forEach(b => b.disabled = true);
-    
-    const title = btnBox.querySelector('h3');
-    const originalTitle = title.innerText;
-    title.innerText = "⏳ Сохранение...";
+    closeModals();
+    showToast("⏳ Обновление статуса...");
 
-    try {
-        const order = orders.find(o => o.id == currentStatusEditId);
-        if(!order) throw new Error("Order not found");
-
-        await fetch(CONFIG.WEB_APP_URL, {
-            method: 'POST', mode: 'no-cors',
-            body: JSON.stringify({
-                action: 'updateOrderFull',
-                id: order.id,
-                rowIndex: order.rowIndex,
-                status: newStatus
-            })
-        });
-        showToast("Статус обновлен: " + newStatus);
-        
-        closeModals();
+    fetch(CONFIG.WEB_APP_URL, {
+        method: 'POST', mode: 'no-cors',
+        body: JSON.stringify({
+            action: 'updateOrderFull',
+            id: order.id,
+            rowIndex: order.rowIndex,
+            status: newStatus
+        })
+    }).then(() => {
+        showToast("✅ Статус обновлен: " + newStatus);
         loadData();
-    } catch(e) {
-        showToast("Ошибка смены статуса");
-        title.innerText = originalTitle;
-    } finally {
-        isStatusSaving = false;
-        btns.forEach(b => b.disabled = false);
-        setTimeout(() => {
-            if (!document.getElementById('modal-status').classList.contains('show')) {
-                title.innerText = "Изменить статус";
-            }
-        }, 500);
-    }
+    }).catch(() => {
+        showToast("❌ Ошибка связи");
+    });
 }
 
 function selectDelivery(prefix, type, btn) {
@@ -540,8 +615,10 @@ async function submitOrder() {
         return;
     }
 
-    const btn = document.getElementById('btn-submit');
-    btn.innerText = "⏳ Отправка..."; btn.disabled = true;
+    const photoFile = document.getElementById('n-photo').files[0];
+    const layoutFile = document.getElementById('n-layout').files[0];
+    const photoB64 = await toBase64(photoFile);
+    const layoutB64 = await toBase64(layoutFile);
 
     let deliveryType = 'Не указано';
     const chips = document.getElementById('n-delivery-chips').querySelectorAll('.chip');
@@ -549,39 +626,32 @@ async function submitOrder() {
     if (chips[1].classList.contains('active')) deliveryType = 'Яндекс';
     if (chips[2].classList.contains('active')) deliveryType = 'СДЭК';
 
-    try {
-        const photoFile = document.getElementById('n-photo').files[0];
-        const layoutFile = document.getElementById('n-layout').files[0];
-        const photoB64 = await toBase64(photoFile);
-        const layoutB64 = await toBase64(layoutFile);
+    const data = {
+        id: Math.floor(Math.random() * 9000) + 1000,
+        client: clientName,
+        phone: clientPhone,
+        desc: document.getElementById('n-desc').value,
+        price: parseFloat(document.getElementById('n-price-final').value) || 0,
+        paid: parseFloat(document.getElementById('n-paid').value) || 0,
+        delivery: deliveryType,
+        track: document.getElementById('n-track').value,
+        manager: currentUser,
+        status: 'Изготовить',
+        photoFile: photoB64,
+        layoutFile: layoutB64
+    };
 
-        const data = {
-            id: Math.floor(Math.random() * 9000) + 1000,
-            client: clientName,
-            phone: clientPhone,
-            desc: document.getElementById('n-desc').value,
-            price: parseFloat(document.getElementById('n-price-final').value) || 0,
-            paid: parseFloat(document.getElementById('n-paid').value) || 0,
-            delivery: deliveryType,
-            track: document.getElementById('n-track').value,
-            manager: currentUser,
-            status: 'Изготовить',
-            photoFile: photoB64,
-            layoutFile: layoutB64
-        };
+    closeModals();
+    showToast("⏳ Заказ отправляется...");
 
-        await fetch(CONFIG.WEB_APP_URL, {
-            method: 'POST', mode: 'no-cors', body: JSON.stringify(data)
-        });
-
+    fetch(CONFIG.WEB_APP_URL, {
+        method: 'POST', mode: 'no-cors', body: JSON.stringify(data)
+    }).then(() => {
         showToast("✅ Заказ добавлен!");
-        closeModals();
-        loadData(); 
-    } catch (e) {
+        loadData();
+    }).catch(() => {
         showToast("❌ Ошибка отправки");
-    } finally {
-        btn.innerText = "🚀 Отправить в работу"; btn.disabled = false;
-    }
+    });
 }
 
 function openEdit(id) {
@@ -612,7 +682,7 @@ function openEdit(id) {
     document.getElementById('e-photo-done').value = '';
     const lbl = document.getElementById('lbl-e-photo-done');
     lbl.classList.remove('active');
-    lbl.querySelector('span').innerText = "📸 Фото готового изделия";
+    lbl.querySelector('span').innerText = "📸 Фото";
 
     document.getElementById('e-layout').value = '';
     const lblL = document.getElementById('lbl-e-layout');
@@ -626,13 +696,15 @@ function openEdit(id) {
 function checkStatusReq() {
     const val = document.getElementById('e-status').value;
     const block = document.getElementById('finish-reqs');
-    if (val === 'Готово') { block.style.display = 'block'; } 
+    if (val === 'Готово' || val === 'Отправить') { block.style.display = 'block'; } 
     else { block.style.display = 'none'; }
 }
 
 async function updateOrder() {
-    const btn = document.getElementById('btn-update');
-    btn.innerText = "⏳..."; btn.disabled = true;
+    const photoDoneFile = document.getElementById('e-photo-done').files[0];
+    const layoutFile = document.getElementById('e-layout').files[0];
+    const photoDoneB64 = await toBase64(photoDoneFile);
+    const layoutB64 = await toBase64(layoutFile);
 
     let delType = 'Не указано';
     const chips = document.getElementById('e-delivery-chips').querySelectorAll('.chip');
@@ -640,54 +712,50 @@ async function updateOrder() {
     if (chips[1].classList.contains('active')) delType = 'Яндекс';
     if (chips[2].classList.contains('active')) delType = 'СДЭК';
 
-    try {
-        const photoDoneFile = document.getElementById('e-photo-done').files[0];
-        const layoutFile = document.getElementById('e-layout').files[0];
-        
-        const photoDoneB64 = await toBase64(photoDoneFile);
-        const layoutB64 = await toBase64(layoutFile);
+    const data = {
+        action: 'updateOrderFull',
+        id: currentEditId,
+        rowIndex: currentEditRow,
+        client: document.getElementById('e-client').value,
+        phone: document.getElementById('e-phone').value,
+        desc: document.getElementById('e-desc').value,
+        price: parseFloat(document.getElementById('e-price').value) || 0,
+        paid: parseFloat(document.getElementById('e-paid').value) || 0,
+        status: document.getElementById('e-status').value,
+        delivery: delType,
+        track: document.getElementById('e-track').value,
+        photoDone: photoDoneB64,
+        layoutNew: layoutB64
+    };
 
-        const data = {
-            action: 'updateOrderFull',
-            id: currentEditId,
-            rowIndex: currentEditRow,
-            client: document.getElementById('e-client').value,
-            phone: document.getElementById('e-phone').value,
-            desc: document.getElementById('e-desc').value,
-            price: parseFloat(document.getElementById('e-price').value) || 0,
-            paid: parseFloat(document.getElementById('e-paid').value) || 0,
-            status: document.getElementById('e-status').value,
-            delivery: delType,
-            track: document.getElementById('e-track').value,
-            photoDone: photoDoneB64,
-            layoutNew: layoutB64
-        };
+    closeModals();
+    showToast("⏳ Сохранение изменений...");
 
-        await fetch(CONFIG.WEB_APP_URL, {
-            method: 'POST', mode: 'no-cors', body: JSON.stringify(data)
-        });
-        
+    fetch(CONFIG.WEB_APP_URL, {
+        method: 'POST', mode: 'no-cors', body: JSON.stringify(data)
+    }).then(() => {
         showToast("💾 Изменения сохранены");
-        closeModals();
         loadData();
-    } catch (e) {
+    }).catch(() => {
         showToast("❌ Ошибка сохранения");
-    } finally {
-        btn.innerText = "💾 Сохранить"; btn.disabled = false;
-    }
+    });
 }
 
-async function deleteOrder() {
+function deleteOrder() {
     if (!confirm("⚠️ Удалить заказ навсегда?")) return;
-    try {
-        await fetch(CONFIG.WEB_APP_URL, {
-            method: 'POST', mode: 'no-cors',
-            body: JSON.stringify({ action: 'deleteOrder', rowIndex: currentEditRow })
-        });
+    
+    closeModals();
+    showToast("⏳ Удаление...");
+
+    fetch(CONFIG.WEB_APP_URL, {
+        method: 'POST', mode: 'no-cors',
+        body: JSON.stringify({ action: 'deleteOrder', rowIndex: currentEditRow })
+    }).then(() => {
         showToast("🗑 Заказ удален");
-        closeModals();
         loadData();
-    } catch (e) { showToast("Ошибка удаления"); }
+    }).catch(() => {
+        showToast("❌ Ошибка удаления");
+    });
 }
 
 function setTab(id) {
