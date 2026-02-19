@@ -460,19 +460,10 @@ function renderOrders() {
             return div.innerHTML;
         };
 
+        const layoutBtn = order.layout ? `<a href="${order.layout}" target="_blank" class="btn-dl btn-file" title="Макет">📂</a>` : '';
+        
         let photosHtml = '';
         
-        // Превью для макета
-        if (order.layout) {
-            const thumbLayout = getThumb(order.layout);
-            if (thumbLayout) {
-                photosHtml += `<a href="${order.layout}" target="_blank" class="thumb-link" title="Макет"><img src="${thumbLayout}" alt="Макет"></a>`;
-            } else {
-                photosHtml += `<a href="${order.layout}" target="_blank" class="btn-dl btn-file" title="Макет">📂</a>`;
-            }
-        }
-
-        // Превью для фото образца
         if (order.photo) {
             const thumbPhoto = getThumb(order.photo);
             if (thumbPhoto) {
@@ -482,7 +473,6 @@ function renderOrders() {
             }
         }
         
-        // Превью для фото готового изделия
         if (order.photoDone) {
             const thumbDone = getThumb(order.photoDone);
             if (thumbDone) {
@@ -515,6 +505,7 @@ function renderOrders() {
                     ${deliveryBadge}
                 </div>
                 <div class="card-files">
+                    ${layoutBtn}
                     ${photosHtml}
                 </div>
             </div>
