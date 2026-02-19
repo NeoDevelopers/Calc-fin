@@ -336,7 +336,7 @@ async function loadData() {
     if (loaderH) loaderH.style.display = 'block';
 
     try {
-        const response = await fetch(CONFIG.WEB_APP_URL);
+        const response = await fetch(CONFIG.WEB_APP_URL + "?t=" + new Date().getTime());
         const result = await response.json();
         orders = result.orders;
         globalHidePrice = !result.settings.showPrice; 
@@ -460,12 +460,10 @@ function renderOrders() {
             return div.innerHTML;
         };
 
-        // Макет всегда папкой
         const layoutBtn = order.layout ? `<a href="${order.layout}" target="_blank" class="btn-dl btn-file" title="Макет">📂</a>` : '';
         
         let photosHtml = '';
         
-        // Фото образца
         if (order.photo) {
             const thumbPhoto = getThumb(order.photo);
             if (thumbPhoto) {
@@ -475,7 +473,6 @@ function renderOrders() {
             }
         }
         
-        // Фото готового изделия
         if (order.photoDone) {
             const thumbDone = getThumb(order.photoDone);
             if (thumbDone) {
@@ -534,24 +531,31 @@ function saveStatus(newStatus) {
     const order = orders.find(o => o.id == currentStatusEditId);
     if(!order) return;
 
-    // Локальное обновление для мгновенной реакции интерфейса
     order.status = newStatus;
     renderOrders();
 
     closeModals();
     showToast("⏳ Обновление статуса...");
 
+    const data = {
+        action: 'updateOrderFull',
+        id: order.id,
+        rowIndex: order.rowIndex,
+        client: order.client,
+        phone: order.phone,
+        desc: order.desc,
+        price: parseFloat(order.price) || 0,
+        paid: parseFloat(order.paid) || 0,
+        status: newStatus,
+        delivery: order.delivery || '',
+        track: order.track || ''
+    };
+
     fetch(CONFIG.WEB_APP_URL, {
         method: 'POST', mode: 'no-cors',
-        body: JSON.stringify({
-            action: 'updateOrderFull',
-            id: order.id,
-            rowIndex: order.rowIndex,
-            status: newStatus
-        })
+        body: JSON.stringify(data)
     }).then(() => {
         showToast("✅ Статус обновлен: " + newStatus);
-        // Задержка перед стягиванием свежей базы, чтобы Google успел сохранить
         setTimeout(loadData, 2000);
     }).catch(() => {
         showToast("❌ Ошибка связи");
@@ -713,7 +717,6 @@ async function updateOrder() {
 
     const statusValue = document.getElementById('e-status').value;
 
-    // Оптимистичное локальное обновление
     const order = orders.find(o => o.id == currentEditId);
     if (order) {
         order.client = document.getElementById('e-client').value;
@@ -759,7 +762,6 @@ async function updateOrder() {
 function deleteOrder() {
     if (!confirm("⚠️ Удалить заказ навсегда?")) return;
     
-    // Локальное удаление
     orders = orders.filter(o => o.rowIndex !== currentEditRow);
     renderOrders();
 
