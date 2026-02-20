@@ -681,39 +681,55 @@ button.main-btn:active {
   font-size: 14px; 
 }
 
+/* --- ОБНОВЛЕННЫЕ СТИЛИ КАРТОЧКИ --- */
+
 .order-card {
   background: var(--card);
   border-radius: calc(var(--radius) + 2px);
-  padding: calc(var(--gap) * 2);
-  margin-bottom: calc(var(--gap) * 2);
+  padding: 16px;
+  margin-bottom: 16px;
   position: relative;
   border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-  transition: transform 0.2s, box-shadow 0.2s;
   display: flex;
   flex-direction: column;
-  gap: calc(var(--gap) * 2);
+  gap: 12px;
   overflow: hidden;
 }
 
-.card-st-new { border-left: 4px solid var(--red); }
-.card-st-work { border-left: 4px solid var(--blue); }
-.card-st-send { border-left: 4px solid var(--orange); }
-.card-st-done { border-left: 4px solid var(--green); }
+/* Эффект свечения слева (Neon Glow) */
+.card-st-new { 
+  border-left: 4px solid var(--red); 
+  box-shadow: -4px 0 12px -2px rgba(255, 69, 58, 0.5); 
+}
+
+.card-st-work { 
+  border-left: 4px solid var(--blue); 
+  box-shadow: -4px 0 12px -2px rgba(10, 132, 255, 0.5); 
+}
+
+.card-st-send { 
+  border-left: 4px solid var(--orange); 
+  box-shadow: -4px 0 12px -2px rgba(255, 159, 10, 0.5); 
+}
+
+.card-st-done { 
+  border-left: 4px solid var(--green); 
+  box-shadow: -4px 0 12px -2px rgba(48, 209, 88, 0.5); 
+}
 
 .card-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: calc(var(--gap) * 2);
   padding-right: 36px;
-  min-height: 32px;
+  min-height: 28px;
 }
 
 .card-header-text {
   display: flex;
   align-items: baseline;
-  gap: var(--gap);
+  gap: 8px;
   flex: 1;
   min-width: 0;
 }
@@ -736,13 +752,13 @@ button.main-btn:active {
 
 .gear-btn {
   position: absolute;
-  top: calc(var(--gap) * 2);
-  right: calc(var(--gap) * 2);
+  top: 16px;
+  right: 16px;
   background: none;
   border: none;
   color: var(--card-muted);
   cursor: pointer;
-  padding: var(--gap);
+  padding: 4px;
   flex-shrink: 0;
   transition: 0.2s;
   border-radius: 50%;
@@ -759,10 +775,18 @@ button.main-btn:active {
   display: block;
 }
 
-.card-body {
+/* Сетка: Слева текст, Справа фото */
+.order-body-grid {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 12px;
+}
+
+.order-info {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--gap) * 1.5);
+  gap: 10px;
+  min-width: 0;
 }
 
 .card-desc {
@@ -783,13 +807,14 @@ button.main-btn:active {
 .card-badges {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--gap);
+  gap: 6px;
   align-items: center;
 }
 
+/* Неоновые кнопки статусов */
 .status-badge {
-  font-size: 10px;
-  padding: 4px 10px;
+  font-size: 11px;
+  padding: 6px 12px;
   border-radius: 8px;
   font-weight: 700;
   text-transform: uppercase;
@@ -797,66 +822,105 @@ button.main-btn:active {
   transition: 0.2s;
   user-select: none;
   letter-spacing: 0.5px;
+  border: 1px solid transparent; 
+}
+
+.st-new { 
+  background: rgba(255, 69, 58, 0.15); 
+  color: var(--red); 
+  border-color: var(--red); 
+  box-shadow: 0 0 8px rgba(255, 69, 58, 0.25); 
+}
+
+.st-work { 
+  background: rgba(10, 132, 255, 0.15); 
+  color: var(--blue); 
+  border-color: var(--blue);
+  box-shadow: 0 0 8px rgba(10, 132, 255, 0.25); 
+}
+
+.st-send { 
+  background: rgba(255, 159, 10, 0.15); 
+  color: var(--orange); 
+  border-color: var(--orange);
+  box-shadow: 0 0 8px rgba(255, 159, 10, 0.25); 
+}
+
+.st-done { 
+  background: rgba(48, 209, 88, 0.15); 
+  color: var(--green); 
+  border-color: var(--green);
+  box-shadow: 0 0 8px rgba(48, 209, 88, 0.25); 
 }
 
 .status-badge:hover {
-  filter: brightness(1.2);
+  filter: brightness(1.3);
+  box-shadow: 0 0 12px currentColor; 
 }
 
 .badge {
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 8px;
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 6px;
   font-weight: 600;
   color: var(--card-muted-strong);
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-.badge-delivery {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.st-new { background: rgba(255, 69, 58, 0.2); color: var(--red); border: 1px solid rgba(255, 69, 58, 0.3); }
-.st-work { background: rgba(10, 132, 255, 0.2); color: var(--blue); border: 1px solid rgba(10, 132, 255, 0.3); }
-.st-send { background: rgba(255, 159, 10, 0.2); color: var(--orange); border: 1px solid rgba(255, 159, 10, 0.3); }
-.st-done { background: rgba(48, 209, 88, 0.2); color: var(--green); border: 1px solid rgba(48, 209, 88, 0.3); }
-
-.card-files {
+/* Галерея справа */
+.order-gallery {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--gap);
+  flex-direction: row; 
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 120px;
   align-items: center;
+  padding-bottom: 4px;
 }
 
-.thumb-link {
-  display: block;
-  width: 60px;
-  height: 60px;
+.order-gallery::-webkit-scrollbar {
+  height: 4px;
+}
+.order-gallery::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+}
+
+.gallery-img {
+  width: 110px;
+  height: 110px;
+  object-fit: cover;
   border-radius: 8px;
-  overflow: hidden;
   border: 1px solid rgba(255,255,255,0.1);
   flex-shrink: 0;
-  transition: 0.2s;
+  cursor: pointer;
+  transition: transform 0.2s;
+  background: #000;
 }
 
-.thumb-link:active {
+.gallery-img:active {
   transform: scale(0.95);
-  opacity: 0.8;
 }
 
-.thumb-link img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.gallery-placeholder {
+  width: 110px;
+  height: 110px;
+  background: rgba(255,255,255,0.05);
+  border: 1px dashed rgba(255,255,255,0.2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--card-muted);
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.gallery-link {
   display: block;
-}
-
-.done-thumb {
-  border: 2px solid var(--green);
+  flex-shrink: 0;
 }
 
 .btn-dl {
@@ -871,17 +935,10 @@ button.main-btn:active {
   font-size: 12px;
   font-weight: 600;
   text-decoration: none;
-  transition: 0.2s;
-}
-
-.btn-dl:hover {
-  background: rgba(10, 132, 255, 0.15);
-}
-
-.btn-dl.btn-file {
-  min-width: 36px;
-  padding: 6px 10px;
-  font-size: 14px;
+  margin-top: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: normal;
 }
 
 .card-footer {
@@ -889,7 +946,7 @@ button.main-btn:active {
   justify-content: space-between;
   align-items: flex-end;
   gap: var(--gap);
-  padding-top: calc(var(--gap) * 1.5);
+  padding-top: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   margin-top: auto;
 }
@@ -910,7 +967,87 @@ button.main-btn:active {
 .paid-part { color: var(--orange); }
 .paid-none { color: var(--red); }
 
-.price-tag { font-weight: 800; font-size: 15px; color: #fff; }
+/* --- LIGHTBOX --- */
+.modal-lightbox {
+  display: none;
+  position: fixed;
+  z-index: 3000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.95);
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s;
+}
+
+.modal-lightbox.show {
+  display: flex;
+}
+
+.lightbox-content {
+  margin: auto;
+  display: block;
+  max-width: 95%;
+  max-height: 95%;
+  border-radius: 4px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  color: #f1f1f1;
+  font-size: 40px;
+  font-weight: bold;
+  transition: 0.3s;
+  cursor: pointer;
+  z-index: 3001;
+}
+
+.lightbox-close:hover,
+.lightbox-close:focus {
+  color: #bbb;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* --- Цвета кнопок фильтрации --- */
+.chip-todo { 
+  color: var(--red); 
+  border-color: rgba(255, 69, 58, 0.3); 
+  background: rgba(255, 69, 58, 0.1); 
+}
+.chip-todo.active { 
+  background: var(--red); 
+  color: #fff; 
+  border-color: var(--red); 
+}
+
+.chip-work { 
+  color: var(--blue); 
+  border-color: rgba(10, 132, 255, 0.3); 
+  background: rgba(10, 132, 255, 0.1); 
+}
+.chip-work.active { 
+  background: var(--blue); 
+  color: #fff; 
+  border-color: var(--blue); 
+}
+
+.chip-send { 
+  color: var(--orange); 
+  border-color: rgba(255, 159, 10, 0.3); 
+  background: rgba(255, 159, 10, 0.1); 
+}
+.chip-send.active { 
+  background: var(--orange); 
+  color: #fff; 
+  border-color: var(--orange); 
+}
 
 @media (max-width: 480px) {
   #tab-queue .card,
@@ -1020,4 +1157,70 @@ button:disabled,
   cursor: not-allowed;
   pointer-events: none;
   filter: grayscale(0.5);
+}
+.btn-expand {
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+  display: inline-block;
+  user-select: none;
+}
+.btn-expand:hover {
+  text-decoration: underline;
+}
+
+.file-list-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.file-chip {
+  background: #2c2c2e;
+  border: 1px solid #3a3a3c;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.file-chip span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.file-chip-remove {
+  color: var(--red);
+  font-weight: bold;
+  cursor: pointer;
+  padding: 2px 6px;
+  background: rgba(255, 69, 58, 0.1);
+  border-radius: 4px;
+}
+
+.file-add-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 12px;
+  border: 1px dashed var(--green);
+  border-radius: 12px;
+  color: var(--green);
+  font-weight: 600;
+  cursor: pointer;
+  background: rgba(48, 209, 88, 0.05);
+  transition: 0.2s;
+}
+
+.file-add-btn:active {
+  background: rgba(48, 209, 88, 0.15);
 }

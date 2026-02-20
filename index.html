@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>CRM v2.3</title>
+  <title>CRM v2.5</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -127,9 +127,9 @@
     
     <div class="filter-row" style="display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px;">
       <button class="chip active" onclick="setFilter('Все', this)">Все</button>
-      <button class="chip" onclick="setFilter('Изготовить', this)">Изготовить</button>
-      <button class="chip" onclick="setFilter('В работе', this)">В работе</button>
-      <button class="chip" onclick="setFilter('Отправить', this)">Отправить</button>
+      <button class="chip chip-todo" onclick="setFilter('Изготовить', this)">Изготовить</button>
+      <button class="chip chip-work" onclick="setFilter('В работе', this)">В работе</button>
+      <button class="chip chip-send" onclick="setFilter('Отправить', this)">Отправить</button>
     </div>
 
     <div class="card" style="margin-top:0;">
@@ -164,7 +164,7 @@
       <input type="text" id="n-track" class="custom-input compact-input" placeholder="Номер накладной СДЭК" style="display:none; margin-top:8px;">
 
       <div class="file-row" style="margin-top:12px;">
-        <label class="file-custom" id="lbl-n-photo"><span>📸 Фото</span><input type="file" id="n-photo" onchange="updateFileLabel(this, 'lbl-n-photo')"></label>
+        <label class="file-custom" id="lbl-n-photo"><span>📸 Скрин макета</span><input type="file" id="n-photo" onchange="updateFileLabel(this, 'lbl-n-photo')"></label>
         <label class="file-custom" id="lbl-n-layout"><span>📂 Макет</span><input type="file" id="n-layout" onchange="updateFileLabel(this, 'lbl-n-layout')"></label>
       </div>
       
@@ -200,7 +200,14 @@
       </select>
 
       <div id="finish-reqs" style="display:none; background:rgba(48, 209, 88, 0.1); padding:10px; border-radius:12px; margin-bottom:10px;">
-        <label class="file-custom" id="lbl-e-photo-done"><span>📸 Фото</span><input type="file" id="e-photo-done" onchange="updateFileLabel(this, 'lbl-e-photo-done')"></label>
+        <label class="input-label" style="color:var(--green); margin-bottom:8px;">📸 Фото готового изделия (можно несколько)</label>
+        
+        <div id="e-file-list" class="file-list-container"></div>
+        
+        <label class="file-add-btn">
+          <span>+ Добавить фото</span>
+          <input type="file" id="e-photo-input" multiple accept="image/*" onchange="handleFileSelect(this, 'e')">
+        </label>
       </div>
 
       <label class="input-label">Данные клиента</label>
@@ -258,6 +265,32 @@
       </div>
       <button class="btn-action" onclick="closeModals()" style="margin-top:15px;">Отмена</button>
     </div>
+  </div>
+
+  <div class="modal" id="modal-status-confirm">
+    <div class="modal-content">
+      <h3 id="confirm-status-title" style="text-align:center; margin-bottom:10px;">Подтверждение</h3>
+      <p style="text-align:center; color:var(--hint); font-size:13px; margin-bottom:15px;">
+        При смене статуса вы можете добавить реальные фото заказа. Это необязательно.
+      </p>
+
+      <div id="s-file-list" class="file-list-container"></div>
+
+      <label class="file-add-btn">
+        <span>📸 Добавить фото</span>
+        <input type="file" id="s-photo-input" multiple accept="image/*" onchange="handleFileSelect(this, 's')">
+      </label>
+
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button class="main-btn" onclick="confirmStatusChange()">Сохранить и закрыть</button>
+        <button class="btn-action" onclick="closeModals()">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-lightbox" class="modal-lightbox" onclick="closeLightbox()">
+     <span class="lightbox-close">&times;</span>
+     <img class="lightbox-content" id="lightbox-img">
   </div>
 
   <script src="config.js"></script>

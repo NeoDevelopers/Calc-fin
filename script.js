@@ -9,6 +9,10 @@ let selectedDelivery = { type: '', track: '' };
 let currentStatusEditId = null;
 let activeFilter = 'Все';
 
+let pendingStatus = ''; 
+let statusFiles = [];   
+let editFiles = [];     
+
 function showToast(message) {
     const container = document.getElementById('toast-container');
     if (!container) return;
@@ -56,6 +60,15 @@ function formatOrderDate(dateStr) {
     } catch (e) { return dateStr; }
 }
 
+function parseRuDateToTimestamp(dateStr) {
+    if (!dateStr) return 0;
+    const parts = dateStr.match(/(\d{1,2})\.(\d{1,2})\.(\d{4}), (\d{1,2}):(\d{1,2}):(\d{1,2})/);
+    if (parts) {
+        return new Date(parts[3], parts[2] - 1, parts[1], parts[4], parts[5], parts[6]).getTime();
+    }
+    return new Date(dateStr).getTime() || 0;
+}
+
 function toBase64(file) {
     return new Promise((resolve, reject) => {
         if (!file) { resolve(null); return; }
@@ -74,7 +87,12 @@ function getDriveDirectLink(url) {
 function getThumb(url) {
     if (!url || typeof url !== 'string') return null;
     const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w400` : null;
+    return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w600` : null;
+}
+
+function getFullSize(url) {
+    if (!url || typeof url !== 'string') return '';
+    return url;
 }
 
 function updateFileLabel(input, labelId) {
@@ -336,7 +354,7 @@ async function loadData() {
     if (loaderH) loaderH.style.display = 'block';
 
     try {
-        const response = await fetch(CONFIG.WEB_APP_URL + "?t=" + new Date().getTime());
+        const response = await fetch(CONFIG.WEB_APP_URL);
         const result = await response.json();
         orders = result.orders;
         globalHidePrice = !result.settings.showPrice; 
@@ -407,6 +425,19 @@ function setFilter(status, btn) {
     renderOrders();
 }
 
+function toggleDesc(id, btn) {
+    const el = document.getElementById('desc-' + id);
+    if (!el) return;
+    
+    if (el.classList.contains('line-clamp-3')) {
+        el.classList.remove('line-clamp-3');
+        btn.innerText = 'Свернуть';
+    } else {
+        el.classList.add('line-clamp-3');
+        btn.innerText = 'Показать полностью';
+    }
+}
+
 function renderOrders() {
     const queueList = document.getElementById('queue-list');
     const historyList = document.getElementById('history-list');
@@ -419,9 +450,9 @@ function renderOrders() {
     const shouldHidePrice = isWorker && globalHidePrice;
 
     const sortedOrders = [...orders].sort((a, b) => {
-        const idA = parseInt(a.id, 10) || 0;
-        const idB = parseInt(b.id, 10) || 0;
-        return idB - idA;
+        const timeA = parseRuDateToTimestamp(a.date);
+        const timeB = parseRuDateToTimestamp(b.date);
+        return timeB - timeA;
     });
 
     sortedOrders.forEach(order => {
@@ -460,26 +491,44 @@ function renderOrders() {
             return div.innerHTML;
         };
 
-        const layoutBtn = order.layout ? `<a href="${order.layout}" target="_blank" class="btn-dl btn-file" title="Макет">📂</a>` : '';
+        const descText = order.desc || 'Нет описания';
+        const isLong = descText.length > 100 || (descText.match(/\n/g) || []).length > 2;
         
-        let photosHtml = '';
+        const descHtml = `
+            <div class="card-desc line-clamp-3" id="desc-${order.id}">${escapeHtml(descText)}</div>
+            ${isLong ? `<div class="btn-expand" onclick="toggleDesc('${order.id}', this)">Показать полностью</div>` : ''}
+        `;
+
+        const layoutBtn = order.layout ? `<button onclick="downloadLayout('${order.layout}', '${order.id}')" class="btn-dl btn-file" title="Скачать .sdr">📂 Скачать .sdr</button>` : '';
         
+        let galleryHtml = '';
+        let photoCount = 0;
+
         if (order.photo) {
-            const thumbPhoto = getThumb(order.photo);
-            if (thumbPhoto) {
-                photosHtml += `<a href="${order.photo}" target="_blank" class="thumb-link" title="Фото"><img src="${thumbPhoto}" alt="Фото"></a>`;
-            } else {
-                photosHtml += `<a href="${order.photo}" target="_blank" class="btn-dl btn-file" title="Фото">📷</a>`;
+            const thumb = getThumb(order.photo);
+            const full = getFullSize(order.photo);
+            if (thumb) {
+                galleryHtml += `<img src="${thumb}" class="gallery-img" onclick="openLightbox('${full}')" alt="Фото">`;
+                photoCount++;
             }
         }
         
         if (order.photoDone) {
-            const thumbDone = getThumb(order.photoDone);
-            if (thumbDone) {
-                photosHtml += `<a href="${order.photoDone}" target="_blank" class="thumb-link done-thumb" title="Фото готового"><img src="${thumbDone}" alt="Готово"></a>`;
-            } else {
-                photosHtml += `<a href="${order.photoDone}" target="_blank" class="btn-dl btn-file" style="color:var(--green); border-color:var(--green);" title="Фото готового">✅</a>`;
-            }
+            const urls = order.photoDone.split('\n');
+            urls.forEach(url => {
+                 url = url.trim();
+                 if(!url) return;
+                 const thumb = getThumb(url);
+                 const full = getFullSize(url);
+                 if (thumb) {
+                      galleryHtml += `<img src="${thumb}" class="gallery-img" style="border-color:var(--green);" onclick="openLightbox('${full}')" alt="Готово">`;
+                      photoCount++;
+                 }
+            });
+        }
+
+        if (photoCount === 0) {
+            galleryHtml = `<div class="gallery-placeholder">📷</div>`;
         }
 
         const card = document.createElement('div');
@@ -498,17 +547,23 @@ function renderOrders() {
                     </svg>
                 </button>
             </div>
-            <div class="card-body">
-                <div class="card-desc line-clamp-3">${escapeHtml(order.desc || 'Нет описания')}</div>
-                <div class="card-badges">
-                    <span class="status-badge ${statusClass}" onclick="openStatusModal(${order.id})">${order.status}</span>
-                    ${deliveryBadge}
+            
+            <div class="order-body-grid">
+                <div class="order-info">
+                    ${descHtml}
+                    <div class="card-badges">
+                        <span class="status-badge ${statusClass}" onclick="openStatusModal(${order.id})">${order.status}</span>
+                        ${deliveryBadge}
+                    </div>
+                    <div class="gallery-link">
+                        ${layoutBtn}
+                    </div>
                 </div>
-                <div class="card-files">
-                    ${layoutBtn}
-                    ${photosHtml}
+                <div class="order-gallery">
+                    ${galleryHtml}
                 </div>
             </div>
+
             <div class="card-footer">
                 <span class="card-date">${formatOrderDate(order.date)}</span>
                 <div class="paid-tag">${payText}</div>
@@ -522,6 +577,26 @@ function renderOrders() {
     renderStats();
 }
 
+function openLightbox(url) {
+    if(!url) return;
+    const modal = document.getElementById('modal-lightbox');
+    const img = document.getElementById('lightbox-img');
+    
+    let directUrl = url;
+    if (url.includes('drive.google.com')) {
+         const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+         if(m) directUrl = `https://drive.google.com/uc?export=view&id=${m[1]}`;
+    }
+
+    img.src = directUrl;
+    modal.classList.add('show');
+}
+
+function closeLightbox() {
+    document.getElementById('modal-lightbox').classList.remove('show');
+    document.getElementById('lightbox-img').src = '';
+}
+
 function openStatusModal(id) {
     currentStatusEditId = id;
     document.getElementById('modal-status').classList.add('show');
@@ -529,31 +604,50 @@ function openStatusModal(id) {
 
 function saveStatus(newStatus) {
     const order = orders.find(o => o.id == currentStatusEditId);
-    if(!order) return;
+    if (!order) return;
 
+    if (newStatus === 'Готово' || newStatus === 'Отправить') {
+        pendingStatus = newStatus;
+        statusFiles = []; 
+        renderFileList('s'); 
+        
+        document.getElementById('modal-status').classList.remove('show');
+        document.getElementById('modal-status-confirm').classList.add('show');
+        document.getElementById('confirm-status-title').innerText = `Статус: ${newStatus}`;
+    } else {
+        executeStatusUpdate(order, newStatus, []);
+    }
+}
+
+async function confirmStatusChange() {
+    const order = orders.find(o => o.id == currentStatusEditId);
+    if (!order) return;
+
+    showToast("⏳ Обработка фото...");
+    
+    const photosBase64 = await Promise.all(statusFiles.map(file => toBase64(file)));
+    
+    executeStatusUpdate(order, pendingStatus, photosBase64);
+}
+
+function executeStatusUpdate(order, newStatus, photosArray) {
+    closeModals();
+    
     order.status = newStatus;
     renderOrders();
-
-    closeModals();
-    showToast("⏳ Обновление статуса...");
-
-    const data = {
-        action: 'updateOrderFull',
-        id: order.id,
-        rowIndex: order.rowIndex,
-        client: order.client,
-        phone: order.phone,
-        desc: order.desc,
-        price: parseFloat(order.price) || 0,
-        paid: parseFloat(order.paid) || 0,
-        status: newStatus,
-        delivery: order.delivery || '',
-        track: order.track || ''
-    };
+    
+    showToast("⏳ Сохранение...");
 
     fetch(CONFIG.WEB_APP_URL, {
         method: 'POST', mode: 'no-cors',
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+            action: 'updateOrderFull',
+            id: order.id,
+            rowIndex: order.rowIndex,
+            status: newStatus,
+            photos: photosArray, 
+            photoDone: photosArray.length > 0 ? photosArray[0] : null 
+        })
     }).then(() => {
         showToast("✅ Статус обновлен: " + newStatus);
         setTimeout(loadData, 2000);
@@ -597,7 +691,7 @@ function openOrderModal() {
     document.getElementById('n-layout').value = '';
     
     document.getElementById('lbl-n-photo').classList.remove('active');
-    document.getElementById('lbl-n-photo').querySelector('span').innerText = "📸 Фото";
+ document.getElementById('lbl-n-photo').querySelector('span').innerText = "📸 Скрин макета";
     document.getElementById('lbl-n-layout').classList.remove('active');
     document.getElementById('lbl-n-layout').querySelector('span').innerText = "📂 Макет";
 
@@ -682,10 +776,8 @@ function openEdit(id) {
     
     document.getElementById('e-track').style.display = d.includes('СДЭК') ? 'block' : 'none';
 
-    document.getElementById('e-photo-done').value = '';
-    const lbl = document.getElementById('lbl-e-photo-done');
-    lbl.classList.remove('active');
-    lbl.querySelector('span').innerText = "📸 Фото";
+    editFiles = [];
+    renderFileList('e');
 
     document.getElementById('e-layout').value = '';
     const lblL = document.getElementById('lbl-e-layout');
@@ -703,12 +795,51 @@ function checkStatusReq() {
     else { block.style.display = 'none'; }
 }
 
-async function updateOrder() {
-    const photoDoneFile = document.getElementById('e-photo-done').files[0];
-    const layoutFile = document.getElementById('e-layout').files[0];
-    const photoDoneB64 = await toBase64(photoDoneFile);
-    const layoutB64 = await toBase64(layoutFile);
+function handleFileSelect(input, prefix) {
+    if (!input.files || input.files.length === 0) return;
 
+    const newFiles = Array.from(input.files);
+    
+    if (prefix === 's') {
+        statusFiles = [...statusFiles, ...newFiles];
+        renderFileList('s');
+    } else if (prefix === 'e') {
+        editFiles = [...editFiles, ...newFiles];
+        renderFileList('e');
+    }
+    
+    input.value = ''; 
+}
+
+function removeFile(index, prefix) {
+    if (prefix === 's') {
+        statusFiles.splice(index, 1);
+        renderFileList('s');
+    } else if (prefix === 'e') {
+        editFiles.splice(index, 1);
+        renderFileList('e');
+    }
+}
+
+function renderFileList(prefix) {
+    const listId = prefix + '-file-list';
+    const container = document.getElementById(listId);
+    const files = prefix === 's' ? statusFiles : editFiles;
+    
+    container.innerHTML = '';
+    
+    files.forEach((file, index) => {
+        const chip = document.createElement('div');
+        chip.className = 'file-chip';
+        chip.innerHTML = `
+            <span>📷 ${file.name}</span>
+            <div class="file-chip-remove" onclick="removeFile(${index}, '${prefix}')">✕</div>
+        `;
+        container.appendChild(chip);
+    });
+}
+
+async function updateOrder() {
     let delType = 'Не указано';
     const chips = document.getElementById('e-delivery-chips').querySelectorAll('.chip');
     if (chips[0].classList.contains('active')) delType = 'Самовывоз';
@@ -730,6 +861,11 @@ async function updateOrder() {
         renderOrders();
     }
 
+    const layoutFile = document.getElementById('e-layout').files[0];
+    const layoutB64 = await toBase64(layoutFile);
+    
+    const photosBase64 = await Promise.all(editFiles.map(file => toBase64(file)));
+
     const data = {
         action: 'updateOrderFull',
         id: currentEditId,
@@ -742,8 +878,9 @@ async function updateOrder() {
         status: statusValue,
         delivery: delType,
         track: order ? order.track : document.getElementById('e-track').value,
-        photoDone: photoDoneB64,
-        layoutNew: layoutB64
+        layoutNew: layoutB64,
+        photos: photosBase64,
+        photoDone: photosBase64.length > 0 ? photosBase64[0] : null
     };
 
     closeModals();
@@ -803,3 +940,32 @@ function closeModals() {
 }
 
 window.onload = function() { calc(); };
+
+function downloadLayout(url, orderId) {
+    if (!url) return;
+    
+    let fileId = null;
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+        fileId = match[1];
+    } else if (url.includes('id=')) {
+        const parts = url.split('id=');
+        if (parts.length > 1) {
+            fileId = parts[1].split('&')[0];
+        }
+    }
+
+    if (fileId) {
+        const directUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+        const link = document.createElement('a');
+        link.href = directUrl;
+        link.setAttribute('download', `Order_${orderId}.sdr`);
+        link.target = '_self'; 
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } else {
+        window.open(url, '_blank');
+    }
+}
