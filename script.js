@@ -582,13 +582,26 @@ function openLightbox(url) {
     const modal = document.getElementById('modal-lightbox');
     const img = document.getElementById('lightbox-img');
     
-    let directUrl = url;
-    if (url.includes('drive.google.com')) {
-         const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-         if(m) directUrl = `https://drive.google.com/uc?export=view&id=${m[1]}`;
+    // Пытаемся найти ID файла
+    let fileId = null;
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+        fileId = match[1];
+    } else if (url.includes('id=')) {
+        const parts = url.split('id=');
+        if (parts.length > 1) {
+            fileId = parts[1].split('&')[0];
+        }
     }
 
-    img.src = directUrl;
+    // ТРЮК: Используем ссылку thumbnail с параметром sz=w5000 (ширина до 5000px)
+    // Это дает картинку в высоком качестве и работает в img тегах без проблем с правами
+    if (fileId) {
+        img.src = `https://drive.google.com/thumbnail?id=${fileId}&sz=w5000`;
+    } else {
+        img.src = url;
+    }
+
     modal.classList.add('show');
 }
 
