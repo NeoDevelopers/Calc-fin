@@ -26,47 +26,50 @@ function showToast(message) {
 function clamp01(value) { return Math.max(0, Math.min(1, value)); }
 function lerp(a, b, t) { return a + (b - a) * t; }
 
-function formatMoscowDate(dateStr) {
-    try {
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return dateStr;
-        return date.toLocaleString('ru-RU', {
-            timeZone: 'Europe/Moscow',
-            day: '2-digit', month: '2-digit', year: 'numeric',
-            hour: '2-digit', minute: '2-digit'
-        }).replace(',', '');
-    } catch (e) { return dateStr; }
+function parseRuDateToTimestamp(dateStr) {
+    if (!dateStr) return 0;
+    if (typeof dateStr !== 'string') return 0;
+    
+    // Пытаемся найти дату вида ДД.ММ.ГГГГ
+    const parts = dateStr.match(/(\d{1,2})[\./-](\d{1,2})[\./-](\d{4})/);
+    if (parts) {
+        // Ищем время чч:мм:сс
+        const timeParts = dateStr.match(/(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?/);
+        const h = timeParts ? parseInt(timeParts[1]) : 0;
+        const m = timeParts ? parseInt(timeParts[2]) : 0;
+        const s = timeParts ? parseInt(timeParts[3] || 0) : 0;
+        
+        return new Date(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1]), h, m, s).getTime();
+    }
+    
+    // Если формат другой, пробуем стандартный
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? 0 : d.getTime();
 }
 
 function formatOrderDate(dateStr) {
     try {
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return dateStr;
+        const timestamp = parseRuDateToTimestamp(dateStr);
+        if (!timestamp) return dateStr || '';
+
+        const date = new Date(timestamp);
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
+        
         const orderDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
         const timeStr = date.toLocaleTimeString('ru-RU', {
-            timeZone: 'Europe/Moscow',
             hour: '2-digit', minute: '2-digit'
         });
+        
         if (orderDay.getTime() === today.getTime()) return 'Сегодня ' + timeStr;
         if (orderDay.getTime() === yesterday.getTime()) return 'Вчера ' + timeStr;
+        
         return date.toLocaleString('ru-RU', {
-            timeZone: 'Europe/Moscow',
             day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
         }).replace(',', '');
     } catch (e) { return dateStr; }
-}
-
-function parseRuDateToTimestamp(dateStr) {
-    if (!dateStr) return 0;
-    const parts = dateStr.match(/(\d{1,2})\.(\d{1,2})\.(\d{4}), (\d{1,2}):(\d{1,2}):(\d{1,2})/);
-    if (parts) {
-        return new Date(parts[3], parts[2] - 1, parts[1], parts[4], parts[5], parts[6]).getTime();
-    }
-    return new Date(dateStr).getTime() || 0;
 }
 
 function toBase64(file) {
@@ -77,11 +80,6 @@ function toBase64(file) {
         reader.onload = () => resolve(reader.result);
         reader.onerror = error => reject(error);
     });
-}
-
-function getDriveDirectLink(url) {
-    if (!url || typeof url !== 'string') return '';
-    return url;
 }
 
 function getThumb(url) {
@@ -354,11 +352,16 @@ async function loadData() {
     if (loaderH) loaderH.style.display = 'block';
 
     try {
-        const response = await fetch(CONFIG.WEB_APP_URL);
+        const response = await fetch(CONFIG.WEB_APP_URL + '?v=' + new Date().getTime());
         const result = await response.json();
-        orders = result.orders;
-        globalHidePrice = !result.settings.showPrice; 
-        renderOrders();
+        
+        if (result.error) {
+           showToast("Ошибка сервера: " + result.message);
+        } else {
+           orders = result.orders;
+           globalHidePrice = !result.settings.showPrice; 
+           renderOrders();
+        }
     } catch (error) {
         showToast("Ошибка связи с базой");
     } finally {
@@ -391,7 +394,7 @@ function renderStats() {
     };
 
     orders.forEach(o => {
-        const orderDate = new Date(o.date).getTime();
+        const orderDate = parseRuDateToTimestamp(o.date);
         const paid = parseFloat(o.paid) || 0;
 
         if (orderDate >= startOfWeek) stats.newWeek++;
@@ -449,13 +452,15 @@ function renderOrders() {
     const isWorker = (currentUser === 'Рома' || currentUser === 'Дима');
     const shouldHidePrice = isWorker && globalHidePrice;
 
+    // Сортировка безопасная, если даты нет - ставим вниз
     const sortedOrders = [...orders].sort((a, b) => {
         const timeA = parseRuDateToTimestamp(a.date);
         const timeB = parseRuDateToTimestamp(b.date);
-        return timeB - timeA;
+        return (timeB || 0) - (timeA || 0);
     });
 
     sortedOrders.forEach(order => {
+        // ЛОГИКА АРХИВА: Показываем "Готово" и "Отправлен"
         const isArchive = (order.status === 'Готово' || order.status === 'Отправлен'); 
         
         if (!isArchive) {
@@ -491,8 +496,8 @@ function renderOrders() {
             return div.innerHTML;
         };
 
-        const descText = order.desc || 'Нет описания';
-        const isLong = descText.length > 100 || (descText.match(/\n/g) || []).length > 2;
+      const descText = String(order.desc || 'Нет описания');
+      const isLong = descText.length > 100 || (descText.match(/\n/g) || []).length > 2;
         
         const descHtml = `
             <div class="card-desc line-clamp-3" id="desc-${order.id}">${escapeHtml(descText)}</div>
@@ -521,8 +526,8 @@ function renderOrders() {
                  const thumb = getThumb(url);
                  const full = getFullSize(url);
                  if (thumb) {
-                      galleryHtml += `<img src="${thumb}" class="gallery-img" style="border-color:var(--green);" onclick="openLightbox('${full}')" alt="Готово">`;
-                      photoCount++;
+                       galleryHtml += `<img src="${thumb}" class="gallery-img" style="border-color:var(--green);" onclick="openLightbox('${full}')" alt="Готово">`;
+                       photoCount++;
                  }
             });
         }
@@ -582,7 +587,6 @@ function openLightbox(url) {
     const modal = document.getElementById('modal-lightbox');
     const img = document.getElementById('lightbox-img');
     
-    // Пытаемся найти ID файла
     let fileId = null;
     const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
     if (match) {
@@ -594,8 +598,6 @@ function openLightbox(url) {
         }
     }
 
-    // ТРЮК: Используем ссылку thumbnail с параметром sz=w5000 (ширина до 5000px)
-    // Это дает картинку в высоком качестве и работает в img тегах без проблем с правами
     if (fileId) {
         img.src = `https://drive.google.com/thumbnail?id=${fileId}&sz=w5000`;
     } else {
@@ -704,7 +706,7 @@ function openOrderModal() {
     document.getElementById('n-layout').value = '';
     
     document.getElementById('lbl-n-photo').classList.remove('active');
- document.getElementById('lbl-n-photo').querySelector('span').innerText = "📸 Скрин макета";
+    document.getElementById('lbl-n-photo').querySelector('span').innerText = "📸 Скрин макета";
     document.getElementById('lbl-n-layout').classList.remove('active');
     document.getElementById('lbl-n-layout').querySelector('span').innerText = "📂 Макет";
 

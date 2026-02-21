@@ -794,6 +794,7 @@ button.main-btn:active {
   color: var(--card-muted-strong);
   line-height: 1.4;
   white-space: pre-wrap;
+  word-break: break-word; /* Укротит любые длинные ссылки и слова без пробелов */
 }
 
 .card-desc.line-clamp-3 {
