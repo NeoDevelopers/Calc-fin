@@ -30,10 +30,8 @@ function parseRuDateToTimestamp(dateStr) {
     if (!dateStr) return 0;
     if (typeof dateStr !== 'string') return 0;
     
-    // Пытаемся найти дату вида ДД.ММ.ГГГГ
     const parts = dateStr.match(/(\d{1,2})[\./-](\d{1,2})[\./-](\d{4})/);
     if (parts) {
-        // Ищем время чч:мм:сс
         const timeParts = dateStr.match(/(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?/);
         const h = timeParts ? parseInt(timeParts[1]) : 0;
         const m = timeParts ? parseInt(timeParts[2]) : 0;
@@ -42,7 +40,6 @@ function parseRuDateToTimestamp(dateStr) {
         return new Date(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1]), h, m, s).getTime();
     }
     
-    // Если формат другой, пробуем стандартный
     const d = new Date(dateStr);
     return isNaN(d.getTime()) ? 0 : d.getTime();
 }
@@ -441,6 +438,14 @@ function toggleDesc(id, btn) {
     }
 }
 
+// === НОВАЯ ФУНКЦИЯ ДЛЯ СЛАЙДЕРА ===
+function slideGallery(id, direction) {
+    const track = document.getElementById('gallery-track-' + id);
+    if (!track) return;
+    const scrollAmount = track.clientWidth;
+    track.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+}
+
 function renderOrders() {
     const queueList = document.getElementById('queue-list');
     const historyList = document.getElementById('history-list');
@@ -452,7 +457,7 @@ function renderOrders() {
     const isWorker = (currentUser === 'Рома' || currentUser === 'Дима');
     const shouldHidePrice = isWorker && globalHidePrice;
 
-    // Сортировка безопасная, если даты нет - ставим вниз
+    // Сортировка
     const sortedOrders = [...orders].sort((a, b) => {
         const timeA = parseRuDateToTimestamp(a.date);
         const timeB = parseRuDateToTimestamp(b.date);
@@ -460,7 +465,6 @@ function renderOrders() {
     });
 
     sortedOrders.forEach(order => {
-        // ЛОГИКА АРХИВА: Показываем "Готово" и "Отправлен"
         const isArchive = (order.status === 'Готово' || order.status === 'Отправлен'); 
         
         if (!isArchive) {
@@ -493,51 +497,72 @@ function renderOrders() {
             if (!str) return '';
             const div = document.createElement('div');
             div.textContent = str;
+            div.innerHTML = div.innerHTML;
             return div.innerHTML;
         };
 
-      const descText = String(order.desc || 'Нет описания');
-      const isLong = descText.length > 100 || (descText.match(/\n/g) || []).length > 2;
+        const descText = String(order.desc || 'Нет описания');
+        const isLong = descText.length > 100 || (descText.match(/\n/g) || []).length > 2;
         
         const descHtml = `
-            <div class="card-desc line-clamp-3" id="desc-${order.id}">${escapeHtml(descText)}</div>
-            ${isLong ? `<div class="btn-expand" onclick="toggleDesc('${order.id}', this)">Показать полностью</div>` : ''}
+            <div class="desc-window">
+                <div class="desc-window-label">Описание</div>
+                <div class="desc-window-inner">
+                    <div class="card-desc line-clamp-3" id="desc-${order.id}">${escapeHtml(descText)}</div>
+                    ${isLong ? `<button type="button" class="btn-expand" onclick="toggleDesc('${order.id}', this)">Показать полностью</button>` : ''}
+                </div>
+            </div>
         `;
 
-        const layoutBtn = order.layout ? `<button onclick="downloadLayout('${order.layout}', '${order.id}')" class="btn-dl btn-file" title="Скачать .sdr">📂 Скачать .sdr</button>` : '';
+        // КНОПКА ПЕРЕИМЕНОВАНА В "Скачать макет"
+        const layoutBtn = order.layout ? `<button onclick="downloadLayout('${order.layout}', '${order.id}')" class="btn-dl btn-file" title="Скачать .cdr">📂 Скачать макет</button>` : '';
         
-        let galleryHtml = '';
+        let slidesHtml = '';
         let photoCount = 0;
 
         if (order.photo) {
             const thumb = getThumb(order.photo);
             const full = getFullSize(order.photo);
             if (thumb) {
-                galleryHtml += `<img src="${thumb}" class="gallery-img" onclick="openLightbox('${full}')" alt="Фото">`;
+                slidesHtml += `<div class="gallery-slide"><img src="${thumb}" onclick="openLightbox('${full}')" alt="Фото"></div>`;
                 photoCount++;
             }
         }
         
         if (order.photoDone) {
-            const urls = order.photoDone.split('\n');
+            const urls = order.photoDone.split(/[\n\r\s,]+/).filter(Boolean);
             urls.forEach(url => {
                  url = url.trim();
                  if(!url) return;
                  const thumb = getThumb(url);
                  const full = getFullSize(url);
                  if (thumb) {
-                       galleryHtml += `<img src="${thumb}" class="gallery-img" style="border-color:var(--green);" onclick="openLightbox('${full}')" alt="Готово">`;
+                       slidesHtml += `<div class="gallery-slide"><img src="${thumb}" onclick="openLightbox('${full}')" alt="Готово"></div>`;
                        photoCount++;
                  }
             });
         }
 
-        if (photoCount === 0) {
-            galleryHtml = `<div class="gallery-placeholder">📷</div>`;
+        let gallerySection = '';
+        if (photoCount > 0) {
+            // Если фото больше 1, показываем стрелки
+            const navArrows = photoCount > 1 ? `
+                <button class="nav-arrow prev" onclick="slideGallery('${order.id}', -1)">❮</button>
+                <button class="nav-arrow next" onclick="slideGallery('${order.id}', 1)">❯</button>
+            ` : '';
+
+            gallerySection = `
+                <div class="gallery-wrapper">
+                    ${navArrows}
+                    <div class="gallery-track" id="gallery-track-${order.id}">
+                        ${slidesHtml}
+                    </div>
+                </div>
+            `;
         }
 
         const card = document.createElement('div');
-        card.className = `order-card ${cardStatusClass}`;
+        card.className = `order-card ${cardStatusClass}${isArchive ? ' archive-card' : ''}`;
 
         card.innerHTML = `
             <div class="card-header">
@@ -553,21 +578,18 @@ function renderOrders() {
                 </button>
             </div>
             
-            <div class="order-body-grid">
-                <div class="order-info">
-                    ${descHtml}
-                    <div class="card-badges">
-                        <span class="status-badge ${statusClass}" onclick="openStatusModal(${order.id})">${order.status}</span>
-                        ${deliveryBadge}
-                    </div>
-                    <div class="gallery-link">
-                        ${layoutBtn}
-                    </div>
+            <div class="order-info" style="margin-bottom: 12px;">
+                ${descHtml}
+                <div class="card-badges">
+                    <span class="status-badge ${statusClass}" onclick="openStatusModal(${order.id})">${order.status}</span>
+                    ${deliveryBadge}
                 </div>
-                <div class="order-gallery">
-                    ${galleryHtml}
+                <div class="gallery-link">
+                    ${layoutBtn}
                 </div>
             </div>
+
+            ${gallerySection}
 
             <div class="card-footer">
                 <span class="card-date">${formatOrderDate(order.date)}</span>
@@ -974,7 +996,7 @@ function downloadLayout(url, orderId) {
         const directUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
         const link = document.createElement('a');
         link.href = directUrl;
-        link.setAttribute('download', `Order_${orderId}.sdr`);
+        link.setAttribute('download', `Order_${orderId}.cdr`);
         link.target = '_self'; 
         
         document.body.appendChild(link);
