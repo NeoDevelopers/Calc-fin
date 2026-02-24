@@ -993,15 +993,6 @@ function downloadLayout(url, orderId) {
     }
 
     if (fileId) {
-        // ✅ ОТКРЫВАЕТСЯ В НОВОЙ ВКЛАДКЕ Google Drive Preview
-        const previewUrl = `https://drive.google.com/file/d/${fileId}/preview`;
-        window.open(previewUrl, '_blank', 'width=900,height=700,scrollbars=yes,resizable=yes');
-    } else {
-        window.open(url, '_blank');
-    }
-}
-
-    if (fileId) {
         const directUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
         const link = document.createElement('a');
         link.href = directUrl;
