@@ -538,8 +538,6 @@ function renderOrders() {
     }
 }
 
-        let slidesHtml = '';
-        let photoCount = 0;
 
         if (order.photo) {
             const thumb = getThumb(order.photo);
@@ -1013,5 +1011,4 @@ downloadLayout
     } else {
         window.open(url, '_blank');
     }
-
 }
