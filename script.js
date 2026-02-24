@@ -515,29 +515,10 @@ function renderOrders() {
         `;
 
         // КНОПКА ПЕРЕИМЕНОВАНА В "Скачать макет"
-        function downloadLayout(url, orderId) {
-    if (!url) return;
-    
-    let fileId = null;
-    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (match) {
-        fileId = match[1];
-    } else if (url.includes('id=')) {
-        const parts = url.split('id=');
-        if (parts.length > 1) {
-            fileId = parts[1].split('&')[0];
-        }
-    }
-
-    if (fileId) {
-        // ✅ ОТКРЫВАЕТСЯ В НОВОЙ ВКЛАДКЕ Google Drive Preview
-        const previewUrl = `https://drive.google.com/file/d/${fileId}/preview`;
-        window.open(previewUrl, '_blank', 'width=900,height=700,scrollbars=yes,resizable=yes');
-    } else {
-        window.open(url, '_blank');
-    }
-}
-
+        const layoutBtn = order.layout ? `<button onclick="downloadLayout('${order.layout}', '${order.id}')" class="btn-dl btn-file" title="Скачать .cdr">📂 Скачать макет</button>` : '';
+        
+        let slidesHtml = '';
+        let photoCount = 0;
 
         if (order.photo) {
             const thumb = getThumb(order.photo);
@@ -997,7 +978,20 @@ function closeModals() {
 
 window.onload = function() { calc(); };
 
-downloadLayout
+function downloadLayout(url, orderId) {
+    if (!url) return;
+    
+    let fileId = null;
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+        fileId = match[1];
+    } else if (url.includes('id=')) {
+        const parts = url.split('id=');
+        if (parts.length > 1) {
+            fileId = parts[1].split('&')[0];
+        }
+    }
+
     if (fileId) {
         const directUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
         const link = document.createElement('a');
